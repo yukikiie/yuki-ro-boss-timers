@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { apiFetch, appBasePath } from "./api";
 import { PrivateConnection } from "./private-connection";
 import { activateApplicationWorker, isApplicationRegistration } from "./push-registration";
-import { bossCatalog, bossDetails, sortBossesByRespawn, sortBossesForDisplay } from "../lib/boss-catalog.js";
+import { bossCatalog, bossDetails, sortBossesForDisplay } from "../lib/boss-catalog.js";
 import { ReferenceCountdown } from "./components/reference-countdown";
 import { AnimatedBossPortrait } from "./components/animated-boss-portrait";
 import { AnimatedHeader, LivingGarden } from "./components/living-scene";
@@ -244,7 +244,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
     const filtered = bosses.filter((boss) => (filter === "All" || boss.kind === filter) && (!favoritesOnly || boss.favorite));
     return sortBossesForDisplay(filtered) as Boss[];
   }, [bosses, filter, favoritesOnly]);
-  const featuredBoss = !resting ? sortBossesByRespawn(visibleBosses).find((boss: Boss) => boss.dueAt && ["counting", "due"].includes(boss.status)) : undefined;
+  const featuredBoss = !resting ? visibleBosses.find((boss: Boss) => boss.dueAt && ["counting", "due"].includes(boss.status)) : undefined;
 
   async function mutate(action: string, values: Record<string, unknown> = {}, message = "設定已儲存") {
     if (referencePreview) { setToast("本機樣式預覽，不會變更真實倒數。"); return false; }
