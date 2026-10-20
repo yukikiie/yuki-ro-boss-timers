@@ -54,7 +54,7 @@ function storage() {
   return { sqlite, queries, database };
 }
 
-function fixture() {
+function fixture(environmentOverrides: Partial<WorkerEnvironment> = {}) {
   const saved = storage();
   let currentTime = noon;
   let result: PushResult = { ok: true, status: 201, expired: false };
@@ -66,6 +66,7 @@ function fixture() {
     APP_URL: applicationUrl,
     VAPID_PUBLIC_KEY: vapid.publicKey,
     VAPID_PRIVATE_KEY: vapid.privateKey,
+    ...environmentOverrides,
   };
   const dependencies = {
     now: () => currentTime,
@@ -74,9 +75,13 @@ function fixture() {
       return result;
     },
   };
-  async function request(pathname: string, method = "GET", input?: unknown, extraHeaders?: Record<string, string>) {
-    const headers: Record<string, string> = { Origin: allowedOrigin, Authorization: `Bearer ${connectionKey}`, ...extraHeaders };
-    if (input !== undefined) headers["Content-Type"] = "application/json";
+  async function request(pathname: string, method = "GET", input?: unknown, extraHeaders?: Record<string, string | null>) {
+    const headers = new Headers({ Origin: allowedOrigin, Authorization: `Bearer ${connectionKey}` });
+    for (const [name, value] of Object.entries(extraHeaders || {})) {
+      if (value === null) headers.delete(name);
+      else headers.set(name, value);
+    }
+    if (input !== undefined) headers.set("Content-Type", "application/json");
     return handleRequest(new Request(`https://api.example.workers.dev${pathname}`, {
       method, headers, body: input === undefined ? undefined : JSON.stringify(input),
     }), environment, dependencies);
@@ -129,6 +134,166 @@ test("missing or malformed stored key hashes fail closed before database access"
   }
   assert.equal(current.queries.length, 0);
   current.sqlite.close();
+});
+
+test("public timers require the exact string true and every other flag preserves owner authentication", async () => {
+  for (const enabled of [undefined, "false", "", "True", "TRUE", " true ", "1", true as unknown as string]) {
+    const current = fixture({ PUBLIC_TIMERS: enabled });
+    const response = await current.request("/api/state", "GET", undefined, { Authorization: null });
+    assert.equal(response.status, 401);
+    assert.equal(current.queries.length, 0);
+    assert.equal((await current.request("/api/state")).status, 200);
+    current.sqlite.close();
+  }
+  const current = fixture({ PUBLIC_TIMERS: "false", OWNER_KEY_SHA256: undefined });
+  assert.equal((await current.request("/api/state", "GET", undefined, { Authorization: null })).status, 503);
+  assert.equal(current.queries.length, 0);
+  current.sqlite.close();
+});
+
+test("public opt-in removes the code requirement without changing saved timers or exposing credentials", async () => {
+  const current = fixture();
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "death-knight", seconds: 300 });
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "naght-sieger", seconds: 360 });
+  await current.request("/api/push/subscribe", "POST", subscription);
+  const before = current.sqlite.prepare("SELECT * FROM timer_accounts WHERE user_id=?").get(ownerIdentity);
+  const deviceBefore = current.sqlite.prepare("SELECT * FROM push_subscriptions").all();
+  current.environment.PUBLIC_TIMERS = "true";
+  delete current.environment.OWNER_KEY_SHA256;
+  const response = await current.request("/api/state", "GET", undefined, { Authorization: null });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), allowedOrigin);
+  assert.equal(response.headers.get("Access-Control-Allow-Credentials"), null);
+  const encoded = await response.text();
+  assertPrivateResponse(encoded);
+  const data = JSON.parse(encoded);
+  assert.deepEqual(Object.keys(data).sort(), ["alerts", "bosses", "push", "revision", "schedule", "serverNow"]);
+  assert.deepEqual(Object.keys(data.push).sort(), ["configured", "lastDispatchAt", "publicKey", "schedulerReady", "subscriptions"]);
+  assert.equal(data.push.publicKey, vapid.publicKey);
+  assert.equal(data.push.subscriptions, 1);
+  assert.equal(data.bosses.find((boss: { id: string }) => boss.id === "death-knight").dueAt, noon + 300_000);
+  assert.equal(data.bosses.find((boss: { id: string }) => boss.id === "naght-sieger").dueAt, noon + 360_000);
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM timer_accounts WHERE user_id=?").get(ownerIdentity), before);
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM push_subscriptions").all(), deviceBefore);
+  current.sqlite.close();
+});
+
+test("public callers edit the same fixed owner roster and cannot select another account", async () => {
+  const current = fixture({ PUBLIC_TIMERS: "true", OWNER_KEY_SHA256: undefined });
+  const withoutCode = { Authorization: null };
+  const initial = await (await current.request("/api/state", "GET", undefined, withoutCode)).json();
+  current.sqlite.prepare("INSERT INTO timer_accounts (user_id,bosses,revision,updated_at) VALUES (?,?,0,?)")
+    .run("different-owner", JSON.stringify(initial.bosses), noon);
+  const otherBefore = current.sqlite.prepare("SELECT * FROM timer_accounts WHERE user_id='different-owner'").get();
+  const edited = await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 600, userId: "different-owner" }, withoutCode);
+  assert.equal(edited.status, 200);
+  assertPrivateResponse(await edited.text());
+  const secondVisitor = await (await current.request("/api/state", "GET", undefined, withoutCode)).json();
+  assert.equal(secondVisitor.bosses.find((boss: { id: string }) => boss.id === "morocc").dueAt, noon + 600_000);
+  assert.equal(secondVisitor.revision, initial.revision + 1);
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM timer_accounts WHERE user_id='different-owner'").get(), otherBefore);
+  assert.equal((await current.request("/api/bosses", "POST", { action: "favorite", bossId: "morocc", favorite: true }, withoutCode)).status, 200);
+  const latest = await (await current.request("/api/state", "GET", undefined, withoutCode)).json();
+  assert.equal(latest.bosses.find((boss: { id: string }) => boss.id === "morocc").favorite, true);
+  current.sqlite.close();
+});
+
+test("public mode still rejects forged Sites identity, untrusted origins and oversized JSON before storage", async () => {
+  const current = fixture({ PUBLIC_TIMERS: "true", OWNER_KEY_SHA256: undefined });
+  const forged = await current.request("/api/state", "GET", undefined, { Authorization: null, "oai-authenticated-user-id": "victim" });
+  assert.equal(forged.status, 403);
+  for (const origin of ["null", "https://attacker.test", "https://yukikiie.github.io.attacker.test", "http://yukikiie.github.io"]) {
+    const response = await current.request("/api/state", "GET", undefined, { Authorization: null, Origin: origin });
+    assert.equal(response.status, 403);
+    assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
+  }
+  for (const [body, contentType, status] of [
+    [JSON.stringify({ ignored: "字".repeat(8192) }), "application/json", 413],
+    ["[]", "application/json", 400],
+    ["{}", "text/plain", 415],
+  ] as const) {
+    const response = await handleRequest(new Request("https://api.example.workers.dev/api/bosses", {
+      method: "POST", headers: { Origin: allowedOrigin, "Content-Type": contentType }, body,
+    }), current.environment, current.dependencies);
+    assert.equal(response.status, status);
+  }
+  assert.equal(current.queries.length, 0);
+  const preflight = await handleRequest(new Request("https://api.example.workers.dev/api/bosses", {
+    method: "OPTIONS", headers: { Origin: allowedOrigin, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type" },
+  }), current.environment, current.dependencies);
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get("Access-Control-Allow-Origin"), allowedOrigin);
+  assert.equal(preflight.headers.get("Access-Control-Allow-Credentials"), null);
+  assert.equal(current.queries.length, 0);
+  current.sqlite.close();
+});
+
+test("public push operations require the specific endpoint capability and never enumerate or alter other devices", async () => {
+  const current = fixture({ PUBLIC_TIMERS: "true", OWNER_KEY_SHA256: undefined });
+  const withoutCode = { Authorization: null };
+  const second: ValidatedSubscription = { ...subscription, endpoint: "https://web.push.apple.com/second-private-endpoint", keys: { ...subscription.keys, auth: Buffer.alloc(16, 29).toString("base64url") } };
+  for (const device of [subscription, second]) {
+    const response = await current.request("/api/push/subscribe", "POST", device, withoutCode);
+    assert.equal(response.status, 200);
+    const body = await response.text();
+    assertPrivateResponse(body);
+    assert.equal(body.includes(second.endpoint), false);
+    assert.equal(body.includes(second.keys.auth), false);
+  }
+  const devices = () => current.sqlite.prepare("SELECT id,tested_at FROM push_subscriptions ORDER BY id").all();
+  const before = devices();
+  for (const pathname of ["/api/push/status", "/api/push/test", "/api/push/subscribe"]) {
+    const method = pathname === "/api/push/subscribe" ? "DELETE" : "POST";
+    assert.equal((await current.request(pathname, method, {}, withoutCode)).status, 400);
+  }
+  const unknownEndpoint = "https://web.push.apple.com/unknown-capability";
+  assert.deepEqual(await (await current.request("/api/push/status", "POST", { endpoint: unknownEndpoint }, withoutCode)).json(), { connected: false, testedAt: null });
+  assert.equal((await current.request("/api/push/test", "POST", { endpoint: unknownEndpoint }, withoutCode)).status, 404);
+  assert.equal((await current.request("/api/push/subscribe", "DELETE", { endpoint: unknownEndpoint }, withoutCode)).status, 200);
+  assert.deepEqual(devices(), before);
+  assert.equal(current.pushes.length, 0);
+  for (const pathname of ["/api/dispatch", "/api/subscriptions", "/api/push/subscriptions"]) {
+    const response = await current.request(pathname, "GET", undefined, withoutCode);
+    assert.equal(response.status, 404);
+    assertPrivateResponse(await response.text());
+  }
+  assert.equal((await current.request("/api/dispatch", "POST", {}, withoutCode)).status, 404);
+  assert.equal((await current.request("/api/push/subscribe", "GET", undefined, withoutCode)).status, 405);
+  const tested = await current.request("/api/push/test", "POST", { endpoint: subscription.endpoint }, withoutCode);
+  assert.equal(tested.status, 200);
+  assertPrivateResponse(await tested.text());
+  assert.equal(current.pushes.length, 1);
+  assert.equal(current.pushes[0].subscription.endpoint, subscription.endpoint);
+  assert.deepEqual(await (await current.request("/api/push/status", "POST", { endpoint: second.endpoint }, withoutCode)).json(), { connected: true, testedAt: null });
+  const removed = await current.request("/api/push/subscribe", "DELETE", { endpoint: subscription.endpoint }, withoutCode);
+  assert.equal(removed.status, 200);
+  assert.equal((await removed.json()).push.subscriptions, 1);
+  assert.deepEqual(await (await current.request("/api/push/status", "POST", { endpoint: subscription.endpoint }, withoutCode)).json(), { connected: false, testedAt: null });
+  assert.deepEqual(await (await current.request("/api/push/status", "POST", { endpoint: second.endpoint }, withoutCode)).json(), { connected: true, testedAt: null });
+  current.sqlite.close();
+});
+
+test("public mode leaves minute cron and per-device10/5/1/spawn dedup unchanged without an owner code", async () => {
+  const current = fixture({ PUBLIC_TIMERS: "true", OWNER_KEY_SHA256: undefined });
+  const withoutCode = { Authorization: null };
+  await current.request("/api/push/subscribe", "POST", subscription, withoutCode);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 590 }, withoutCode);
+  for (const offset of [0, 300_000, 530_000, 590_000]) {
+    current.now(noon + offset);
+    assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
+    assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  }
+  assert.deepEqual(current.pushes.map((push) => push.payload.title), ["夢羅克 · 10 分鐘提醒", "夢羅克 · 5 分鐘提醒", "夢羅克 · 1 分鐘提醒", "夢羅克 · 重生時間到"]);
+  current.sqlite.close();
+});
+
+test("deployment explicitly opts into public timers without putting private values in Wrangler variables", async () => {
+  const configuration = JSON.parse(await readFile(new URL("../worker/wrangler.jsonc", import.meta.url), "utf8"));
+  assert.equal(configuration.vars.PUBLIC_TIMERS, "true");
+  assert.equal(configuration.vars.ALLOWED_ORIGIN, allowedOrigin);
+  assert.deepEqual(configuration.triggers.crons, ["* * * * *"]);
+  assert.equal("OWNER_KEY_SHA256" in configuration.vars, false);
+  assert.equal("VAPID_PRIVATE_KEY" in configuration.vars, false);
 });
 
 test("exact GitHub origin is enforced before authentication and database access", async () => {

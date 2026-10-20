@@ -7,10 +7,20 @@ The original hosted app is a separate application. This repository contains no o
 ## Architecture
 
 - GitHub Pages serves the static React interface at `https://yukikiie.github.io/yuki-ro-boss-timers/`.
-- A separate Cloudflare Worker and D1 database store the private roster and send Web Push notifications.
-- An unguessable 256-bit private connection code protects the single owner's API. Only its SHA-256 hash is stored in Worker secrets. The private code is never part of this repository or a website URL.
+- A separate Cloudflare Worker and D1 database store one shared roster and send Web Push notifications.
+- This deployment explicitly enables `PUBLIC_TIMERS="true"`: open the GitHub address without a connection code. Anyone who can reach the site or API can read, add, change or remove the shared timers. There are no separate private timers per visitor.
 - A Cloudflare cron invokes the durable reminder dispatcher every minute. The browser, ChatGPT and the Windows PC do not need to remain open. Delivery can still be delayed by the network, device settings and push gateways; exact-second delivery is not guaranteed.
 - The two websites have independent timers and notification registrations. Updating this repository does not deploy or overwrite the original website.
+
+## Public access and privacy
+
+Public access is intentional and applies only to this GitHub copy. Treat the roster, boss names and recent notification history as public; do not enter private information. A link is not a password. Another visitor's timer changes affect the same roster and reminders on every subscribed device, including the owner's phone. The browser origin allowlist limits browser access but does not prevent direct API clients from using this public service.
+
+Push subscription endpoints and device encryption keys remain in Cloudflare storage and are never listed by the API. Device status, test and removal require the particular subscription endpoint; they do not accept a public list index or device identifier. The Web Push public key is intentionally available to browsers, while the VAPID private key and other runtime secrets remain server-side. No HTTP route invokes the reminder dispatcher.
+
+This is a small shared tool, not an abuse-resistant public service: anyone may consume the shared eight-device subscription limit or repeatedly change timers. Disabling notifications on one device does not prevent other visitors from using the shared roster. The existing Windows-encrypted setup backup remains private and ignored by Git; it is not published or needed to open the public site.
+
+The backend enables public access only for the exact string `PUBLIC_TIMERS="true"`. Missing, false or malformed values retain the private bearer-key checks and fail closed without a valid private configuration. The current public frontend has no code-entry screen; returning to private access also requires restoring a compatible authenticated frontend. The original hosted website remains unchanged.
 
 ## First deployment
 
@@ -19,20 +29,18 @@ The original hosted app is a separate application. This repository contains no o
 3. Create a new database: `npx wrangler d1 create yuki-ro-boss-timers --config worker/wrangler.jsonc`.
 4. Replace the database placeholder in `worker/wrangler.jsonc` with that exact returned database ID. Do not use an existing app's database.
 5. Run `npm run worker:migrate`.
-6. Generate a random 32-byte base64url owner connection code and an independent Web Push VAPID key pair. Keep the connection code and private key private. Set `OWNER_KEY_SHA256`, `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` with Wrangler's secret commands; never put them in source files, GitHub Pages settings or frontend environment variables.
+6. Generate an independent Web Push VAPID key pair. Set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` with Wrangler's secret commands; never put the private key in source files, GitHub Pages settings or frontend environment variables. Deliberately set the Worker variable `PUBLIC_TIMERS` to the exact string `"true"` only if everyone may read and edit this shared roster. Public mode does not require an owner connection code. Keep any existing private setup backup ignored and unpublished.
 7. Run `npm run worker:deploy`. Set `public/config.json`'s `apiOrigin` to the exact HTTPS Worker origin returned by deployment.
 8. Run `npm test`, `npm run typecheck` and `npm run build`.
 9. Push the source to `main`. In repository Settings → Pages, select GitHub Actions. The included workflow tests and publishes only the static `dist/` directory.
 
-The configured origin allowlist is exactly `https://yukikiie.github.io`; the application URL includes its project path. Authentication is required even when the request origin is allowed. There is no unauthenticated dispatch endpoint and no public route that lists subscriptions or private keys.
+The configured origin allowlist is exactly `https://yukikiie.github.io`; the application URL includes its project path. Public mode does not require a bearer header. The backend's default private mode still requires authentication even when the origin is allowed. There is no HTTP dispatch endpoint or public route listing subscriptions or private keys.
 
 ## Connect a device and test notifications
 
-Open the GitHub Pages address and enter the private connection code. It is saved only after the backend validates it. Use Settings → Disconnect to forget it on that browser. Publish only trusted applications under this GitHub account: GitHub Pages projects on the same account share a browser origin and therefore the origin's storage trust boundary.
+Open the GitHub Pages address directly; there is no sign-in or connection code. Publish only trusted applications under this GitHub account: GitHub Pages projects on the same account share a browser origin and therefore the origin's browser-storage trust boundary.
 
-On the original setup PC, the owner can run `powershell -NoProfile -File scripts/show-connection-code.ps1` to read the Windows-encrypted local setup backup. That private backup is ignored by Git and is not part of a clone or the website. Never share it or paste its contents into a public issue.
-
-On iPhone, open the GitHub address in Safari, choose Share → Add to Home Screen, then open that new icon. Enter the connection code and enable notifications from the app's notification screen. Permission and subscriptions from the original website cannot transfer to this different origin.
+On iPhone, open the GitHub address in Safari, choose Share → Add to Home Screen, then open that new icon. Enable notifications from the app's notification screen. Permission and subscriptions from the original website cannot transfer to this different origin. Each visitor must grant notification permission on their own device; opening the link alone does not subscribe it. All subscribed devices receive reminders for the same public roster.
 
 Send a test notification and verify that it actually appears on the phone, including while locked. Gateway acceptance alone is not proof of display. Focus modes, notification settings, battery/network conditions and operating-system policies can delay or suppress delivery. Wait for the backend status to report its first successful scheduled dispatch before relying on closed-app reminders; Cron Trigger changes can take several minutes to propagate.
 
@@ -52,7 +60,7 @@ The compact route strip selects the earliest two confirmed future countdowns acr
 
 - `npm run dev`: frontend at local port 5174, including the `/yuki-ro-boss-timers/` base path.
 - `npm run worker:dev`: local Worker at port 8787. Production's exact origin allowlist is intentionally not relaxed for localhost.
-- `npm test`: timer, metadata, Web Push encryption, worker/storage, authentication, CORS and project-path tests.
+- `npm test`: timer, metadata, Web Push encryption, worker/storage, public/private access boundaries, CORS and project-path tests.
 - `npm run typecheck`: frontend and backend TypeScript checks.
 - `npm run build`: static frontend; private Worker secrets are never bundled.
 

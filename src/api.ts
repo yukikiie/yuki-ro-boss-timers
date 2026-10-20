@@ -3,8 +3,6 @@ export type ApiConfiguration = { apiOrigin: string };
 type ApiClientOptions = {
   basePath: string;
   fetcher?: typeof fetch;
-  storage?: Pick<Storage, "getItem" | "setItem" | "removeItem">;
-  onUnauthorized?: () => void;
   allowLocalHttp?: boolean;
 };
 
@@ -22,16 +20,10 @@ export function validatedApiOrigin(value: unknown, allowLocalHttp = false) {
   return destination.origin;
 }
 
-export function validConnectionCode(value: string) {
-  return /^[A-Za-z0-9_-]{43}$/.test(value);
-}
-
-export function createApiClient({ basePath, fetcher = fetch, storage, onUnauthorized, allowLocalHttp = false }: ApiClientOptions) {
+export function createApiClient({ basePath, fetcher = fetch, allowLocalHttp = false }: ApiClientOptions) {
   const base = normalizedBasePath(basePath);
-  const storageKey = `bosswatch.github.connection:${base}`;
   let origin: string | null = null;
   let configuration: Promise<void> | null = null;
-  let connectionCode: string | null = null;
 
   async function configure() {
     if (!configuration) configuration = (async () => {
@@ -43,56 +35,20 @@ export function createApiClient({ basePath, fetcher = fetch, storage, onUnauthor
     await configuration;
   }
 
-  function disconnect() {
-    connectionCode = null;
-    try { storage?.removeItem(storageKey); } catch {}
-  }
-
-  function rememberedCode() {
-    try {
-      const value = storage?.getItem(storageKey);
-      return value && validConnectionCode(value) ? value : null;
-    } catch { return null; }
-  }
-
-  async function request(path: string, init: RequestInit = {}, candidate = connectionCode) {
+  async function request(path: string, init: RequestInit = {}) {
     if (!/^\/api\/[a-z]+(?:\/[a-z]+)*$/.test(path)) throw new Error("Invalid API request path.");
-    if (!candidate || !validConnectionCode(candidate)) throw new Error("請輸入你的私人連接碼。");
     await configure();
     const headers = new Headers(init.headers);
-    headers.set("Authorization", `Bearer ${candidate}`);
+    headers.delete("Authorization");
     const response = await fetcher(`${origin}${path}`, { ...init, headers, credentials: "omit", mode: "cors", redirect: "error" });
-    if (response.status === 401) {
-      disconnect();
-      onUnauthorized?.();
-      throw new Error("連接碼無效或已更新，請重新連接。");
-    }
+    if (response.status === 401) throw new Error("計時服務尚未啟用公開存取，請確認雲端設定。");
     return response;
   }
 
-  async function connect(value: string) {
-    const candidate = value.trim();
-    if (!validConnectionCode(candidate)) throw new Error("請輸入完整的 43 字元私人連接碼。");
-    const response = await request("/api/state", { cache: "no-store" }, candidate);
-    if (!response.ok) throw new Error("暫時未能連接私人計時服務，請稍後再試。");
-    const state = await response.json() as { serverNow?: unknown; bosses?: unknown };
-    if (typeof state.serverNow !== "number" || !Array.isArray(state.bosses)) throw new Error("私人計時服務傳回無效資料。");
-    connectionCode = candidate;
-    try { storage?.setItem(storageKey, candidate); } catch {}
-  }
-
-  return { request, connect, disconnect, rememberedCode };
+  return { request };
 }
 
 const basePath = normalizedBasePath(import.meta.env?.BASE_URL || "/yuki-ro-boss-timers/");
-const browserStorage = typeof window !== "undefined" ? {
-  getItem: (key: string) => window.localStorage.getItem(key),
-  setItem: (key: string, value: string) => window.localStorage.setItem(key, value),
-  removeItem: (key: string) => window.localStorage.removeItem(key),
-} : undefined;
-
-export const apiClient = createApiClient({ basePath, storage: browserStorage, allowLocalHttp: import.meta.env?.DEV === true, onUnauthorized: () => {
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("bosswatch-disconnected"));
-} });
+export const apiClient = createApiClient({ basePath, allowLocalHttp: import.meta.env?.DEV === true });
 export const apiFetch = apiClient.request;
 export const appBasePath = basePath;

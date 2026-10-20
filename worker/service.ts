@@ -10,6 +10,7 @@ export const applicationUrl = "https://yukikiie.github.io/yuki-ro-boss-timers/";
 export type WorkerEnvironment = VapidEnvironment & {
   DB?: D1Database;
   OWNER_KEY_SHA256?: string;
+  PUBLIC_TIMERS?: string;
   ALLOWED_ORIGIN?: string;
   APP_URL?: string;
 };
@@ -40,6 +41,7 @@ export function sameOrigin(request: Request, environment: WorkerEnvironment) {
 
 export async function userIdentity(request: Request, environment: WorkerEnvironment) {
   if (request.headers.has("oai-authenticated-user-id")) throw new ApiError("不支援這種登入方式。", 403);
+  if (environment.PUBLIC_TIMERS === "true") return ownerIdentity;
   const expected = environment.OWNER_KEY_SHA256;
   if (!expected || !/^[a-f0-9]{64}$/.test(expected)) throw new ApiError("私人計時器尚未完成連線設定。", 503);
   const authorization = request.headers.get("authorization") || "";

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { apiFetch, appBasePath } from "./api";
-import { PrivateConnection } from "./private-connection";
 import { activateApplicationWorker, isApplicationRegistration } from "./push-registration";
 import { bossCatalog, bossDetails, sortBossesForDisplay } from "../lib/boss-catalog.js";
 import { upcomingBosses } from "../lib/timers.js";
@@ -147,7 +146,7 @@ function previewState(extraDigits = false, allBosses = false): AppState {
   };
 }
 
-export function BossTimerApp({ referencePreview = false, previewExtraDigits = false, previewAllBosses = false, previewSceneMode = "auto", previewTallHeader = false, onDisconnect }: { referencePreview?: boolean; previewExtraDigits?: boolean; previewAllBosses?: boolean; previewSceneMode?: SceneMode; previewTallHeader?: boolean; onDisconnect?: () => void }) {
+export function BossTimerApp({ referencePreview = false, previewExtraDigits = false, previewAllBosses = false, previewSceneMode = "auto", previewTallHeader = false }: { referencePreview?: boolean; previewExtraDigits?: boolean; previewAllBosses?: boolean; previewSceneMode?: SceneMode; previewTallHeader?: boolean }) {
   const [data, setData] = useState<AppState | null>(() => referencePreview ? previewState(previewExtraDigits, previewAllBosses) : null);
   const [loading, setLoading] = useState(!referencePreview);
   const [networkError, setNetworkError] = useState("");
@@ -409,7 +408,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
           <div className="notification-disclaimer"><ShieldCheck size={15} /><p>雲端每分鐘檢查，並非秒級提醒。測試成功僅表示通知已交給推播服務，請在手機確認實際收到。專注模式、網路或省電設定可能延遲通知。03:00–05:00 HKT 休眠時段不發 Boss 提醒。</p></div>
         </section><section className="recent-alerts"><div className="section-title"><div><h2>最近提醒 <span>{data?.alerts.length || 0}</span></h2><p>伺服器建立的提醒紀錄</p></div><Bell size={18} /></div>{data?.alerts.length ? <div className="alert-list">{data.alerts.slice(0, 20).map((alert) => <article key={alert.id}><span className="alert-icon"><Bell size={16} /></span><div><strong>{alert.title}</strong><p>{alert.message}</p><span>{timeText(alert.createdAt)} HKT <span>·</span>{["sent", "accepted"].includes(alert.status) ? "已交給推播服務" : alert.status === "failed" ? "傳送失敗" : alert.status === "pending" ? "等待傳送" : alert.status === "no_subscription" ? "沒有已連接裝置" : "已建立"}</span></div></article>)}</div> : <div className="alerts-empty"><div><Bell size={28} strokeWidth={1} /><span /></div><h3>好消息，還在路上。</h3><p>設定倒數後，提醒紀錄會出現在這裡。</p></div>}</section></div>}
 
-        {view === "guide" && <div className="guide-layout"><section className="guide-intro"><div className="eyebrow">THREE STEPS. ALL SET.</div><h2>設定一次，<br /><span>把等待交給倒數。</span></h2><p>先做好計時和通知，遊戲仍然由你掌控。這個版本不會自動辨識 Boss 或執行遊戲操作。</p><button className="button button-dark" onClick={() => setView("timers")}>回到我的計時 <ArrowRight size={16} /></button></section><div className="guide-steps"><article><span className="guide-step">01</span><div><Timer size={22} /><h3>輸入每一隻的實際倒數</h3><p>在遊戲內確認 Boss 名稱和剩餘時間，點選「設定倒數」。每一隻都獨立計時，不會套用同一個時間。出發順序依已確認的倒數先後，不受 MVP、Mini 或最愛篩選影響；兩隻相隔 5 分鐘內會標示「緊接重生」。</p></div></article><article><span className="guide-step">02</span><div><CheckCheck size={22} /><h3>剛擊殺？一按重新開始</h3><p>確定 Boss 剛剛死亡後，選擇「剛被擊殺」。Mini 從 2 小時、MVP 從 3 小時開始倒數。若與遊戲顯示不同，請用實際倒數覆蓋。</p></div></article><article><span className="guide-step">03</span><div><Smartphone size={22} /><h3>把提醒送到你的 iPhone</h3><p>用 Safari 加入主畫面，從圖示開啟並允許通知。Cloudflare 會每分鐘檢查提醒，無須開著電腦。提醒會在 10、5、1 分鐘及預計出現時送出，並提示接著準備的 Boss。先傳送測試，確認手機收到，再依賴正式提醒。</p><button className="inline-link" onClick={() => setView("notifications")}>前往設定通知 <ArrowUpRight size={14} /></button></div></article></div><section className="settings-panel private-account-settings"><h3>私人連接</h3><p>計時資料與原本網站分開儲存。更換連接碼或使用共用裝置時，請先中斷連接。已啟用的通知不會因此停用；若不想再收到，請先到通知中心停用此裝置。</p><button className="button button-outline" type="button" onClick={onDisconnect}>中斷連接／更換連接碼</button></section><section className="daily-guide"><Moon size={27} strokeWidth={1.3} /><div><h3>每天 05:00 HKT，重新確認新輪替。</h3><p>遊戲時間比香港慢 1 小時。Boss 休眠為遊戲 02:00–04:00，即香港 03:00–05:00；休眠期間停止提醒。香港 05:00 換日清除昨日倒數，新的 Boss 不會自動從 2 或 3 小時開始。</p></div></section></div>}
+{view === "guide" && <div className="guide-layout"><section className="guide-intro"><div className="eyebrow">THREE STEPS. ALL SET.</div><h2>設定一次，<br /><span>把等待交給倒數。</span></h2><p>先做好計時和通知，遊戲仍然由你掌控。這個版本不會自動辨識 Boss 或執行遊戲操作。</p><button className="button button-dark" onClick={() => setView("timers")}>回到我的計時 <ArrowRight size={16} /></button></section><div className="guide-steps"><article><span className="guide-step">01</span><div><Timer size={22} /><h3>輸入每一隻的實際倒數</h3><p>在遊戲內確認 Boss 名稱和剩餘時間，點選「設定倒數」。每一隻都獨立計時，不會套用同一個時間。出發順序依已確認的倒數先後，不受 MVP、Mini 或最愛篩選影響；兩隻相隔 5 分鐘內會標示「緊接重生」。</p></div></article><article><span className="guide-step">02</span><div><CheckCheck size={22} /><h3>剛擊殺？一按重新開始</h3><p>確定 Boss 剛剛死亡後，選擇「剛被擊殺」。Mini 從 2 小時、MVP 從 3 小時開始倒數。若與遊戲顯示不同，請用實際倒數覆蓋。</p></div></article><article><span className="guide-step">03</span><div><Smartphone size={22} /><h3>把提醒送到你的 iPhone</h3><p>用 Safari 加入主畫面，從圖示開啟並允許通知。Cloudflare 會每分鐘檢查提醒，無須開著電腦。提醒會在 10、5、1 分鐘及預計出現時送出，並提示接著準備的 Boss。先傳送測試，確認手機收到，再依賴正式提醒。</p><button className="inline-link" onClick={() => setView("notifications")}>前往設定通知 <ArrowUpRight size={14} /></button></div></article></div><section className="settings-panel shared-timer-notice"><h3>共同計時面板</h3><p>不需要連接碼。任何持有網址的人都可以查看及修改此面板的倒數，請只分享給可信任的人。通知仍需每台裝置自行允許；GitHub 與原本網站的計時資料分開儲存。</p></section><section className="daily-guide"><Moon size={27} strokeWidth={1.3} /><div><h3>每天 05:00 HKT，重新確認新輪替。</h3><p>遊戲時間比香港慢 1 小時。Boss 休眠為遊戲 02:00–04:00，即香港 03:00–05:00；休眠期間停止提醒。香港 05:00 換日清除昨日倒數，新的 Boss 不會自動從 2 或 3 小時開始。</p></div></section></div>}
         <footer className="footer"><a href={appBasePath} aria-label="Bosswatch 首頁">YUKI · BOSSWATCH</a><span>獨立計時工具 · 非官方遊戲服務 <span className="footer-dot">·</span>HKT / UTC+8</span></footer>
       </main>
     </div>
@@ -433,4 +432,4 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
   </div>;
 }
 
-export default function Home() { return <PrivateConnection>{(disconnect) => <BossTimerApp onDisconnect={disconnect} />}</PrivateConnection>; }
+export default function Home() { return <BossTimerApp />; }

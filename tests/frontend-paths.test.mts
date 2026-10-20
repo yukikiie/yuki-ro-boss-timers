@@ -2,18 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
-import { createApiClient, normalizedBasePath, validConnectionCode, validatedApiOrigin } from "../src/api.ts";
+import { createApiClient, normalizedBasePath, validatedApiOrigin } from "../src/api.ts";
 import { normalizeAssetBase, rewritePublicAssetPaths } from "../src/asset-paths.ts";
 import { activateApplicationWorker, isApplicationRegistration } from "../src/push-registration.ts";
 
 const base = "/yuki-ro-boss-timers/";
-const ownerCode = "test-code-not-a-real-secret-123456789012345";
-
-function storageFixture() {
-  const values = new Map<string, string>();
-  return { values, getItem: (key: string) => values.get(key) || null, setItem: (key: string, value: string) => { values.set(key, value); }, removeItem: (key: string) => { values.delete(key); } };
-}
-
 function stateResponse() { return Response.json({ serverNow: 1234, bosses: [] }); }
 
 test("asset base accepts only an absolute project directory", () => {
@@ -47,76 +40,62 @@ test("API configuration rejects credentials, unsafe origins, paths and key-beari
   for (const value of [undefined, "", "not-a-url", "http://example.com", "https://owner:code@example.com", "https://example.com/private", "https://example.com/?code=secret", "https://example.com/#secret", "file:///api"]) assert.throws(() => validatedApiOrigin(value));
 });
 
-test("private connection verifies server state before remembering a code", async () => {
-  assert.equal(ownerCode.length, 43);
-  assert.equal(validConnectionCode(ownerCode), true);
-  const storage = storageFixture();
-  const calls: { url: string; init: RequestInit }[] = [];
-  const client = createApiClient({ basePath: base, storage, fetcher: async (input, init = {}) => {
-    const url = String(input);
-    calls.push({ url, init });
-    if (url === `${base}config.json`) {
-      assert.equal(new Headers(init.headers).has("Authorization"), false);
-      return Response.json({ apiOrigin: "https://timers.example.workers.dev" });
-    }
-    assert.equal(storage.values.size, 0);
-    assert.equal(new Headers(init.headers).get("Authorization"), `Bearer ${ownerCode}`);
-    return stateResponse();
-  } });
-  await client.connect(ownerCode);
-  assert.equal(client.rememberedCode(), ownerCode);
-  assert.equal(storage.values.size, 1);
-  assert.deepEqual(calls.map((call) => call.url), [`${base}config.json`, "https://timers.example.workers.dev/api/state"]);
-  assert.ok(calls.every((call) => call.init.credentials === "omit" && call.init.redirect === "error"));
-  assert.equal(calls[1].init.mode, "cors");
-});
-
-test("API calls use only the configured origin and protected bearer header", async () => {
+test("shared state opens directly without a connection code, bearer or cookies", async () => {
   const calls: { url: string; init: RequestInit }[] = [];
   const client = createApiClient({ basePath: base, fetcher: async (input, init = {}) => {
     const url = String(input);
     calls.push({ url, init });
-    return url.endsWith("config.json") ? Response.json({ apiOrigin: "https://private.example.workers.dev/" }) : stateResponse();
+    assert.equal(new Headers(init.headers).has("Authorization"), false);
+    if (url === `${base}config.json`) {
+      return Response.json({ apiOrigin: "https://timers.example.workers.dev" });
+    }
+    return stateResponse();
   } });
-  await client.connect(ownerCode);
+  const response = await client.request("/api/state", { cache: "no-store" });
+  assert.deepEqual(await response.json(), { serverNow: 1234, bosses: [] });
+  assert.deepEqual(calls.map((call) => call.url), [`${base}config.json`, "https://timers.example.workers.dev/api/state"]);
+  assert.ok(calls.every((call) => call.init.credentials === "omit" && call.init.redirect === "error"));
+  assert.equal(calls[1].init.mode, "cors");
+  assert.deepEqual(Object.keys(client), ["request"]);
+});
+
+test("mutations use only the configured origin and never forward an Authorization header", async () => {
+  const calls: { url: string; init: RequestInit }[] = [];
+  const client = createApiClient({ basePath: base, fetcher: async (input, init = {}) => {
+    const url = String(input);
+    calls.push({ url, init });
+    return url.endsWith("config.json") ? Response.json({ apiOrigin: "https://shared.example.workers.dev/" }) : stateResponse();
+  } });
   await client.request("/api/bosses", { method: "POST", body: "{}", credentials: "include", redirect: "follow", headers: { Authorization: "Bearer wrong" } });
   const mutation = calls.at(-1)!;
-  assert.equal(mutation.url, "https://private.example.workers.dev/api/bosses");
+  assert.equal(mutation.url, "https://shared.example.workers.dev/api/bosses");
   assert.equal(mutation.init.credentials, "omit");
   assert.equal(mutation.init.redirect, "error");
-  assert.equal(new Headers(mutation.init.headers).get("Authorization"), `Bearer ${ownerCode}`);
+  assert.equal(new Headers(mutation.init.headers).has("Authorization"), false);
   for (const path of ["https://evil.invalid/api/state", "//evil.invalid/api/state", "/api/../secret", "/api/state?key=secret", "/api/state#key", "/signin-with-chatgpt"]) await assert.rejects(client.request(path), /Invalid API/);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 2);
 });
 
-test("invalid, rejected or malformed connections never save the code", async () => {
-  for (const response of [new Response("Forbidden", { status: 403 }), Response.json({ serverNow: "invalid", bosses: [] })]) {
-    const storage = storageFixture();
-    let calls = 0;
-    const client = createApiClient({ basePath: base, storage, fetcher: async () => ++calls === 1 ? Response.json({ apiOrigin: "https://private.example.workers.dev" }) : response });
-    await assert.rejects(client.connect("short"));
-    assert.equal(calls, 0);
-    await assert.rejects(client.connect(ownerCode));
-    assert.equal(storage.values.size, 0);
-    await assert.rejects(client.request("/api/state"), /連接碼/);
-  }
-});
-
-test("401 forgets the code and signals the private UI to unmount", async () => {
-  const storage = storageFixture();
-  let requests = 0;
-  let disconnects = 0;
-  const client = createApiClient({ basePath: base, storage, onUnauthorized: () => { disconnects++; }, fetcher: async () => {
-    requests++;
-    if (requests === 1) return Response.json({ apiOrigin: "https://private.example.workers.dev" });
-    return requests === 2 ? stateResponse() : new Response("", { status: 401 });
+test("invalid configuration fails before contacting an API and can be retried", async () => {
+  let calls = 0;
+  const client = createApiClient({ basePath: base, fetcher: async (input) => {
+    calls++;
+    assert.equal(String(input), `${base}config.json`);
+    return Response.json({ apiOrigin: "https://shared.example.workers.dev/private?secret=unsafe" });
   } });
-  await client.connect(ownerCode);
-  await assert.rejects(client.request("/api/state"), /重新連接/);
-  assert.equal(client.rememberedCode(), null);
-  assert.equal(storage.values.size, 0);
-  assert.equal(disconnects, 1);
-  await assert.rejects(client.request("/api/state"), /連接碼/);
+  await assert.rejects(client.request("/api/state"), /HTTPS/);
+  await assert.rejects(client.request("/api/state"), /HTTPS/);
+  assert.equal(calls, 2);
+});
+
+test("an unauthorized backend reports a public-access setup error without asking for a code", async () => {
+  let requests = 0;
+  const client = createApiClient({ basePath: base, fetcher: async () => {
+    requests++;
+    return requests === 1 ? Response.json({ apiOrigin: "https://shared.example.workers.dev" }) : new Response("", { status: 401 });
+  } });
+  await assert.rejects(client.request("/api/state"), /尚未啟用公開存取/);
+  await assert.rejects(client.request("/api/state"), /尚未啟用公開存取/);
   assert.equal(requests, 3);
 });
 
@@ -129,7 +108,15 @@ test("manifest is relative and app requests never use Sites authentication", asy
   assert.match(app, /activateApplicationWorker\(navigator.serviceWorker, appBasePath\)/);
   assert.match(app, /getRegistration\(appBasePath\)/);
   assert.match(app, /Cloudflare 會每分鐘檢查提醒，無須開著電腦/);
-  assert.match(app, /<PrivateConnection>/);
+  assert.match(app, /export default function Home\(\) \{ return <BossTimerApp \/>; \}/);
+  assert.doesNotMatch(app, /PrivateConnection|onDisconnect|private-account-settings|中斷連接／更換連接碼/);
+  assert.match(app, /任何持有網址的人都可以查看及修改此面板的倒數/);
+  const transport = await readFile(new URL("../src/api.ts", import.meta.url), "utf8");
+  const main = await readFile(new URL("../src/main.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(transport, /localStorage|sessionStorage|connectionCode|rememberedCode|storageKey|Bearer/);
+  assert.doesNotMatch(main, /private-connection/);
+  assert.match(main, /localStorage\.removeItem\(`bosswatch\.github\.connection:\$\{appBasePath\}`\)/);
+  assert.doesNotMatch(main, /localStorage\.(?:getItem|setItem)|sessionStorage/);
 });
 
 test("every boss exposes confirmed kill and manual countdown as separate visible controls", async () => {
