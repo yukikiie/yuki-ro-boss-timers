@@ -126,6 +126,23 @@ test("the two appended MVPs independently use three-hour kill timers", () => {
   assert.ok(bosses.slice(0, 16).every((boss) => boss.dueAt === null));
 });
 
+test("each confirmed kill restarts its boss from the new server time without entering a duration", () => {
+  for (const bossId of ["atroce", "naght-sieger"]) {
+    const initial = countdown(defaultBosses(noon), "lady-tanee", 3_600);
+    const first = updateBoss(initial, { type: "kill", bossId }, noon + 1_000);
+    const firstBoss = first.find((boss) => boss.id === bossId);
+    const secondNow = noon + 600_000;
+    const second = updateBoss(first, { type: "kill", bossId }, secondNow);
+    const secondBoss = second.find((boss) => boss.id === bossId);
+    assert.equal(secondBoss.dueAt, secondNow + secondBoss.respawnMinutes * 60_000);
+    assert.equal(secondBoss.observedAt, secondNow);
+    assert.equal(secondBoss.source, "kill");
+    assert.ok(secondBoss.dueAt > firstBoss.dueAt);
+    assert.equal(firstBoss.observedAt, noon + 1_000);
+    assert.deepEqual(second.filter((boss) => boss.id !== bossId), first.filter((boss) => boss.id !== bossId));
+  }
+});
+
 test("manual resting and clear remove old timers", () => {
   const initial = countdown(defaultBosses(noon), "atroce", 600);
   const resting = updateBoss(initial, { type: "resting", bossId: "atroce" }, noon + 1);

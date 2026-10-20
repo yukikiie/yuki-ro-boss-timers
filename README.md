@@ -40,6 +40,8 @@ Send a test notification and verify that it actually appears on the phone, inclu
 
 Each MVP uses three hours after a confirmed kill; each Mini uses two hours. Manual countdowns are independent. Active countdowns appear first, ordered globally by earliest respawn time; untimed and invalid countdowns follow. Equal times and untimed bosses retain MVP-before-Mini ordering, then favorites, then original order. These are user-supplied game rules, not verified game-server observations.
 
+Every boss card exposes a pink `剛被擊殺` button alongside the separate manual `設定倒數` control. Confirming an actual kill restarts that boss from the server's current time using its configured duration: MVP three hours or Mini two hours. Repeated kills need no time entry. Cancelling the confirmation leaves timers unchanged; countdown expiry never implies a new kill. Both controls remain disabled during the daily rest period.
+
 At 03:00–05:00 Hong Kong time, countdowns are cleared and alerts are suppressed. At 05:00, yesterday's countdowns are invalidated. Enter fresh observations for the new rotation; the application does not invent spawn times, read the game or control an emulator.
 
 Reminders cover ten minutes, five minutes and the two-minute spawn window, with durable per-device deduplication and bounded retry attempts. A scheduler outage can miss a window; stale notifications are not replayed later as if current.

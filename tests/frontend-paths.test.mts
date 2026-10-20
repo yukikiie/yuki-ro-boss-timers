@@ -132,6 +132,107 @@ test("manifest is relative and app requests never use Sites authentication", asy
   assert.match(app, /<PrivateConnection>/);
 });
 
+test("every boss exposes confirmed kill and manual countdown as separate visible controls", async () => {
+  const app = await readFile(new URL("../src/boss-timer-app.tsx", import.meta.url), "utf8");
+  const actionRow = app.match(/<div className="card-button-row"[\s\S]*?<\/div>/)?.[0];
+  assert.ok(actionRow);
+  assert.match(actionRow, /role="group" aria-label=\{`\$\{boss\.name\} 計時操作`\}/);
+  assert.equal((actionRow.match(/<button\b/g) || []).length, 2);
+  assert.match(actionRow, /button-kill[\s\S]*?onClick=\{\(\) => confirmKill\(boss\)\}>剛被擊殺<\/button>/);
+  assert.match(actionRow, /button-adjust[\s\S]*?onClick=\{\(\) => openCountdown\(boss\)\}>設定倒數<\/button>/);
+  assert.equal((actionRow.match(/disabled=\{busy \|\| resting\}/g) || []).length, 2);
+  assert.equal((app.match(/onClick=\{\(\) => confirmKill\(boss\)\}/g) || []).length, 2);
+});
+
+test("kill shortcut only opens an in-page confirmation and is blocked while busy or resting", async () => {
+  const app = await readFile(new URL("../src/boss-timer-app.tsx", import.meta.url), "utf8");
+  const handlerBody = app.match(/function confirmKill\(boss: Boss\) \{([\s\S]*?)\n  \}\n  function openCountdown/)?.[1];
+  assert.ok(handlerBody);
+  assert.doesNotMatch(handlerBody, /window\.confirm|mutate\(|seconds/);
+  for (const respawnMinutes of [120, 180]) {
+    for (const [busy, resting] of [[false, false], [true, false], [false, true], [true, true]]) {
+      const errors: string[] = [];
+      const menus: null[] = [];
+      const dialogs: { type: string; boss: unknown }[] = [];
+      const handler = vm.runInNewContext(`(boss) => {${handlerBody}}`, {
+        busy, resting,
+        setFormError: (value: string) => errors.push(value),
+        setMenu: (value: null) => menus.push(value),
+        setDialog: (value: { type: string; boss: unknown }) => dialogs.push(value),
+      }) as (boss: { id: string; name: string; respawnMinutes: number }) => void;
+      const boss = Object.freeze({ id: "fixture-boss", name: "測試 Boss", respawnMinutes });
+      handler(boss);
+      assert.equal(dialogs.length, busy || resting ? 0 : 1);
+      assert.deepEqual(errors, busy || resting ? [] : [""]);
+      assert.deepEqual(menus, busy || resting ? [] : [null]);
+      if (dialogs.length) {
+        assert.equal(dialogs[0].type, "kill");
+        assert.equal(dialogs[0].boss, boss);
+      }
+    }
+  }
+});
+
+test("only explicit kill form submission mutates the boss and closes after success", async () => {
+  const app = await readFile(new URL("../src/boss-timer-app.tsx", import.meta.url), "utf8");
+  const handlerBody = app.match(/async function submitDialog\(event: React\.FormEvent\) \{([\s\S]*?)\n  \}\n  async function connectPush/)?.[1];
+  assert.ok(handlerBody);
+  for (const respawnMinutes of [120, 180]) {
+    for (const [busy, resting, accepted] of [[false, false, true], [false, false, false], [true, false, true], [false, true, true]]) {
+      const mutations: { action: string; values: unknown; message: string }[] = [];
+      const closed: null[] = [];
+      let prevented = 0;
+      const boss = Object.freeze({ id: "fixture-boss", name: "測試 Boss", respawnMinutes });
+      const handler = vm.runInNewContext(`async (event) => {${handlerBody}}`, {
+        busy, resting, dialog: { type: "kill", boss },
+        setDialog: (value: null) => closed.push(value),
+        mutate: async (action: string, values: unknown, message: string) => { mutations.push({ action, values: JSON.parse(JSON.stringify(values)), message }); return accepted; },
+      }) as (event: { preventDefault: () => void }) => Promise<void>;
+      await handler({ preventDefault: () => { prevented++; } });
+      assert.equal(prevented, 1);
+      assert.equal(mutations.length, busy || resting ? 0 : 1);
+      assert.deepEqual(closed, !busy && !resting && accepted ? [null] : []);
+      if (mutations.length) {
+        assert.deepEqual(mutations[0].values, { bossId: boss.id });
+        assert.equal(mutations[0].action, "kill");
+        assert.ok(mutations[0].message.includes(`${respawnMinutes / 60} 小時倒數`));
+      }
+    }
+  }
+});
+
+test("kill modal labels its duration, requires no time fields and focuses a non-mutating Cancel", async () => {
+  const app = await readFile(new URL("../src/boss-timer-app.tsx", import.meta.url), "utf8");
+  const modal = app.slice(app.indexOf('{dialog && <div className="modal-backdrop"'));
+  assert.match(modal, /dialog\.type === "add" \? "新增你的 Boss" : dialog\.boss\.name/);
+  assert.match(modal, /確認當下的伺服器時間重新開始 \$\{dialog\.boss\.respawnMinutes \/ 60\} 小時倒數，取代目前倒數；不需要輸入時間/);
+  assert.match(modal, /dialog\.type === "add" \? <div className="add-fields"/);
+  assert.match(modal, /確認擊殺 · \$\{dialog\.boss\.respawnMinutes \/ 60\}小時/);
+  assert.match(modal, /disabled=\{busy \|\| \(dialog\.type !== "add" && resting\)\}/);
+  const cancel = modal.match(/<button className="dialog-cancel"[^\n]+>取消<\/button>/)?.[0];
+  assert.ok(cancel);
+  assert.match(cancel, /autoFocus=\{dialog\.type === "kill"\}/);
+  assert.match(cancel, /onClick=\{\(\) => setDialog\(null\)\}/);
+  assert.doesNotMatch(cancel, /mutate|submitDialog/);
+  const cancelHandler = cancel.match(/onClick=\{(\(\) => setDialog\(null\))\}/)?.[1];
+  assert.ok(cancelHandler);
+  const closed: null[] = [];
+  const cancelDialog = vm.runInNewContext(`(${cancelHandler})`, { setDialog: (value: null) => closed.push(value) }) as () => void;
+  cancelDialog();
+  assert.deepEqual(closed, [null]);
+});
+
+test("both card types reserve a compact vertical pair without shrinking portraits or countdowns", async () => {
+  const styles = await readFile(new URL("../src/approved-art.css", import.meta.url), "utf8");
+  assert.match(styles, /grid-template-rows: minmax\(0, 1fr\) minmax\(51px, 1fr\); height: max\(27\.5cqi, 110px\)/);
+  assert.match(styles, /\.reference-timers \.card-featured \{[^}]*height: max\(29cqi, 114px\)/);
+  assert.match(styles, /\.reference-timers \.card-button-row, \.reference-timers \.card-featured \.card-button-row \{[^}]*display: grid; grid-template-columns: minmax\(0, 1fr\); gap: 3px/);
+  assert.match(styles, /\.reference-timers \.button-card, \.reference-timers \.card-featured \.button-card \{ min-height: max\(5\.2cqi, 24px\)/);
+  assert.match(styles, /\.reference-timers \.button-adjust, \.reference-timers \.card-featured \.button-adjust \{ background:/);
+  assert.match(styles, /grid-template-columns: 34cqi minmax\(0, 1fr\) 19\.53cqi/);
+  assert.match(styles, /height: 22\.605cqi/);
+});
+
 test("only the exact application worker can supply a notification subscription", async () => {
   const page = `https://yukikiie.github.io${base}`;
   assert.equal(isApplicationRegistration({ scope: "https://yukikiie.github.io/" } as ServiceWorkerRegistration, base, page), false);
