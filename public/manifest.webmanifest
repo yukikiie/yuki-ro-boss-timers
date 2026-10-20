@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "Yuki RO · Bosswatch",
+  "short_name": "Bosswatch",
+  "description": "Your RO boss countdowns and phone reminders.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#c7e5a8",
+  "theme_color": "#f8bbdc",
+  "lang": "zh-Hant-HK",
+  "icons": [
+    {
+      "src": "./pixel/poring-standalone.png?v=standalone-b1",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "source": "/art/ro-garden-people.png",
+  "width": 2172,
+  "height": 724,
+  "rows": [
+    [
+      [
+        121,
+        9,
+        225,
+        348
+      ],
+      [
+        463,
+        14,
+        218,
+        343
+      ],
+      [
+        795,
+        8,
+        214,
+        349
+      ],
+      [
+        1149,
+        9,
+        207,
+        348
+      ],
+      [
+        1463,
+        84,
+        290,
+        276
+      ],
+      [
+        1821,
+        76,
+        285,
+        284
+      ]
+    ],
+    [
+      [
+        102,
+        368,
+        239,
+        348
+      ],
+      [
+        447,
+        368,
+        232,
+        348
+      ],
+      [
+        782,
+        368,
+        246,
+        348
+      ],
+      [
+        1145,
+        368,
+        223,
+        348
+      ],
+      [
+        1455,
+        414,
+        320,
+        294
+      ],
+      [
+        1805,
+        409,
+        317,
+        300
+      ]
+    ]
+  ],
+  "rowCuts": [
+    0,
+    362,
+    724
+  ],
+  "characters": [
+    "novice-boy",
+    "priest-girl"
+  ],
+  "frames": [
+    "day-step-left",
+    "day-step-transition",
+    "day-wave",
+    "day-interact",
+    "night-sleep-exhale",
+    "night-sleep-inhale"
+  ],
+  "measurement": {
+    "alphaThreshold": 10,
+    "padding": 4,
+    "method": "Per-figure connected foreground component bbox expanded4pixels each side; actual silhouettes fully included. No raster edits."
+  },
+  "alphaRange": [
+    0,
+    255
+  ],
+  "fullyTransparentPixels": 838090,
+  "qa": [
+    "Twelve complete figures, crisp pixel-shaded cute NPC style matching header people rather than glossy bosspaint.",
+    "Original brownhaired orange/cream noviceboy and pinkhooded ivory/magenta/gold priestgirl recognizable.",
+    "Daywave/backpackadjust/prayerbook poses distinct; firsttwo walking legposes subtle rather than a strongly opposite-leg cycle.",
+    "Both nightposes of both NPCs clearly closedeyed, seated pillow/blanket, no text/Zzz/bubbles.",
+    "No majorbody silhouette touches canvas; tightest vertical separation19pixels, and4pixelpadding leaves safe gaps.",
+    "PNG2172x724 not promptpreferred1536x512. All PNG pixels/alpha preserved unchanged generatedoutput."
+  ]
+}

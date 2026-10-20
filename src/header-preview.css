@@ -1,0 +1,8 @@
+.header-only-preview { padding: 12px 0 24px; }
+.header-preview-controls { width: min(480px, calc(100% - 20px)); margin: 0 auto 14px; color: #483259; font-family: var(--font-readable, sans-serif); font-size: 12px; line-height: 1.7; }
+.header-preview-controls p { margin: 0 0 10px; }
+.header-preview-controls > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.header-preview-controls button { min-height: 40px; padding: 6px 10px; border: 1px solid #9f7ab8; color: #38244e; background: #fff8ff; font: inherit; font-weight: 700; cursor: pointer; }
+.header-preview-controls button[aria-pressed="true"] { border-color: #5c3b7a; background: #f6b6d1; }
+.header-preview-controls button:focus-visible { outline: 3px solid #3462ae; outline-offset: 2px; }
+.header-only-preview > .app-shell { margin-inline: auto; }

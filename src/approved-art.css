@@ -1,0 +1,89 @@
+@font-face { font-family: "Bosswatch UI Reference"; src: url("/fonts/BosswatchUI-Reference800.woff2") format("woff2"); font-style: normal; font-weight: 800; font-display: swap; }
+@font-face { font-family: "Bosswatch UI Reference"; src: url("/fonts/BosswatchUI-Expansion800.woff2") format("woff2"); font-style: normal; font-weight: 800; font-display: swap; unicode-range: U+5F71, U+7378, U+82F1, U+96C4; }
+:root { --font-sans: "Bosswatch UI Reference", "Microsoft JhengHei", "PingFang TC", sans-serif; --font-readable: "Microsoft JhengHei", "PingFang TC", sans-serif; }
+body { background: #f9dfec; font-family: var(--font-sans); font-weight: 800; color: #1d174e; }
+.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.app-shell { --b-unit: .214592cqi; width: min(480px, calc(100% - 10px)); max-width: 480px; padding: 5px; background: #f5b1d0; border: 2px solid #31224e; box-shadow: inset 0 0 0 2px #ffeff8, 0 0 0 2px #b77ea5; }
+.app-shell .map-masthead { position: relative; margin: 0; height: 66.667cqi; border: 1px solid #554174; border-bottom: 0; background: #b7dba1; overflow: hidden; }
+.app-shell .map-art { inset: 0; background: url("/pixel/ro-map-standalone.png") center / cover no-repeat; z-index: 0; }
+.app-shell .page-heading { position: relative; z-index: 1; margin: 0; padding: 4.4cqi 2cqi 0; }
+.app-shell .title-panel { gap: 1.5cqi; max-width: 80%; padding: 1.5cqi 3.6cqi 1.5cqi 2cqi; color: #181144; background: #fffaff; border: 2px solid #211a4a; box-shadow: inset 0 0 0 2px #e7dcf4; filter: drop-shadow(2px 3px 0 #654b85); clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px); }
+.app-shell .title-panel::before, .app-shell .title-panel::after { display: none; }
+.app-shell .poring-icon { display: block; width: 11cqi; height: 11cqi; object-fit: contain; image-rendering: auto; }
+.app-shell .page-heading h1 { color: #171043; font-family: var(--font-sans); font-size: 4.4cqi; font-weight: 900; line-height: 1.14; letter-spacing: -.1cqi; text-align: left; white-space: nowrap; }
+.app-shell .masthead-meta { display: none; }
+.app-shell .masthead-compact { height: 38cqi; }
+.app-shell .masthead-compact .map-art { background-position: center 30%; }
+.reference-timers .map-masthead { height: auto; aspect-ratio: auto; border: 0; background: #f5bed8; overflow: hidden; }
+.regenerated-header { display: block; width: 100%; height: auto; image-rendering: auto; }
+.app-shell.reference-timers { isolation: isolate; background: #f7edf8; }
+.reference-timers .main-shell { margin-top: 0; background-color: #83bc58; background-image: var(--scene-garden-image, url("/art/ro-list-garden.png")); background-position: center top; background-size: 100% max(100%, 288.092cqi); background-repeat: no-repeat; }
+.reference-timers .main-content { position: relative; padding-bottom: 18cqi; background: transparent; }
+.reference-timers .timer-tools { position: absolute; top: -9cqi; right: 1.8cqi; left: auto; z-index: 35; margin: 0; padding: 0; max-width: calc(100% - 3.6cqi); min-height: 0; border: 0; background: transparent; font-size: 13px; }
+.reference-timers .timer-tools > summary { display: flex; justify-content: center; align-items: center; gap: 0; width: 6.8cqi; height: 6.8cqi; min-height: 0; margin: 0 0 0 auto; padding: .8cqi; list-style: none; color: #302050; background: #fff8fff0; border: 1px solid #8f72b3; cursor: pointer; font-size: 0; }
+.reference-timers .timer-tools > summary::-webkit-details-marker { display: none; }
+.reference-timers .timer-tools > summary::before { display: none; }
+.reference-timers .timer-tools > summary .pixel-nav-icon { width: 4.4cqi; height: 4.4cqi; }
+.reference-timers .timer-tools > summary > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.reference-timers .timer-tools[open] { left: 1.8cqi; max-width: none; padding: 1.8cqi; margin: 0; border: 1px solid #a987bd; background: #fff8fff5; }
+.reference-timers .timer-tools .boss-section { padding: 0; }
+.reference-timers .boss-section { padding: 0 1.5cqi; }
+.reference-timers .boss-grid { gap: 1.073cqi; }
+.reference-timers .boss-card { --countdown-height: calc(26 * var(--b-unit)); grid-template-columns: 34cqi minmax(0, 1fr) 19.53cqi; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); height: 27.5cqi; padding: 1.4cqi 3cqi 1.4cqi 3cqi; column-gap: 1.1cqi; row-gap: 0; margin: 0; box-shadow: none; background: none; }
+.reference-timers .boss-card::before, .reference-timers .boss-card::after { display: none; }
+.reference-timers .boss-card:hover { background: none; }
+.boss-card-frame { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; overflow: visible; pointer-events: none; filter: drop-shadow(1px 2px 0 #777b70); }
+.reference-timers .card-featured { --countdown-height: calc(30 * var(--b-unit)); height: 29cqi; padding-top: 2.7cqi; grid-template-columns: 34cqi minmax(0, 1fr) 19.53cqi; }
+.reference-timers .boss-card-top { top: 1.5cqi; left: 2.6cqi; right: 1.6cqi; min-height: 0; }
+.reference-timers .kind-label { display: inline-flex; align-items: center; justify-content: center; min-width: 11.6cqi; height: 5.58cqi; font-family: "Arial", sans-serif; font-size: 3.86cqi; font-weight: 700; padding: .5cqi 1.3cqi; border: 1px solid #fff5ff; border-radius: 2px; line-height: 1; }
+.reference-timers .card-actions { position: absolute; top: 0; right: 0; opacity: .7; gap: 0; }
+.reference-timers .card-actions .favorite-button { opacity: 0; }
+.reference-timers .boss-card:hover .card-actions, .reference-timers .boss-card:focus-within .card-actions, .reference-timers .timer-tools[open] ~ .boss-section .card-actions { opacity: 1; }
+.reference-timers .boss-card:hover .favorite-button, .reference-timers .boss-card:focus-within .favorite-button, .reference-timers .timer-tools[open] ~ .boss-section .favorite-button { opacity: 1; }
+.reference-timers .card-actions .icon-button { min-width: 4.2cqi; min-height: 4.2cqi; padding: .4cqi; border: 0; background: #fff8ffe6; }
+.reference-timers .card-actions .icon-button > svg { width: 3.4cqi; height: 3.4cqi; }
+.reference-timers .boss-portrait-wrap, .reference-timers .card-featured .boss-portrait-wrap { position: relative; grid-column: 1; grid-row: 1 / 3; width: 100%; height: 22.605cqi; min-height: 0; margin: 0; align-self: center; overflow: visible; }
+.reference-timers .boss-portrait, .reference-timers .card-featured .boss-portrait { position: absolute; inset: 0; width: 100%; height: 100%; background: none; }
+.boss-figure { display: block; width: 100%; height: 100%; overflow: hidden; image-rendering: auto; }
+.reference-timers .boss-sigil { max-width: 90%; max-height: 90%; }
+.reference-timers .boss-identity, .reference-timers .card-featured .boss-identity { grid-column: 2 / -1; grid-row: 1; padding: 0; align-self: center; transform: none; }
+.reference-timers .boss-name-row { display: flex; flex-wrap: nowrap; min-width: 0; gap: 1cqi 1.5cqi; align-items: center; padding-right: 0; }
+.reference-timers .boss-identity h3, .reference-timers .card-featured .boss-identity h3 { display: -webkit-box; flex: 0 1 auto; min-width: 0; max-width: 100%; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; color: #181048; font-family: var(--font-sans); font-size: 4.08cqi; font-weight: 800; letter-spacing: 0; line-height: 1.16; }
+.reference-timers .boss-identity h3.boss-name-long { font-size: 3.45cqi; }
+.reference-timers .boss-metadata { flex: 0 0 auto; gap: 1.5cqi; flex-wrap: nowrap; }
+.reference-timers .attribute-chip, .reference-timers .card-featured .attribute-chip { min-height: 7.08cqi; padding: .7cqi 1.05cqi; gap: .6cqi; border-radius: 3px; font-family: var(--font-sans); font-size: 3.5cqi; font-weight: 800; line-height: 1; }
+.reference-timers .attribute-chip svg, .reference-timers .card-featured .attribute-chip svg { width: 4cqi; height: 4cqi; }
+.reference-timers .attribute-chip svg { fill: none; }
+.reference-timers .chip-size, .reference-timers .card-featured .chip-size { min-width: 7.08cqi; }
+.reference-timers .chip-element { min-width: 11.37cqi; }
+.reference-timers .chip-race { min-width: 15.67cqi; }
+.reference-timers .boss-countdown, .reference-timers .card-featured .boss-countdown { grid-column: 2; grid-row: 2; position: static; align-self: center; transform: none; }
+.reference-timers .boss-countdown > strong { display: flex; align-items: center; font-size: 0; line-height: 0; text-shadow: none; }
+.reference-timers .card-featured .boss-countdown { margin-top: -2cqi; }
+.reference-timers .card-button-row, .reference-timers .card-featured .card-button-row { position: static; grid-column: 3; grid-row: 2; width: 100%; align-self: center; opacity: 1; }
+.reference-timers .button-card, .reference-timers .card-featured .button-card { min-height: 7.73cqi; padding: .8cqi .4cqi; border: 2px solid #302052; color: #1c124b; background: linear-gradient(#f6c7dc, #eda9ca); box-shadow: inset 1px 1px 0 #fff7fc, 1px 2px 0 #a090bf; font-family: var(--font-sans); font-size: 3cqi; font-weight: 800; line-height: 1; }
+.reference-timers .card-featured .button-card { min-height: 9.23cqi; }
+.reference-timers .card-featured .card-button-row { margin-top: -1.5cqi; }
+.reference-timers .featured-label { top: -6.1cqi; left: 1.8cqi; min-height: 7.8cqi; padding: .6cqi 3.3cqi; font-family: var(--font-sans); font-size: 4.72cqi; font-weight: 800; }
+.app-shell .mobile-nav { isolation: isolate; width: min(422px, 90.56cqi); height: 13.73cqi; min-height: 0; padding: 5px 10px; background: none; border: 0; box-shadow: none; clip-path: none; }
+.app-shell .mobile-nav button { color: #211650; }
+.app-shell .pixel-nav-icon { fill: none; }
+.app-shell .mobile-nav button > span { font-family: var(--font-sans); font-size: 3.1cqi; font-weight: 800; }
+.app-shell .mobile-nav button.active { color: #ff337c; }
+.app-shell .mobile-nav button.active::after { display: block; background: #ff337c; }
+.design-comparison { min-height: 100vh; padding: 26px 18px 40px; background: #ece7f2; color: #241440; font-family: "Microsoft JhengHei", sans-serif; }
+.comparison-heading { max-width: 1060px; margin: 0 auto 24px; }
+.comparison-heading h1 { font-size: 23px; font-weight: 900; }
+.comparison-heading p { margin-top: 8px; font-size: 13px; line-height: 1.7; }
+.comparison-toggle { display: inline-block; margin-top: 10px; padding: 6px 10px; border: 1px solid #9275b0; background: #fff8ff; font-size: 12px; font-weight: 700; }
+.comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 480px)); gap: 34px; justify-content: center; align-items: start; }
+.comparison-column { min-width: 0; }
+.comparison-column > h2 { margin-bottom: 12px; font-size: 16px; font-weight: 800; }
+.comparison-reference { display: block; width: calc(100% - 14px); height: auto; margin: 7px auto 0; border: 0; }
+.design-comparison .comparison-column > .app-shell { width: 100%; min-height: 0; margin: 0; }
+.design-comparison .app-shell .mobile-nav { position: sticky; bottom: 8px; left: auto; width: 92%; max-width: none; transform: none; margin: 8px auto; }
+.design-comparison .main-content { padding-bottom: 0; }
+.design-comparison .timer-tools { visibility: hidden; }
+.design-comparison .footer { display: none; }
+.comparison-note { max-width: 1060px; margin: 20px auto 0; font-size: 12px; line-height: 1.8; }
+@media (max-width: 700px) { .comparison-grid { grid-template-columns: minmax(0, 480px); gap: 25px; } .design-comparison { padding: 20px 12px 30px; } }

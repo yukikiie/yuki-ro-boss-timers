@@ -1,0 +1,6 @@
+.header-lighting-preview { padding: 20px; background: #f9e8f2; color: #3c2a55; font-family: var(--font-readable, sans-serif); }
+.header-lighting-preview h1 { margin: 0 0 18px; font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+.header-lighting-preview > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.header-lighting-preview section { min-width: 0; border: 2px solid #a28aac; background: #fff3fb; }
+.header-lighting-preview h2 { margin: 0; padding: 10px; font-size: 13px; font-weight: 800; text-align: center; }
+@media (max-width: 700px) { .header-lighting-preview > div { grid-template-columns: minmax(0, 1fr); } }

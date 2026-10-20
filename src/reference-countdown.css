@@ -1,0 +1,3 @@
+.reference-countdown { display: inline-flex; flex: 0 0 auto; gap: calc(var(--countdown-height, 28px) * 3 / 28); height: var(--countdown-height, 28px); color: #201459; line-height: 1; vertical-align: middle; }
+.reference-countdown-glyph { display: block; flex: 0 0 auto; width: calc(var(--glyph-width) * var(--countdown-height, 28px) * 1.125 / 28); height: 100%; fill: currentColor; transform: scaleX(1.125); transform-origin: center; }
+.reference-countdown-fallback { align-items: center; font: 800 var(--countdown-height, 28px) / 1 var(--font-mono, monospace); font-variant-numeric: tabular-nums; }
