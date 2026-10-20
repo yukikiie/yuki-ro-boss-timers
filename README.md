@@ -38,7 +38,7 @@ Send a test notification and verify that it actually appears on the phone, inclu
 
 ## Timer behavior
 
-Each MVP uses three hours after a confirmed kill; each Mini uses two hours. Manual countdowns are independent. All MVPs precede Minis, with each group sorted by known respawn time. These are user-supplied game rules, not verified game-server observations.
+Each MVP uses three hours after a confirmed kill; each Mini uses two hours. Manual countdowns are independent. Active countdowns appear first, ordered globally by earliest respawn time; untimed and invalid countdowns follow. Equal times and untimed bosses retain MVP-before-Mini ordering, then favorites, then original order. These are user-supplied game rules, not verified game-server observations.
 
 At 03:00–05:00 Hong Kong time, countdowns are cleared and alerts are suppressed. At 05:00, yesterday's countdowns are invalidated. Enter fresh observations for the new rotation; the application does not invent spawn times, read the game or control an emulator.
 

@@ -37,7 +37,7 @@ test("live custom IDs resolve the new MVP portraits by their exact normalized na
   assert.equal(orcHero.spriteIndex, 17);
 });
 
-test("MVP-first catalog display includes both appended MVPs before all Minis", () => {
+test("untimed catalog display includes both appended MVPs before all Minis", () => {
   const ordered = sortBossesForDisplay(bossCatalog);
   assert.deepEqual(ordered.slice(0, 9).map((boss) => boss.id), [
     "atroce", "lady-tanee", "death-knight", "fallen-bishop", "tao-gunka", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero",
@@ -119,21 +119,21 @@ test("respawn ordering is immutable and retains duplicate records without dedupl
   assert.equal(ordered[1], duplicate);
 });
 
-test("display groups all MVPs before Minis and keeps respawn order inside each group", () => {
+test("display puts timed Minis above later and untimed MVPs in global respawn order", () => {
   const bosses = [
     { id: "mini-first", kind: "Mini", status: "counting", dueAt: 100 },
-    { id: "mvp-unknown", kind: "MVP", status: "unknown", dueAt: null },
+    { id: "mvp-unknown", kind: "MVP", status: "unknown", dueAt: null, favorite: true },
     { id: "mini-later", kind: "Mini", status: "counting", dueAt: 300 },
-    { id: "mvp-later", kind: "MVP", status: "counting", dueAt: 900 },
-    { id: "mvp-first", kind: "MVP", status: "counting", dueAt: 600 },
+    { id: "mvp-later", kind: "MVP", status: "counting", dueAt: 900, favorite: true },
+    { id: "mvp-first", kind: "MVP", status: "due", dueAt: 600 },
     { id: "mini-unknown", kind: "Mini", status: "unknown", dueAt: null },
   ];
-  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), ["mvp-first", "mvp-later", "mvp-unknown", "mini-first", "mini-later", "mini-unknown"]);
+  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), ["mini-first", "mini-later", "mvp-first", "mvp-later", "mvp-unknown", "mini-unknown"]);
   assert.equal(sortBossesByRespawn(bosses)[0].id, "mini-first");
   assert.equal(bosses[0].id, "mini-first");
 });
 
-test("display grouping preserves favorites as time tie-breakers, duplicates and empty input", () => {
+test("display ordering is immutable and retains duplicate references", () => {
   const duplicate = Object.freeze({ id: "duplicate", kind: "Mini", status: "counting", dueAt: 100 });
   const bosses = Object.freeze([
     duplicate,
@@ -141,7 +141,51 @@ test("display grouping preserves favorites as time tie-breakers, duplicates and 
     Object.freeze({ id: "mvp-favorite", kind: "MVP", status: "counting", dueAt: 900, favorite: true }),
     duplicate,
   ]);
-  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), ["mvp-favorite", "mvp-normal", "duplicate", "duplicate"]);
+  const ordered = sortBossesForDisplay(bosses);
+  assert.deepEqual(ordered.map((boss) => boss.id), ["duplicate", "duplicate", "mvp-favorite", "mvp-normal"]);
+  assert.notEqual(ordered, bosses);
+  assert.equal(ordered[0], duplicate);
+  assert.equal(ordered[1], duplicate);
   assert.equal(bosses[0], duplicate);
+  assert.equal(bosses[1].id, "mvp-normal");
+  assert.equal(bosses[2].id, "mvp-favorite");
+  assert.equal(bosses[3], duplicate);
+});
+
+test("display time ties put MVP before Mini, then favorites, then stable input order", () => {
+  const bosses = [
+    { id: "mini-normal-first", kind: "Mini", status: "counting", dueAt: 600, favorite: false },
+    { id: "mvp-normal-first", kind: "MVP", status: "counting", dueAt: 600, favorite: false },
+    { id: "mini-favorite", kind: "Mini", status: "due", dueAt: 600, favorite: true },
+    { id: "mvp-favorite", kind: "MVP", status: "due", dueAt: 600, favorite: true },
+    { id: "mvp-normal-last", kind: "MVP", status: "counting", dueAt: 600, favorite: false },
+    { id: "mini-normal-last", kind: "Mini", status: "counting", dueAt: 600, favorite: false },
+  ];
+  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), [
+    "mvp-favorite", "mvp-normal-first", "mvp-normal-last", "mini-favorite", "mini-normal-first", "mini-normal-last",
+  ]);
+});
+
+test("display puts inactive and invalid timers last with MVP, favorite and stable ties", () => {
+  const invalid = [null, undefined, NaN, Infinity, -1, 1.5, "1", 8_640_000_000_000_001]
+    .map((dueAt, index) => ({ id: `invalid-${index}`, kind: "MVP", status: "counting", dueAt }));
+  const bosses = [
+    { id: "mini-unknown", kind: "Mini", status: "unknown", dueAt: 0, favorite: true },
+    { id: "mvp-resting", kind: "MVP", status: "resting", dueAt: 0 },
+    ...invalid,
+    { id: "mini-paused", kind: "Mini", status: "paused", dueAt: 0 },
+    { id: "mvp-unknown-favorite", kind: "MVP", status: "unknown", dueAt: 0, favorite: true },
+    { id: "active-mini", kind: "Mini", status: "due", dueAt: 0 },
+    { id: "active-mvp", kind: "MVP", status: "counting", dueAt: 8_640_000_000_000_000 },
+  ];
+  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), [
+    "active-mini", "active-mvp", "mvp-unknown-favorite", "mvp-resting", ...invalid.map((boss) => boss.id), "mini-unknown", "mini-paused",
+  ]);
+});
+
+test("display ordering safely accepts empty and non-array input", () => {
+  assert.deepEqual(sortBossesForDisplay([]), []);
   assert.deepEqual(sortBossesForDisplay(null), []);
+  assert.deepEqual(sortBossesForDisplay(undefined), []);
+  assert.deepEqual(sortBossesForDisplay({}), []);
 });
