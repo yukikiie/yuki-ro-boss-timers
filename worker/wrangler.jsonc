@@ -1,6 +1,7 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "yuki-ro-boss-timers-api",
+  "account_id": "e2e8b7b52b261f8fb38115ccb458bf0c",
   "main": "index.ts",
   "compatibility_date": "2026-10-20",
   "compatibility_flags": ["nodejs_compat"],
@@ -14,7 +15,7 @@
     {
       "binding": "DB",
       "database_name": "yuki-ro-boss-timers",
-      "database_id": "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID",
+      "database_id": "2a360412-8002-46cc-842d-267f8ffe40a7",
       "migrations_dir": "migrations"
     }
   ],
