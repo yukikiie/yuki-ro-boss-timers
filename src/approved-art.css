@@ -29,6 +29,20 @@ body { background: #f9dfec; font-family: var(--font-sans); font-weight: 800; col
 .reference-timers .timer-tools .boss-section { padding: 0; }
 .reference-timers .boss-section { padding: 0 1.5cqi; }
 .reference-timers .boss-grid { gap: 1.073cqi; }
+.reference-timers .upcoming-route { margin: 0 1.5cqi 2.3cqi; padding: 1.8cqi 2cqi 1.4cqi; color: #241b51; background: #fff8fff2; border: 2px solid #51406d; box-shadow: inset 0 0 0 2px #d7cbee, 1px 2px 0 #8f799e; }
+.reference-timers .upcoming-route:has(+ .boss-section .card-featured) { margin-bottom: 6.8cqi; }
+.upcoming-route ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2cqi; margin: 0; padding: 0; list-style: none; }
+.upcoming-route li { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: .7cqi; min-width: 0; }
+.upcoming-route li + li { border-left: 1px solid #c9b7dd; padding-left: 2cqi; }
+.upcoming-route .route-step { color: #7e4d8d; font-size: max(2.6cqi, 10px); }
+.upcoming-route .route-boss-name { font-size: max(3.2cqi, 12px); line-height: 1.35; overflow-wrap: anywhere; }
+.upcoming-route .route-countdown { color: #211650; font-family: var(--font-mono); font-size: max(3.8cqi, 15px); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.upcoming-route .route-gap { display: flex; flex-wrap: wrap; align-items: center; gap: .7cqi 1.5cqi; margin-top: 1.6cqi; padding-top: 1.4cqi; border-top: 1px solid #dfd0e9; font-size: max(2.3cqi, 9px); line-height: 1.4; }
+.upcoming-route .route-gap strong { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.upcoming-route-close .route-gap > span:first-child { padding: .5cqi 1.2cqi; color: #75294e; background: #ffdaeb; border: 1px solid #d78eae; }
+.upcoming-route .route-note { margin-top: 1cqi; color: #725b7c; font-family: var(--font-readable); font-size: max(2.15cqi, 9px); line-height: 1.6; }
+.app-shell .reminder-milestones { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.app-shell .reminder-milestones small { display: block; margin: 6px 0 0; }
 .reference-timers .boss-card { --countdown-height: calc(26 * var(--b-unit)); grid-template-columns: 34cqi minmax(0, 1fr) 19.53cqi; grid-template-rows: minmax(0, 1fr) minmax(51px, 1fr); height: max(27.5cqi, 110px); padding: 1.4cqi 3cqi 1.4cqi 3cqi; column-gap: 1.1cqi; row-gap: 0; margin: 0; box-shadow: none; background: none; }
 .reference-timers .boss-card::before, .reference-timers .boss-card::after { display: none; }
 .reference-timers .boss-card:hover { background: none; }

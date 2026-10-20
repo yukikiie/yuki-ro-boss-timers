@@ -8,6 +8,7 @@ import worker, { handleRequest, handleScheduled } from "../worker/index.ts";
 import { allowedOrigin, applicationUrl, createTimerService, digest, ownerIdentity } from "../worker/service.ts";
 import type { WorkerEnvironment } from "../worker/service.ts";
 import type { PushPayload, PushResult, ValidatedSubscription, VapidEnvironment } from "../lib/push.ts";
+import { updateBoss } from "../lib/timers.js";
 
 const migration = await readFile(new URL("../worker/migrations/0001_timers.sql", import.meta.url), "utf8");
 const connectionKey = Buffer.alloc(32, 173).toString("base64url");
@@ -277,10 +278,62 @@ test("minute scheduled dispatch works without a browser, deduplicates, and expir
   current.now(noon + 300_000);
   assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
   assert.match(current.pushes[1].payload.title, /5 分鐘提醒/);
+  current.now(noon + 530_000);
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
+  assert.match(current.pushes[2].payload.title, /1 分鐘提醒/);
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  assert.equal(current.pushes.length, 3);
   current.now(noon + 590_000);
   assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
-  assert.match(current.pushes[2].payload.title, /重生時間到/);
+  assert.match(current.pushes[3].payload.title, /重生時間到/);
   assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  current.sqlite.close();
+});
+
+test("one-minute reminders include the next confirmed boss without duplicate deliveries", async () => {
+  const current = fixture();
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 60 });
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "boitata", seconds: 900 });
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
+  assert.equal(current.pushes.length, 1);
+  assert.match(current.pushes[0].payload.title, /夢羅克.*1 分鐘提醒/);
+  assert.match(current.pushes[0].payload.body, /波伊塔塔/);
+  current.now(noon + 1_000);
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  assert.equal(current.pushes.length, 1);
+  current.sqlite.close();
+});
+
+test("dispatcher sends and persists next-boss context from the final account recheck", async () => {
+  const current = fixture();
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 590 });
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "boitata", seconds: 900 });
+  const originalDatabase = current.environment.DB!;
+  let revised = false;
+  current.environment.DB = {
+    prepare(query: string) {
+      if (query === "SELECT bosses FROM timer_accounts WHERE user_id=?" && !revised) {
+        revised = true;
+        const record = current.sqlite.prepare("SELECT bosses FROM timer_accounts WHERE user_id=?").get(ownerIdentity) as { bosses: string };
+        const cleared = updateBoss(JSON.parse(record.bosses), { type: "clear", bossId: "boitata" }, noon);
+        const bosses = updateBoss(cleared, { type: "countdown", bossId: "lady-tanee", seconds: 900 }, noon);
+        current.sqlite.prepare("UPDATE timer_accounts SET bosses=?,revision=revision+1 WHERE user_id=?").run(JSON.stringify(bosses), ownerIdentity);
+      }
+      return originalDatabase.prepare(query);
+    },
+  } as unknown as D1Database;
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
+  assert.equal(revised, true);
+  assert.equal(current.pushes.length, 1);
+  assert.match(current.pushes[0].payload.body, /嗒妮小姐/);
+  assert.doesNotMatch(current.pushes[0].payload.body, /波伊塔塔/);
+  const alert = current.sqlite.prepare("SELECT message FROM timer_alerts WHERE user_id=?").get(ownerIdentity) as { message: string };
+  assert.match(alert.message, /嗒妮小姐/);
+  assert.doesNotMatch(alert.message, /波伊塔塔/);
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  assert.equal(current.pushes.length, 1);
   current.sqlite.close();
 });
 

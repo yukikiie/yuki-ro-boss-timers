@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { defaultBosses, normalizeBosses, reminderCandidates, scheduleAt, updateBoss } from "../lib/timers.js";
+import { defaultBosses, normalizeBosses, reminderCandidates, scheduleAt, upcomingBosses, updateBoss } from "../lib/timers.js";
 import { bossDetails } from "../lib/boss-catalog.js";
 
 const at = (time) => Date.parse(time);
@@ -198,13 +198,153 @@ test("closed tabs across reset discard yesterday without inventing rotation", ()
   }
 });
 
-test("10minute threshold is inclusive, and5minute takes precedence", () => {
+test("10minute,5minute and1minute thresholds are inclusive without overlapping", () => {
   const bosses = countdown(defaultBosses(noon), "atroce", 1_200);
   assert.deepEqual(reminderCandidates(bosses, noon + 599_999), []);
   assert.equal(reminderCandidates(bosses, noon + 600_000)[0].threshold, 600);
   assert.equal(reminderCandidates(bosses, noon + 899_999)[0].threshold, 600);
   assert.equal(reminderCandidates(bosses, noon + 900_000)[0].threshold, 300);
-  assert.equal(reminderCandidates(bosses, noon + 1_199_999)[0].threshold, 300);
+  assert.equal(reminderCandidates(bosses, noon + 1_139_999)[0].threshold, 300);
+  assert.equal(reminderCandidates(bosses, noon + 1_140_000)[0].threshold, 60);
+  assert.equal(reminderCandidates(bosses, noon + 1_199_999)[0].threshold, 60);
+});
+
+test("exact remaining60/61,300/301 and600/601 seconds select only one reminder", () => {
+  for (const [seconds, threshold] of [[1, 60], [60, 60], [61, 300], [300, 300], [301, 600], [600, 600], [601, null]]) {
+    const bosses = countdown(defaultBosses(noon), "atroce", seconds);
+    const reminders = reminderCandidates(bosses, noon);
+    assert.equal(reminders.length, threshold === null ? 0 : 1);
+    if (threshold !== null) assert.equal(reminders[0].threshold, threshold);
+  }
+});
+
+test("late dispatcher checks select the current1minute window, never missed catch-up thresholds", () => {
+  const bosses = countdown(defaultBosses(noon), "atroce", 1200);
+  const late = reminderCandidates(bosses, noon + 1_155_000);
+  assert.equal(late.length, 1);
+  assert.equal(late[0].threshold, 60);
+  assert.equal(late[0].title, "阿特羅斯 · 1 分鐘提醒");
+  assert.deepEqual(reminderCandidates(bosses, noon + 1_320_001), []);
+});
+
+test("upcomingBosses sorts confirmed future timers globally rather than by MVP, favorite or catalog order", () => {
+  let bosses = countdown(defaultBosses(noon), "naght-sieger", 360);
+  bosses = countdown(bosses, "death-knight", 300);
+  bosses = countdown(bosses, "atroce", 420);
+  const before = JSON.stringify(bosses);
+  const queue = upcomingBosses(bosses, noon);
+  assert.deepEqual(queue.map((boss) => [boss.id, boss.kind]), [["death-knight", "MVP"], ["naght-sieger", "Mini"], ["atroce", "MVP"]]);
+  assert.equal(queue[0].dueAt, noon + 300_000);
+  assert.equal(queue[1].observedAt, noon);
+  assert.equal(queue[1].source, "manual");
+  assert.equal(JSON.stringify(bosses), before);
+  assert.notEqual(queue[0], bosses.find((boss) => boss.id === "death-knight"));
+});
+
+test("equal future deadlines retain stable input order without MVP or favorite tie-breaks", () => {
+  let bosses = countdown(defaultBosses(noon), "naght-sieger", 300);
+  bosses = countdown(bosses, "atroce", 300);
+  const selected = [bosses.find((boss) => boss.id === "naght-sieger"), bosses.find((boss) => boss.id === "atroce")];
+  assert.deepEqual(upcomingBosses(selected, noon).map((boss) => boss.id), ["naght-sieger", "atroce"]);
+  const reminders = reminderCandidates(selected, noon);
+  assert.deepEqual(reminders.map((candidate) => candidate.bossId), ["naght-sieger", "atroce"]);
+  assert.match(reminders[0].message, /先前往 納戶特基格.*接著準備 阿特羅斯.*同時重生/);
+});
+
+test("5minute MVP precedes6minute Mini and both reminders name the first destination and nearby preparation", () => {
+  let bosses = countdown(defaultBosses(noon), "naght-sieger", 360);
+  bosses = countdown(bosses, "death-knight", 300);
+  const reminders = reminderCandidates(bosses, noon);
+  assert.deepEqual(reminders.map((candidate) => [candidate.bossId, candidate.threshold]), [["death-knight", 300], ["naght-sieger", 600]]);
+  for (const reminder of reminders) {
+    assert.match(reminder.message, /先前往 死靈騎士（剩 5 分鐘）/);
+    assert.match(reminder.message, /接著準備 納戶特基格（剩 6 分鐘；相隔 1 分鐘）/);
+  }
+  assert.equal(bosses.find((boss) => boss.id === "death-knight").dueAt, noon + 300_000);
+  assert.equal(bosses.find((boss) => boss.id === "naght-sieger").dueAt, noon + 360_000);
+});
+
+test("nearby preparation includes a five-minute gap but not a larger gap", () => {
+  let bosses = countdown(defaultBosses(noon), "death-knight", 60);
+  bosses = countdown(bosses, "naght-sieger", 360);
+  assert.match(reminderCandidates(bosses, noon)[0].message, /接著準備 納戶特基格（剩 6 分鐘；相隔 5 分鐘）/);
+  bosses = countdown(bosses, "naght-sieger", 361);
+  const message = reminderCandidates(bosses, noon)[0].message;
+  assert.match(message, /下一隻 納戶特基格（剩 6 分 1 秒）/);
+  assert.doesNotMatch(message, /接著準備/);
+});
+
+test("queue and reminder context follow correction and removal without changing another boss timer", () => {
+  let bosses = countdown(defaultBosses(noon), "naght-sieger", 360);
+  bosses = countdown(bosses, "death-knight", 300);
+  const knight = bosses.find((boss) => boss.id === "death-knight");
+  const originalKnightKey = reminderCandidates(bosses, noon).find((candidate) => candidate.bossId === knight.id).cycleKey;
+  bosses = countdown(bosses, "naght-sieger", 120, noon + 1_000);
+  assert.deepEqual(upcomingBosses(bosses, noon + 1_000).map((boss) => boss.id), ["naght-sieger", "death-knight"]);
+  assert.deepEqual(bosses.find((boss) => boss.id === knight.id), knight);
+  const corrected = reminderCandidates(bosses, noon + 1_000);
+  assert.match(corrected[0].message, /先前往 納戶特基格.*接著準備 死靈騎士/);
+  assert.equal(corrected.find((candidate) => candidate.bossId === knight.id).cycleKey, originalKnightKey);
+  bosses = updateBoss(bosses, { type: "remove", bossId: "naght-sieger" }, noon + 1_000);
+  assert.deepEqual(upcomingBosses(bosses, noon + 1_000).map((boss) => boss.id), ["death-knight"]);
+  const remaining = reminderCandidates(bosses, noon + 1_000);
+  assert.match(remaining[0].message, /先前往 死靈騎士（剩 4 分 59 秒）。/);
+  assert.doesNotMatch(remaining[0].message, /納戶特基格|接著準備/);
+  assert.equal(remaining[0].cycleKey, originalKnightKey);
+});
+
+test("overdue bosses never block the future destination and expiration does not create a kill or new timer", () => {
+  let bosses = countdown(defaultBosses(noon), "death-knight", 1);
+  bosses = countdown(bosses, "naght-sieger", 361);
+  const before = JSON.stringify(bosses);
+  const now = noon + 61_000;
+  assert.deepEqual(upcomingBosses(bosses, now).map((boss) => boss.id), ["naght-sieger"]);
+  const reminders = reminderCandidates(bosses, now);
+  assert.deepEqual(reminders.map((candidate) => [candidate.bossId, candidate.threshold]), [["death-knight", 0], ["naght-sieger", 300]]);
+  for (const reminder of reminders) {
+    assert.match(reminder.message, /先前往 納戶特基格（剩 5 分鐘）/);
+    assert.doesNotMatch(reminder.message, /先前往 死靈騎士|已擊殺|重新開始|自動前往/);
+  }
+  assert.match(reminders[0].message, /已確認倒數已結束，請確認遊戲中的 Boss 狀態/);
+  assert.equal(JSON.stringify(bosses), before);
+  assert.equal(normalizeBosses(bosses, now).find((boss) => boss.id === "death-knight").dueAt, noon + 1000);
+});
+
+test("queue excludes unconfirmed, invalid, paused, resting, expired-cycle and exact-due entries", () => {
+  const good = countdown(defaultBosses(noon), "death-knight", 300).find((boss) => boss.id === "death-knight");
+  for (const mutation of [
+    { observedAt: null }, { observedAt: noon + 1 }, { source: null }, { source: "guessed" },
+    { status: "paused" }, { status: "resting" }, { status: "unknown" }, { cycle: "2026-10-17" },
+  ]) {
+    assert.deepEqual(upcomingBosses([{ ...good, ...mutation }], noon), []);
+  }
+  assert.deepEqual(upcomingBosses([good], good.dueAt), []);
+  assert.deepEqual(upcomingBosses([good], at("2026-10-19T03:00:00+08:00")), []);
+  assert.deepEqual(upcomingBosses([good], at("2026-10-19T05:00:00+08:00")), []);
+  assert.deepEqual(upcomingBosses(undefined, noon), []);
+});
+
+test("long custom boss names are shortened only in context and keep the encrypted payload within320characters", () => {
+  let bosses = defaultBosses(noon);
+  for (const [name, seconds] of [["甲".repeat(60), 59], ["乙".repeat(60), 61], ["丙".repeat(60), 300]]) {
+    bosses = updateBoss(bosses, { type: "add", name, kind: "MVP" }, noon);
+    bosses = countdown(bosses, bosses.at(-1).id, seconds);
+  }
+  for (const reminder of reminderCandidates(bosses, noon)) {
+    assert.ok(reminder.message.length <= 320);
+    assert.ok(reminder.title.length <= 120);
+    assert.ok(reminder.message.includes(`${"甲".repeat(24)}…`));
+    assert.ok(reminder.message.includes(`${"乙".repeat(24)}…`));
+    const own = bosses.find((boss) => boss.id === reminder.bossId);
+    assert.ok(reminder.message.startsWith(`MVP ${own.name} `));
+    assert.ok(reminder.title.startsWith(own.name));
+  }
+  const unicode = updateBoss(defaultBosses(noon), { type: "add", name: "🐱".repeat(30), kind: "Mini" }, noon);
+  const observed = countdown(unicode, unicode.at(-1).id, 60);
+  const message = reminderCandidates(observed, noon)[0].message;
+  assert.ok(message.length <= 320);
+  assert.ok(message.includes(`${"🐱".repeat(24)}…`));
+  assert.equal(message.isWellFormed(), true);
 });
 
 test("spawn alerts are limited to the exact due time through two minutes", () => {

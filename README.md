@@ -44,7 +44,9 @@ Every boss card exposes a pink `剛被擊殺` button alongside the separate manu
 
 At 03:00–05:00 Hong Kong time, countdowns are cleared and alerts are suppressed. At 05:00, yesterday's countdowns are invalidated. Enter fresh observations for the new rotation; the application does not invent spawn times, read the game or control an emulator.
 
-Reminders cover ten minutes, five minutes and the two-minute spawn window, with durable per-device deduplication and bounded retry attempts. A scheduler outage can miss a window; stale notifications are not replayed later as if current.
+Reminders cover ten minutes, five minutes, one minute and the two-minute spawn window, with durable per-device deduplication and bounded retry attempts. Late entry never backfills missed reminder stages. A scheduler outage can miss a window; stale notifications are not replayed later as if current.
+
+The compact route strip selects the earliest two confirmed future countdowns across the whole roster, independently of MVP/Mini and favorite filters. It shows the first destination, the next preparation target and their due-time gap; five minutes or less is highlighted. Expired countdowns leave this navigation queue without implying a kill, clearing the timer or starting a new countdown. Reminder messages identify the next confirmed target to prepare for.
 
 ## Development
 

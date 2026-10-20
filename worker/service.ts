@@ -242,15 +242,16 @@ export function createTimerService(environment: WorkerEnvironment, dependencies:
               .bind(deliveryId, record.user_id, alertId, device.id, claimedAt, claimedAt - 60_000).first();
             if (!claimed) continue;
             const fresh = await storage.prepare("SELECT bosses FROM timer_accounts WHERE user_id=?").bind(record.user_id).first<{ bosses: string }>();
-            const stillValid = fresh && reminderCandidates(normalizeBosses(JSON.parse(fresh.bosses), clock()), clock())
-              .some((candidate) => candidate.cycleKey === reminder.cycleKey && candidate.threshold === reminder.threshold);
-            if (!stillValid) {
+            const validatedAt = clock();
+            const freshCandidate = fresh && reminderCandidates(normalizeBosses(JSON.parse(fresh.bosses), validatedAt), validatedAt)
+              .find((candidate) => candidate.cycleKey === reminder.cycleKey && candidate.threshold === reminder.threshold);
+            if (!freshCandidate) {
               await storage.prepare("UPDATE push_deliveries SET status='cancelled',updated_at=? WHERE id=?").bind(clock(), deliveryId).run();
               continue;
             }
             let result;
             try {
-              result = await push(JSON.parse(device.subscription), { title: reminder.title, body: reminder.message, tag: alertId.slice(0, 30) }, env);
+              result = await push(JSON.parse(device.subscription), { title: freshCandidate.title, body: freshCandidate.message, tag: alertId.slice(0, 30) }, env);
             } catch {
               result = { ok: false, status: 0, expired: false };
             }
@@ -258,8 +259,8 @@ export function createTimerService(environment: WorkerEnvironment, dependencies:
             await storage.prepare("UPDATE push_deliveries SET status=?,updated_at=? WHERE id=?")
               .bind(result.ok ? "accepted" : result.expired ? "expired" : "failed", clock(), deliveryId).run();
             if (result.ok) accepted++; else failed++;
-            await storage.prepare("INSERT INTO timer_alerts (id,user_id,title,message,status,created_at) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET status=CASE WHEN timer_alerts.status='accepted' THEN 'accepted' ELSE excluded.status END")
-              .bind(alertId, record.user_id, reminder.title, reminder.message, result.ok ? "accepted" : "failed", now).run();
+            await storage.prepare("INSERT INTO timer_alerts (id,user_id,title,message,status,created_at) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,message=excluded.message,status=CASE WHEN timer_alerts.status='accepted' THEN 'accepted' ELSE excluded.status END")
+              .bind(alertId, record.user_id, freshCandidate.title, freshCandidate.message, result.ok ? "accepted" : "failed", now).run();
           }
         }
       }
