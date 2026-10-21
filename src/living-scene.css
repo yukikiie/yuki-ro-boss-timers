@@ -31,13 +31,10 @@
 
 .living-garden {
   position: absolute;
-  inset: 0;
+  inset: 0 0 auto;
+  aspect-ratio: 739 / 2129;
   z-index: 0;
   overflow: hidden;
-}
-
-.living-garden > .scene-motion-layer {
-  height: max(100%, 288.092cqi);
 }
 
 .creature-frame {
@@ -156,8 +153,12 @@
   display: none;
 }
 
-.app-shell[data-scene-phase="night"] .main-shell {
-  background-color: #1e3652;
+.app-shell.reference-timers[data-scene-phase="afternoon"] .main-shell {
+  background-color: #b3eb2c;
+}
+
+.app-shell.reference-timers[data-scene-phase="night"] .main-shell {
+  background-color: #0a5670;
 }
 
 .scene-mode-controls {

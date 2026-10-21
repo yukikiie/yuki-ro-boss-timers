@@ -4,20 +4,20 @@
 body { background: #f9dfec; font-family: var(--font-sans); font-weight: 800; color: #1d174e; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 .app-shell { --b-unit: .214592cqi; width: min(480px, calc(100% - 10px)); max-width: 480px; padding: 5px; background: #f5b1d0; border: 2px solid #31224e; box-shadow: inset 0 0 0 2px #ffeff8, 0 0 0 2px #b77ea5; }
-.app-shell .map-masthead { position: relative; margin: 0; height: 66.667cqi; border: 1px solid #554174; border-bottom: 0; background: #b7dba1; overflow: hidden; }
-.app-shell .map-art { inset: 0; background: url("/pixel/ro-map-standalone.png") center / cover no-repeat; z-index: 0; }
+.app-shell .map-masthead { position: relative; margin: 0; height: auto; aspect-ratio: 3 / 2; border: 1px solid #554174; border-bottom: 0; background: #b7dba1; overflow: hidden; }
+.app-shell .map-art { inset: 0; background: url("/pixel/ro-map-standalone.png") center top / contain no-repeat; z-index: 0; }
 .app-shell .page-heading { position: relative; z-index: 1; margin: 0; padding: 4.4cqi 2cqi 0; }
 .app-shell .title-panel { gap: 1.5cqi; max-width: 80%; padding: 1.5cqi 3.6cqi 1.5cqi 2cqi; color: #181144; background: #fffaff; border: 2px solid #211a4a; box-shadow: inset 0 0 0 2px #e7dcf4; filter: drop-shadow(2px 3px 0 #654b85); clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px); }
 .app-shell .title-panel::before, .app-shell .title-panel::after { display: none; }
 .app-shell .poring-icon { display: block; width: 11cqi; height: 11cqi; object-fit: contain; image-rendering: auto; }
 .app-shell .page-heading h1 { color: #171043; font-family: var(--font-sans); font-size: 4.4cqi; font-weight: 900; line-height: 1.14; letter-spacing: -.1cqi; text-align: left; white-space: nowrap; }
 .app-shell .masthead-meta { display: none; }
-.app-shell .masthead-compact { height: 38cqi; }
-.app-shell .masthead-compact .map-art { background-position: center 30%; }
+.app-shell .masthead-compact { height: auto; aspect-ratio: 3 / 2; }
+.app-shell .masthead-compact .map-art { background-position: center top; }
 .reference-timers .map-masthead { height: auto; aspect-ratio: auto; border: 0; background: #f5bed8; overflow: hidden; }
 .regenerated-header { display: block; width: 100%; height: auto; image-rendering: auto; }
 .app-shell.reference-timers { isolation: isolate; background: #f7edf8; }
-.reference-timers .main-shell { margin-top: 0; background-color: #83bc58; background-image: var(--scene-garden-image, url("/art/ro-list-garden.png")); background-position: center top; background-size: 100% max(100%, 288.092cqi); background-repeat: no-repeat; }
+.reference-timers .main-shell { margin-top: 0; min-height: calc(100cqi * 2129 / 739); background-color: #8ad26c; background-image: var(--scene-garden-image, url("/art/ro-list-garden.png")); background-position: center top; background-size: 100% auto; background-repeat: no-repeat; }
 .reference-timers .main-content { position: relative; padding-bottom: 18cqi; background: transparent; }
 .reference-timers .timer-tools { position: absolute; top: -9cqi; right: 1.8cqi; left: auto; z-index: 35; margin: 0; padding: 0; max-width: calc(100% - 3.6cqi); min-height: 0; border: 0; background: transparent; font-size: 13px; }
 .reference-timers .timer-tools > summary { display: flex; justify-content: center; align-items: center; gap: 0; width: 6.8cqi; height: 6.8cqi; min-height: 0; margin: 0 0 0 auto; padding: .8cqi; list-style: none; color: #302050; background: #fff8fff0; border: 1px solid #8f72b3; cursor: pointer; font-size: 0; }

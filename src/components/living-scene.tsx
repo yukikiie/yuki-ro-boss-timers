@@ -170,7 +170,7 @@ export function LivingGarden({ phase = "day" }: { phase?: ScenePhase }) {
 
   return (
     <div ref={reference} className="living-scene living-garden" data-scene-phase={phase} data-scene-visible={visible ? "true" : "false"} aria-hidden="true">
-      <svg className="scene-motion-layer" viewBox="0 0 739 2129" preserveAspectRatio="none" focusable="false" shapeRendering="crispEdges">
+      <svg className="scene-motion-layer" viewBox="0 0 739 2129" preserveAspectRatio="xMidYMin meet" focusable="false" shapeRendering="crispEdges">
         {gardenRipples.map((ripple) => <PixelRipple key={`${ripple.left}-${ripple.top}`} {...ripple} />)}
         {gardenPetals.map((petal) => <PixelPetal key={`${petal.left}-${petal.top}`} {...petal} />)}
         {[{ left: 591, top: 208 }, { left: 595, top: 403 }, { left: 614, top: 603 }, { left: 606, top: 913 }, { left: 637, top: 1768 }].map((water, index) => (

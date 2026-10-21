@@ -70,4 +70,6 @@ The compact route strip selects the earliest two confirmed future countdowns acr
 
 ## Artwork and licenses
 
+Backgrounds retain their complete original paintings at their natural aspect ratios. The timer header remains 4:3; the scrolling garden remains 739:2129, width-fitted once with an equally sized animation overlay. Empty or filtered lists keep enough height to show the whole garden. Adding or sorting bosses never resizes or clips the illustration. Lists longer than that single painting continue on a phase-matched solid background, not stretched, cropped, repeated or mirrored artwork. This deliberate solid continuation is not a seamless illustrated extension. Notification and guide pages show the complete earlier 3:2 map with `contain`. A genuinely longer illustrated scene requires newly drawn terrain in a new asset.
+
 Existing artwork files are copied unchanged from the approved application; no new raster artwork is generated for this migration. The locally bundled Noto Sans TC font retains its OFL license in `public/fonts/`. Retained vendor CSS licenses remain in `vendor/`.
