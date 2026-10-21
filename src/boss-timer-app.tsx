@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { apiFetch, appBasePath } from "./api";
 import { activateApplicationWorker, isApplicationRegistration } from "./push-registration";
 import { bossCatalog, bossDetails, sortBossesForDisplay } from "../lib/boss-catalog.js";
-import { portraitIcon } from "../lib/boss-portrait-icons.js";
+import { portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
 import { upcomingBosses } from "../lib/timers.js";
 import { ReferenceCountdown } from "./components/reference-countdown";
 import { AnimatedBossPortrait } from "./components/animated-boss-portrait";
@@ -117,7 +117,7 @@ function BossMetadata({ boss }: { boss: Boss }) {
   return <div className="boss-metadata" aria-label="Boss 資訊"><span className="attribute-chip chip-size" aria-label={`體型：${details.size}型`}>{details.size}</span><span className={`attribute-chip chip-element element-${details.element}`} aria-label={`屬性：${details.element}`}><PixelAttributeIcon value={details.element} />{details.element}</span><span className="attribute-chip chip-race" aria-label={`種族：${details.race}`}><PixelAttributeIcon value={details.race} race />{details.race}</span></div>;
 }
 function BossPortrait({ boss }: { boss: Boss }) {
-  const details = bossDetails(boss);
+  const details = bossDetails(boss) || portraitMotion(boss);
   if (details) return <div className={`boss-portrait portrait-${details.id}`} aria-hidden="true"><AnimatedBossPortrait spriteIndex={details.spriteIndex} /></div>;
   const icon = portraitIcon(boss);
   if (icon) return <div className="boss-portrait portrait-native-icon" aria-hidden="true"><img className="native-boss-icon" src={icon} alt="" width="75" height="75" data-portrait-icon={boss.id} /></div>;

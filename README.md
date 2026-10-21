@@ -4,7 +4,7 @@ An independent GitHub Pages copy of the Yuki pixel boss timer. It retains the ap
 
 The original hosted app is a separate application. This repository contains no original Site identity, runtime credentials, live database, notification subscriptions or dispatcher configuration.
 
-The saved custom bosses 暗·逐影, 亡靈巫師 and 殭屍龍 use their unchanged native reference portraits through the art-only `portraitIcon` resolver. These three static icons do not replace any of the eighteen animated catalog portraits, add default boss records or modify saved timer data. Asset dimensions and sources are recorded in `public/art/boss-icons/README.md`.
+The saved custom bosses 暗·逐影, 亡靈巫師 and 殭屍龍 use three articulated pixel characters with four distinct action poses each in `ro-pixel-motion-f.png`, selected through the art-only `portraitMotion` resolver and the same animation renderer as the eighteen catalog bosses. This is posed character animation, not movement of a still icon. The unchanged native reference portraits remain available through `portraitIcon` for reference/fallback. No default boss records, stored IDs, timers or metadata change. Asset sources are recorded in `public/art/boss-icons/README.md`.
 
 ## Architecture
 

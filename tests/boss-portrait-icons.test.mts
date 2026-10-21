@@ -8,7 +8,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { bossCatalog, bossDetails } from "../lib/boss-catalog.js";
-import { portraitIcon } from "../lib/boss-portrait-icons.js";
+import { portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
 import { defaultBosses } from "../lib/timers.js";
 import { rewritePublicAssetPaths } from "../src/asset-paths.ts";
 
@@ -27,7 +27,7 @@ function loadPortrait() {
   const moduleValue = { exports: {} as Record<string, React.ComponentType<{ boss: { id: string; name: string } }>> };
   vm.runInNewContext(javascript, {
     module: moduleValue, exports: moduleValue.exports, require: requireModule,
-    bossDetails, portraitIcon,
+    bossDetails, portraitIcon, portraitMotion,
     AnimatedBossPortrait: ({ spriteIndex }: { spriteIndex: number }) => React.createElement("svg", { "data-preserved-motion": spriteIndex }),
     BossSigil: () => React.createElement("div", { "data-generic-sigil": "true" }),
   });
@@ -35,10 +35,13 @@ function loadPortrait() {
 }
 
 test("the exact three saved custom IDs resolve to their unchanged native references", () => {
-  for (const reference of references) {
+  for (const [index, reference] of references.entries()) {
     assert.equal(portraitIcon({ id: reference.id, name: reference.name }), `/art/boss-icons/${reference.file}`);
     assert.equal(portraitIcon({ id: reference.id, name: "Unknown" }), `/art/boss-icons/${reference.file}`);
     assert.equal(portraitIcon({ id: "different-custom-id", name: reference.name }), `/art/boss-icons/${reference.file}`);
+    const expected = { id: ["dark-chaser", "undead-wizard", "zombie-dragon"][index], spriteIndex: 18 + index };
+    assert.deepEqual(portraitMotion({ id: reference.id }), expected);
+    assert.deepEqual(portraitMotion({ id: "different-custom-id", name: reference.name }), expected);
   }
 });
 
@@ -46,7 +49,10 @@ test("only normalized full names receive icons, without abbreviated or mistaken 
   for (const name of ["暗・逐影", "暗·逐影", "暗．逐影", " 暗 ・ 逐影 ", "暗\u3000·\u3000逐影"]) assert.equal(portraitIcon({ name }), "/art/boss-icons/dark-chaser-30039.png");
   assert.equal(portraitIcon({ name: " 亡 靈 巫 師 " }), "/art/boss-icons/undead-wizard-31014.png");
   assert.equal(portraitIcon({ name: " 殭屍龍 " }), "/art/boss-icons/zombie-dragon-30025.png");
-  for (const input of [null, undefined, "亡靈巫師", {}, { name: "逐影" }, { name: "暗逐影" }, { name: "亡靈" }, { name: "殭屍" }, { name: "龍" }, { name: "寒冰龍" }, { name: "影魔" }, { id: "custom-unknown", name: "自訂 Boss" }]) assert.equal(portraitIcon(input), null);
+  for (const input of [null, undefined, "亡靈巫師", {}, { name: "逐影" }, { name: "暗逐影" }, { name: "亡靈" }, { name: "殭屍" }, { name: "龍" }, { name: "寒冰龍" }, { name: "影魔" }, { id: "custom-unknown", name: "自訂 Boss" }]) {
+    assert.equal(portraitIcon(input), null);
+    assert.equal(portraitMotion(input), null);
+  }
 });
 
 test("native portraits retain their exact downloaded PNG dimensions and bytes", () => {
@@ -66,11 +72,15 @@ test("art-only lookup preserves default eighteen records and never changes saved
   const snapshot = JSON.stringify(before);
   assert.equal(bossCatalog.length, 18);
   assert.equal(before.length, 18);
-  for (const boss of before) assert.equal(portraitIcon(boss), null);
+  for (const boss of before) {
+    assert.equal(portraitIcon(boss), null);
+    assert.equal(portraitMotion(boss), null);
+  }
   for (const reference of references) {
     const boss = Object.freeze({ id: reference.id, name: reference.name, kind: "MVP", status: "counting", dueAt: now + 3600000, observedAt: now, source: "manual", favorite: false, cycle: "2026-10-21" });
     const saved = JSON.stringify(boss);
     assert.ok(portraitIcon(boss));
+    assert.ok(portraitMotion(boss));
     assert.equal(bossDetails(boss), null);
     assert.equal(JSON.stringify(boss), saved);
   }
@@ -78,15 +88,12 @@ test("art-only lookup preserves default eighteen records and never changes saved
   assert.equal(JSON.stringify(before), snapshot);
 });
 
-test("the three custom cards use native images, while all eighteen old portraits remain animated", () => {
+test("the three custom cards select real pose animation and retain all eighteen old animations", () => {
   const Portrait = loadPortrait();
-  for (const reference of references) {
+  for (const [index, reference] of references.entries()) {
     const markup = renderToStaticMarkup(React.createElement(Portrait, { boss: reference }));
-    assert.match(markup, /class="boss-portrait portrait-native-icon"/);
-    assert.ok(markup.includes(`src="/art/boss-icons/${reference.file}"`));
-    assert.match(markup, /alt="" width="75" height="75"/);
-    assert.ok(markup.includes(`data-portrait-icon="${reference.id}"`));
-    assert.doesNotMatch(markup, /data-generic-sigil|data-preserved-motion/);
+    assert.ok(markup.includes(`data-preserved-motion="${18 + index}"`));
+    assert.doesNotMatch(markup, /native-boss-icon|portrait-native-icon|data-generic-sigil|<img/);
   }
   for (const boss of bossCatalog) {
     const markup = renderToStaticMarkup(React.createElement(Portrait, { boss }));
