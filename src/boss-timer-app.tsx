@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { apiFetch, appBasePath } from "./api";
 import { activateApplicationWorker, isApplicationRegistration } from "./push-registration";
 import { bossCatalog, bossDetails, sortBossesForDisplay } from "../lib/boss-catalog.js";
+import { portraitIcon } from "../lib/boss-portrait-icons.js";
 import { upcomingBosses } from "../lib/timers.js";
 import { ReferenceCountdown } from "./components/reference-countdown";
 import { AnimatedBossPortrait } from "./components/animated-boss-portrait";
@@ -117,8 +118,10 @@ function BossMetadata({ boss }: { boss: Boss }) {
 }
 function BossPortrait({ boss }: { boss: Boss }) {
   const details = bossDetails(boss);
-  if (!details) return <BossSigil bossId={boss.id} index={0} />;
-  return <div className={`boss-portrait portrait-${details.id}`} aria-hidden="true"><AnimatedBossPortrait spriteIndex={details.spriteIndex} /></div>;
+  if (details) return <div className={`boss-portrait portrait-${details.id}`} aria-hidden="true"><AnimatedBossPortrait spriteIndex={details.spriteIndex} /></div>;
+  const icon = portraitIcon(boss);
+  if (icon) return <div className="boss-portrait portrait-native-icon" aria-hidden="true"><img className="native-boss-icon" src={icon} alt="" width="75" height="75" data-portrait-icon={boss.id} /></div>;
+  return <BossSigil bossId={boss.id} index={0} />;
 }
 function BossSigil({ bossId, index }: { bossId: string; index: number }) {
   const knownIndex = ["atroce", "lady-tanee", "boitata", "wandering-samurai"].indexOf(bossId);

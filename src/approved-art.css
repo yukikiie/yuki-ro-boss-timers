@@ -59,6 +59,8 @@ body { background: #f9dfec; font-family: var(--font-sans); font-weight: 800; col
 .reference-timers .boss-portrait-wrap, .reference-timers .card-featured .boss-portrait-wrap { position: relative; grid-column: 1; grid-row: 1 / 3; width: 100%; height: 22.605cqi; min-height: 0; margin: 0; align-self: center; overflow: visible; }
 .reference-timers .boss-portrait, .reference-timers .card-featured .boss-portrait { position: absolute; inset: 0; width: 100%; height: 100%; background: none; }
 .boss-figure { display: block; width: 100%; height: 100%; overflow: hidden; image-rendering: auto; }
+.reference-timers .portrait-native-icon { display: flex; align-items: center; justify-content: center; }
+.reference-timers .portrait-native-icon .native-boss-icon { display: block; width: auto; height: 100%; max-width: 100%; object-fit: contain; border-radius: 50%; image-rendering: auto; }
 .reference-timers .boss-sigil { max-width: 90%; max-height: 90%; }
 .reference-timers .boss-identity, .reference-timers .card-featured .boss-identity { grid-column: 2 / -1; grid-row: 1; padding: 0; align-self: center; transform: none; }
 .reference-timers .boss-name-row { display: flex; flex-wrap: nowrap; min-width: 0; gap: 1cqi 1.5cqi; align-items: center; padding-right: 0; }
