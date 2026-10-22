@@ -175,12 +175,20 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
   const [motionEnabled, setMotionEnabled] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [browser, setBrowser] = useState({ checked: false, supported: false, ios: false, standalone: false, permission: "default" });
+  const [desktopLayout, setDesktopLayout] = useState(false);
 
   const applyState = useCallback((value: AppState) => {
     setData(value);
     setOffset(value.serverNow - Date.now());
     setClock(Date.now());
     setNetworkError("");
+  }, []);
+  useEffect(() => {
+    const desktopPreference = window.matchMedia("(min-width: 1100px)");
+    const updateDesktopLayout = () => setDesktopLayout(desktopPreference.matches);
+    updateDesktopLayout();
+    desktopPreference.addEventListener("change", updateDesktopLayout);
+    return () => desktopPreference.removeEventListener("change", updateDesktopLayout);
   }, []);
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -371,7 +379,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
         {networkError && <div className="notice notice-error" role="alert"><WifiOff size={19} /><div><strong>連線暫時中斷</strong><p>{networkError}{data && " 畫面保留上次資料；新的提醒及變更可能無法送達。"}</p></div><button className="icon-button" aria-label="重試同步" onClick={() => void refresh()}><RefreshCw size={18} /></button></div>}
 
         {view === "timers" && <>
-          <details className="timer-tools"><summary aria-label="計時工具，篩選與新增"><PixelNavigationIcon view="guide" /><span>計時工具</span></summary>
+          <details className="timer-tools" open={desktopLayout || undefined}><summary aria-label="計時工具，篩選與新增"><PixelNavigationIcon view="guide" /><span>計時工具</span></summary>
           <div className="cycle-strip"><div className="cycle-icon"><Sunrise size={21} strokeWidth={1.5} /></div><div><strong>每日輪替</strong><span>05:00 HKT 換日重置 <span className="cycle-dot">·</span>03:00–05:00 Boss 休眠</span></div><span className="cycle-reset">下次重置 <strong>{data && now ? durationText((data.schedule.nextReset - now) / 1000) : "--:--:--"}</strong><CircleHelp size={15} aria-label="換日會清除舊倒數，請重新確認今日 Boss" /></span></div>
           <section className="boss-section" aria-labelledby="boss-list-title"><div className="section-title"><div><h2 id="boss-list-title">我的 Boss <span>{bosses.length.toString().padStart(2, "0")}</span></h2><p>最近重生優先；未設定倒數的 Boss 排在後面，同時重生時 MVP 在前。</p></div><button className="button button-outline" disabled={!data || busy} onClick={() => { setNewName(""); setNewKind("MVP"); setFormError(""); setDialog({ type: "add" }); }}><Plus size={16} />新增 Boss</button></div>
             <div className="list-toolbar"><div className="filter-tabs" role="group" aria-label="Boss 類型">{["All", "MVP", "Mini"].map((kind) => <button key={kind} className={filter === kind ? "selected" : ""} onClick={() => setFilter(kind)}>{kind === "All" ? "全部" : kind}<span>{kind === "All" ? bosses.length : bosses.filter((boss) => boss.kind === kind).length}</span></button>)}</div><div className="list-options"><button className={favoritesOnly ? "text-control chosen" : "text-control"} onClick={() => setFavoritesOnly(!favoritesOnly)} aria-pressed={favoritesOnly}><Star size={14} fill={favoritesOnly ? "currentColor" : "none"} />最愛 <span>{favoriteCount}</span></button><span className="sort-note"><Clock3 size={14} />最近重生優先</span></div></div>
@@ -381,7 +389,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
               const due = counting && Boolean(now && (boss.dueAt || Infinity) <= now);
               const isAsleep = resting || boss.status === "resting";
               const featured = featuredBoss?.id === boss.id;
-              return <article className={`boss-card ${featured ? "card-featured" : ""} ${counting ? "card-counting" : ""} ${due ? "card-due" : ""} ${menu === boss.id ? "card-menu-open" : ""}`} key={boss.id} aria-label={`${boss.name}，${boss.kind}${featured ? "，下一隻重生" : ""}`}>
+              return <div className="boss-card-slot" key={boss.id}><article className={`boss-card ${featured ? "card-featured" : ""} ${counting ? "card-counting" : ""} ${due ? "card-due" : ""} ${menu === boss.id ? "card-menu-open" : ""}`} aria-label={`${boss.name}，${boss.kind}${featured ? "，下一隻重生" : ""}`}>
                 <BossCardFrame featured={featured} />
                 {featured && <div className="featured-label">下一隻</div>}
                 <div className="boss-card-top"><span className={`kind-label kind-${boss.kind.toLowerCase()}`}>{boss.kind === "MVP" ? <Diamond size={10} fill="currentColor" /> : <Sparkles size={11} />}{boss.kind}</span><div className="card-actions"><button className={`icon-button favorite-button ${boss.favorite ? "is-favorite" : ""}`} aria-label={`${boss.favorite ? "取消" : "加入"}最愛 ${boss.name}`} disabled={busy} onClick={() => void mutate("favorite", { bossId: boss.id, favorite: !boss.favorite }, boss.favorite ? "已取消最愛" : "已加入最愛")}><Star size={16} fill={boss.favorite ? "currentColor" : "none"} /></button><div className="menu-wrap"><button className="icon-button" aria-label={`${boss.name} 更多選項`} aria-expanded={menu === boss.id} onClick={() => setMenu(menu === boss.id ? null : boss.id)}><MoreHorizontal size={19} /></button>{menu === boss.id && <><button className="menu-dismiss" aria-label="關閉選單" onClick={() => setMenu(null)} /><div className="card-menu"><button disabled={busy} onClick={() => void mutate("resting", { bossId: boss.id }, `${boss.name} 已標記休眠`)}><Moon size={15} />標記休眠</button><button disabled={busy || resting} onClick={() => confirmKill(boss)} title={`從現在開始 ${boss.respawnMinutes / 60} 小時倒數`}><Check size={15} />剛被擊殺</button><button disabled={busy} onClick={() => void mutate("clear", { bossId: boss.id }, "倒數已清除")}><RefreshCw size={15} />清除倒數</button><button className="danger-text" disabled={busy} onClick={() => { if (window.confirm(`移除 ${boss.name}？此 Boss 的倒數也會清除。`)) void mutate("remove", { bossId: boss.id }, "Boss 已移除"); }}><Trash2 size={15} />移除 Boss</button></div></>}</div></div></div>
@@ -389,7 +397,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
                 <div className="boss-identity"><div className="boss-name-row"><h3 className={Array.from(boss.name).length > 4 ? "boss-name-long" : undefined} title={boss.name}>{boss.name}</h3><BossMetadata boss={boss} /></div><div className={`boss-status ${due ? "status-due" : counting ? "status-counting" : ""}`}><span />{isAsleep ? "休眠中" : due ? "預計已出現" : counting ? "倒數中" : "等待設定"}<span className="respawn-duration">{boss.respawnMinutes / 60} 小時重生</span></div></div>
                 <div className="boss-countdown"><strong className={!counting ? "empty-countdown" : ""}><ReferenceCountdown value={counting && now ? durationText(((boss.dueAt || now) - now) / 1000) : "--:--:--"} /></strong><p>{isAsleep ? "下一次輪替後，重新確認此 Boss" : counting ? <>預計出現 <span>{timeText(boss.dueAt)} HKT</span></> : "輸入遊戲中的實際倒數"}</p></div>
                 <div className="card-button-row" role="group" aria-label={`${boss.name} 計時操作`}><button className="button button-card button-kill" aria-label={`${boss.name} 剛被擊殺`} title={`確認擊殺後，自動從現在開始 ${boss.respawnMinutes / 60} 小時倒數`} disabled={busy || resting} onClick={() => confirmKill(boss)}>剛被擊殺</button><button className="button button-card button-adjust" aria-label={`${boss.name} 設定倒數`} disabled={busy || resting} onClick={() => openCountdown(boss)}>設定倒數</button></div>
-              </article>;
+              </article></div>;
             })}</div> : <div className="empty-list"><Crosshair size={30} strokeWidth={1} /><h3>{"這裡還沒有 Boss"}</h3><p>{favoritesOnly ? "為 Boss 點亮星號，或關閉「只看最愛」。" : "新增你想追蹤的 Boss，再輸入遊戲中的實際時間。"}</p></div>}
           </section>
           <section className="phone-panel"><div className="phone-illustration" aria-hidden="true"><Smartphone size={31} strokeWidth={1.5} /><span><Bell size={13} fill="currentColor" /></span></div><div className="phone-copy"><h3>iPhone 提醒</h3><p>將 10 分鐘、5 分鐘、1 分鐘及出現提醒，送到你的 iPhone。</p></div><button className="button button-dark" onClick={() => setView("notifications")}>設定手機通知 <ArrowUpRight size={16} /></button></section>

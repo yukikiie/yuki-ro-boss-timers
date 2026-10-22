@@ -122,6 +122,7 @@ for (const phase of ["day", "afternoon", "night"] as const) {
       for (const count of [0, 1, 5, 18, 21, 30]) {
         const markup = renderRoster(count, width, phase);
         assert.equal((markup.match(/<article class="boss-card(?: |")/g) || []).length, count);
+        assert.equal((markup.match(/class="boss-card-slot"/g) || []).length, count);
         const header = markup.match(/<header\b[\s\S]*?<\/header>/)?.[0];
         const garden = markup.match(/<div class="living-scene living-garden"[\s\S]*?<\/svg><\/div>/)?.[0];
         assert.ok(header);

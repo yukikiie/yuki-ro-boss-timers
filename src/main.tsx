@@ -6,6 +6,7 @@ import "./approved-art.css";
 import "./reference-countdown.css";
 import "./boss-motion.css";
 import "./living-scene.css";
+import "./desktop-layout.css";
 
 const container = document.getElementById("root");
 if (!container) throw new Error("The application root is missing.");

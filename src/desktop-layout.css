@@ -1,0 +1,390 @@
+.boss-card-slot {
+  display: contents;
+}
+
+@media (min-width: 1100px) {
+  .app-shell {
+    --desktop-sidebar-width: clamp(260px, 22vw, 300px);
+    --desktop-gap: 24px;
+    --desktop-nav-height: 60px;
+    --desktop-garden-top: calc(var(--desktop-sidebar-width) * 3 / 4 + var(--desktop-nav-height) + 20px);
+    --desktop-scene-height: calc(var(--desktop-garden-top) + var(--desktop-sidebar-width) * 2129 / 739);
+    display: grid;
+    grid-template-columns: var(--desktop-sidebar-width) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--desktop-gap);
+    width: calc(100% - 48px);
+    max-width: 1440px;
+    min-height: calc(100dvh - 48px);
+    margin: 24px auto;
+    padding: 18px;
+  }
+
+  .app-shell .map-masthead {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    container-type: inline-size;
+    height: auto;
+    aspect-ratio: auto;
+  }
+
+  .app-shell .map-art {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+  }
+
+  .app-shell .masthead-compact .page-heading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .app-shell .main-nav {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    height: var(--desktop-nav-height);
+    padding: 6px;
+    gap: 5px;
+    background: #fff6ff;
+    border: 1px solid #a085b5;
+    box-shadow: inset 0 0 0 2px #e7dcf4;
+  }
+
+  .app-shell .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 0;
+    padding: 3px 2px;
+    font-size: 12px;
+    line-height: 1.1;
+    border-width: 1px;
+    box-shadow: none;
+  }
+
+  .app-shell .main-nav .pixel-nav-icon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .app-shell .nav-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+
+  .app-shell .nav-item {
+    position: relative;
+  }
+
+  .app-shell .mobile-nav {
+    display: none;
+  }
+
+  .app-shell .motion-toggle {
+    right: 10px;
+    bottom: calc(var(--desktop-nav-height) + 10px);
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 5px;
+  }
+
+  .app-shell .main-shell {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .app-shell.reference-timers[data-scene-phase] .main-shell {
+    min-height: var(--desktop-scene-height);
+    background: none;
+  }
+
+  .reference-timers .main-content {
+    padding: 0;
+  }
+
+  .reference-timers .living-garden {
+    top: var(--desktop-garden-top);
+    right: auto;
+    bottom: auto;
+    left: calc(0px - var(--desktop-sidebar-width) - var(--desktop-gap));
+    width: var(--desktop-sidebar-width);
+    background-color: #8ad26c;
+    background-image: var(--scene-garden-image);
+    background-position: center top;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+  }
+
+  .reference-timers[data-scene-phase="afternoon"] .living-garden {
+    background-color: #b3eb2c;
+  }
+
+  .reference-timers[data-scene-phase="night"] .living-garden {
+    background-color: #0a5670;
+  }
+
+  .reference-timers > .main-shell > .main-content > .dashboard-clockbar {
+    display: flex;
+    min-height: 50px;
+    margin: 0 0 14px;
+    padding: 10px 16px;
+    justify-content: flex-start;
+  }
+
+  .reference-timers .dashboard-clockbar .pixel-hearts {
+    display: none;
+  }
+
+  .reference-timers .dual-clock {
+    gap: 24px;
+  }
+
+  .reference-timers .dual-clock > div {
+    gap: 9px;
+  }
+
+  .reference-timers .dual-clock > div > span {
+    font-size: 12px;
+  }
+
+  .reference-timers .dual-clock strong {
+    font-size: 22px;
+  }
+
+  .reference-timers .dual-clock strong small {
+    font-size: 10px;
+  }
+
+  .reference-timers .timer-tools,
+  .reference-timers .timer-tools[open] {
+    container-type: inline-size;
+    top: calc(var(--desktop-garden-top) + 12px);
+    right: auto;
+    left: calc(0px - var(--desktop-sidebar-width) - var(--desktop-gap) + 10px);
+    width: calc(var(--desktop-sidebar-width) - 20px);
+    max-width: none;
+    margin: 0;
+    padding: 12px;
+    font-size: 13px;
+    border: 1px solid #a987bd;
+    background: #fff8fff2;
+    box-shadow: 2px 3px 0 #6c527b5c;
+  }
+
+  .reference-timers .timer-tools > summary {
+    display: none;
+  }
+
+  .reference-timers .timer-tools .cycle-strip {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding: 8px;
+  }
+
+  .reference-timers .timer-tools .cycle-strip > div:nth-child(2) {
+    display: block;
+    flex: 1;
+  }
+
+  .reference-timers .timer-tools .cycle-strip strong,
+  .reference-timers .timer-tools .cycle-strip > div > span {
+    font-size: 11px;
+  }
+
+  .reference-timers .timer-tools .cycle-reset {
+    flex-basis: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .reference-timers .timer-tools .section-title {
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .reference-timers .timer-tools .section-title h2 {
+    font-size: 16px;
+  }
+
+  .reference-timers .timer-tools .section-title p {
+    display: none;
+  }
+
+  .reference-timers .timer-tools .button {
+    min-height: 34px;
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .reference-timers .timer-tools .list-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .reference-timers .filter-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reference-timers .filter-tabs button {
+    min-width: 0;
+    min-height: 34px;
+    padding: 5px 3px;
+    font-size: 12px;
+  }
+
+  .reference-timers .list-options {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .reference-timers .text-control,
+  .reference-timers .sort-note {
+    font-size: 11px;
+  }
+
+  .reference-timers .upcoming-route,
+  .reference-timers .upcoming-route:has(+ .boss-section .card-featured) {
+    margin: 0 0 14px;
+    padding: 14px 16px;
+  }
+
+  .reference-timers .upcoming-route ol {
+    gap: 16px;
+  }
+
+  .reference-timers .upcoming-route li {
+    gap: 4px;
+  }
+
+  .reference-timers .upcoming-route li + li {
+    padding-left: 16px;
+  }
+
+  .reference-timers .upcoming-route .route-step {
+    font-size: 12px;
+  }
+
+  .reference-timers .upcoming-route .route-boss-name {
+    font-size: 16px;
+  }
+
+  .reference-timers .upcoming-route .route-countdown {
+    font-size: 25px;
+  }
+
+  .reference-timers .upcoming-route .route-gap {
+    gap: 6px 12px;
+    margin-top: 10px;
+    padding-top: 10px;
+    font-size: 12px;
+  }
+
+  .reference-timers .upcoming-route-close .route-gap > span:first-child {
+    padding: 3px 8px;
+  }
+
+  .reference-timers .upcoming-route .route-note {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+
+  .reference-timers .boss-section {
+    padding: 0;
+  }
+
+  .reference-timers .boss-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 18px 14px;
+    padding-top: 22px;
+  }
+
+  .reference-timers .boss-card-slot {
+    --b-unit: .214592cqi;
+    display: block;
+    min-width: 0;
+    container-type: inline-size;
+    container-name: boss-card;
+  }
+
+  .reference-timers .boss-card-slot:has(.card-menu-open) {
+    position: relative;
+    z-index: 32;
+  }
+
+  .reference-timers .card-featured {
+    grid-column: auto;
+    height: max(27.5cqi, 110px);
+    padding-top: 1.4cqi;
+  }
+
+  .reference-timers .boss-identity h3 {
+    font-size: clamp(13px, 4.08cqi, 17px);
+  }
+
+  .reference-timers .boss-identity h3.boss-name-long {
+    font-size: clamp(12px, 3.45cqi, 15px);
+  }
+
+  .reference-timers .attribute-chip,
+  .reference-timers .card-featured .attribute-chip {
+    font-size: clamp(11px, 3.5cqi, 14px);
+  }
+
+  .reference-timers .kind-label {
+    font-size: clamp(12px, 3.86cqi, 15px);
+  }
+
+  .reference-timers .featured-label {
+    min-height: 24px;
+    font-size: 14px;
+  }
+
+  .reference-timers .card-featured .boss-countdown {
+    margin-top: 0;
+  }
+
+  .app-shell .notifications-layout,
+  .app-shell .guide-layout {
+    margin: 0;
+  }
+
+  .app-shell .notifications-layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  }
+
+  .app-shell .toast {
+    bottom: 24px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .reference-timers .boss-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

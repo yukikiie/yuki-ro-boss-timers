@@ -60,6 +60,8 @@ The compact route strip selects the earliest two confirmed future countdowns acr
 
 ## Development
 
+At viewport widths of 1100px or more, the interface becomes a desktop dashboard up to 1440px wide: a bounded illustrated sidebar with visible navigation and filters sits beside the clock, upcoming route and a two-column boss grid. The grid uses three columns from 1400px. Each desktop card has its own inline-size container, keeping portraits, badges and countdowns at card scale rather than scaling them with the entire dashboard. The complete garden appears once in the sidebar at its original aspect ratio; adding cards never resizes it. Smaller screens keep the existing single-column layout and mobile controls.
+
 - `npm run dev`: frontend at local port 5174, including the `/yuki-ro-boss-timers/` base path.
 - `npm run worker:dev`: local Worker at port 8787. Production's exact origin allowlist is intentionally not relaxed for localhost.
 - `npm test`: timer, metadata, Web Push encryption, worker/storage, public/private access boundaries, CORS and project-path tests.
