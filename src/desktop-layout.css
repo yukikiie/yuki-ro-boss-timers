@@ -2,16 +2,28 @@
   display: contents;
 }
 
+.desktop-header-scene {
+  display: none;
+}
+
+.living-scene[data-scene-phase="night"] > :is(.mobile-header-scene, .desktop-header-scene) > .scene-motion-layer .scene-night-sky,
+.living-scene[data-scene-phase="afternoon"] > :is(.mobile-header-scene, .desktop-header-scene) > .scene-motion-layer .scene-sunshine {
+  display: block;
+}
+
+.living-scene[data-scene-phase="night"] > :is(.mobile-header-scene, .desktop-header-scene) > .scene-motion-layer .scene-propeller {
+  animation-play-state: paused;
+}
+
 @media (min-width: 1100px) {
   .app-shell {
-    --desktop-sidebar-width: clamp(260px, 22vw, 300px);
-    --desktop-gap: 24px;
+    --desktop-header-width: clamp(260px, 22vw, 300px);
+    --desktop-gap: 20px;
     --desktop-nav-height: 60px;
-    --desktop-garden-top: calc(var(--desktop-sidebar-width) * 3 / 4 + var(--desktop-nav-height) + 20px);
-    --desktop-scene-height: calc(var(--desktop-garden-top) + var(--desktop-sidebar-width) * 2129 / 739);
     display: grid;
-    grid-template-columns: var(--desktop-sidebar-width) minmax(0, 1fr);
+    grid-template-columns: var(--desktop-header-width) minmax(0, 1fr);
     align-items: start;
+    align-content: start;
     gap: var(--desktop-gap);
     width: calc(100% - 48px);
     max-width: 1440px;
@@ -27,6 +39,96 @@
     container-type: inline-size;
     height: auto;
     aspect-ratio: auto;
+  }
+
+  .app-shell.reference-timers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    row-gap: var(--desktop-gap);
+  }
+
+  .reference-timers .map-masthead {
+    display: contents;
+  }
+
+  .reference-timers .animated-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    align-self: start;
+    width: 100%;
+  }
+
+  .reference-timers .mobile-header-scene {
+    display: none;
+  }
+
+  .reference-timers .desktop-header-scene {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  .reference-timers .desktop-header-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+  }
+
+  .reference-timers .desktop-header-scene > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .reference-timers .desktop-header-title {
+    position: absolute;
+    z-index: 2;
+    top: 18px;
+    left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 250px;
+    max-width: calc(100% - 48px);
+    min-height: 76px;
+    padding: 7px 10px;
+    color: #21164e;
+    background: #fff8f4ed;
+    border: 2px solid #3b2b5b;
+    box-shadow: inset 0 0 0 2px #e7dcf4, 3px 3px 0 #71527d80;
+    pointer-events: none;
+  }
+
+  .reference-timers .desktop-header-title > img {
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  .reference-timers .desktop-header-title > div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .reference-timers .desktop-header-title span {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .reference-timers .desktop-header-title strong {
+    font-family: var(--font-sans);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 
   .app-shell .map-art {
@@ -54,6 +156,22 @@
     background: #fff6ff;
     border: 1px solid #a085b5;
     box-shadow: inset 0 0 0 2px #e7dcf4;
+  }
+
+  .reference-timers .main-nav {
+    position: relative;
+    inset: auto;
+    z-index: 4;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    height: 44px;
+    padding: 4px;
+  }
+
+  .reference-timers .main-nav .nav-item {
+    flex-direction: row;
+    gap: 6px;
   }
 
   .app-shell .nav-item {
@@ -98,6 +216,18 @@
     padding: 5px;
   }
 
+  .reference-timers .motion-toggle {
+    position: relative;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    justify-self: end;
+    right: auto;
+    bottom: auto;
+    margin: 8px 10px 0 0;
+    transform: none;
+  }
+
   .app-shell .main-shell {
     grid-column: 2;
     grid-row: 1;
@@ -105,20 +235,30 @@
   }
 
   .app-shell.reference-timers[data-scene-phase] .main-shell {
-    min-height: var(--desktop-scene-height);
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    align-content: start;
+    min-height: 0;
     background: none;
   }
 
   .reference-timers .main-content {
-    padding: 0;
+    grid-area: 1 / 1;
+    align-self: start;
+    display: block;
+    min-width: 0;
+    padding: 56px 14px 14px;
   }
 
   .reference-timers .living-garden {
-    top: var(--desktop-garden-top);
-    right: auto;
-    bottom: auto;
-    left: calc(0px - var(--desktop-sidebar-width) - var(--desktop-gap));
-    width: var(--desktop-sidebar-width);
+    position: relative;
+    inset: auto;
+    grid-area: 1 / 1;
+    align-self: start;
+    width: 100%;
     background-color: #8ad26c;
     background-image: var(--scene-garden-image);
     background-position: center top;
@@ -135,10 +275,15 @@
   }
 
   .reference-timers > .main-shell > .main-content > .dashboard-clockbar {
+    position: absolute;
+    top: 0;
+    right: 48px;
+    left: auto;
+    width: calc(50% - 58px);
     display: flex;
-    min-height: 50px;
-    margin: 0 0 14px;
-    padding: 10px 16px;
+    min-height: 40px;
+    margin: 0;
+    padding: 5px 12px;
     justify-content: flex-start;
   }
 
@@ -159,7 +304,8 @@
   }
 
   .reference-timers .dual-clock strong {
-    font-size: 22px;
+    font-size: 20px;
+    line-height: 1;
   }
 
   .reference-timers .dual-clock strong small {
@@ -169,13 +315,12 @@
   .reference-timers .timer-tools,
   .reference-timers .timer-tools[open] {
     container-type: inline-size;
-    top: calc(var(--desktop-garden-top) + 12px);
-    right: auto;
-    left: calc(0px - var(--desktop-sidebar-width) - var(--desktop-gap) + 10px);
-    width: calc(var(--desktop-sidebar-width) - 20px);
+    position: relative;
+    inset: auto;
+    width: 100%;
     max-width: none;
-    margin: 0;
-    padding: 12px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
     font-size: 13px;
     border: 1px solid #a987bd;
     background: #fff8fff2;
@@ -189,8 +334,8 @@
   .reference-timers .timer-tools .cycle-strip {
     flex-wrap: wrap;
     gap: 6px;
-    margin: 0 0 12px;
-    padding: 8px;
+    margin: 0 0 6px;
+    padding: 3px 6px;
   }
 
   .reference-timers .timer-tools .cycle-strip > div:nth-child(2) {
@@ -204,8 +349,8 @@
   }
 
   .reference-timers .timer-tools .cycle-reset {
-    flex-basis: 100%;
-    margin-left: 0;
+    flex-basis: auto;
+    margin-left: auto;
     justify-content: space-between;
     font-size: 11px;
   }
@@ -217,6 +362,16 @@
     border: 0;
     background: none;
     box-shadow: none;
+  }
+
+  .reference-timers .timer-tools .boss-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .reference-timers .timer-tools .section-title {
+    flex: 0 0 auto;
   }
 
   .reference-timers .timer-tools .section-title h2 {
@@ -234,11 +389,13 @@
   }
 
   .reference-timers .timer-tools .list-toolbar {
+    flex: 1;
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    margin: 12px 0 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
     padding: 0;
     border: 0;
     background: none;
@@ -252,7 +409,7 @@
 
   .reference-timers .filter-tabs button {
     min-width: 0;
-    min-height: 34px;
+    min-height: 30px;
     padding: 5px 3px;
     font-size: 12px;
   }
@@ -269,8 +426,9 @@
 
   .reference-timers .upcoming-route,
   .reference-timers .upcoming-route:has(+ .boss-section .card-featured) {
-    margin: 0 0 14px;
-    padding: 14px 16px;
+    min-width: 0;
+    margin: 0 0 10px;
+    padding: 10px 14px;
   }
 
   .reference-timers .upcoming-route ol {
@@ -278,7 +436,9 @@
   }
 
   .reference-timers .upcoming-route li {
-    gap: 4px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
   }
 
   .reference-timers .upcoming-route li + li {
@@ -286,22 +446,23 @@
   }
 
   .reference-timers .upcoming-route .route-step {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .reference-timers .upcoming-route .route-boss-name {
-    font-size: 16px;
+    min-width: 0;
+    font-size: 15px;
   }
 
   .reference-timers .upcoming-route .route-countdown {
-    font-size: 25px;
+    font-size: 23px;
   }
 
   .reference-timers .upcoming-route .route-gap {
     gap: 6px 12px;
-    margin-top: 10px;
-    padding-top: 10px;
-    font-size: 12px;
+    margin-top: 7px;
+    padding-top: 7px;
+    font-size: 11px;
   }
 
   .reference-timers .upcoming-route-close .route-gap > span:first-child {
@@ -309,16 +470,23 @@
   }
 
   .reference-timers .upcoming-route .route-note {
-    margin-top: 8px;
+    margin-top: 4px;
     font-size: 11px;
+    line-height: 1.3;
   }
 
   .reference-timers .boss-section {
     padding: 0;
   }
 
+  .reference-timers > .main-shell > .main-content > .boss-section,
+  .reference-timers > .main-shell > .main-content > .notice {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
   .reference-timers .boss-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: start;
     gap: 18px 14px;
     padding-top: 22px;

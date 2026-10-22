@@ -89,15 +89,51 @@ function PixelRipple({ left, top, delay }: { left: number; top: number; delay: s
   );
 }
 
+function DesktopHeaderScene({ phase, active }: { phase: ScenePhase; active: boolean }) {
+  const identifier = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const waterfallClip = `desktop-waterfall-${identifier}`;
+  const streamClip = `desktop-stream-${identifier}`;
+  const image = phase === "night" ? "/art/ro-header-desktop-night-v1.png" : phase === "afternoon" ? "/art/ro-header-desktop-afternoon-v1.png" : "/art/ro-header-desktop-morning-v1.png";
+  return <div className="desktop-header-scene" data-desktop-scene={phase}>
+    <img className="desktop-header-image" src={image} width={2172} height={724} alt="RO 櫻花城堡全景：寬闊花園、石岸溪流與瀑布" fetchPriority="high" />
+    <svg className="scene-motion-layer" viewBox="0 0 2172 724" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" shapeRendering="crispEdges">
+      <defs>
+        <clipPath id={waterfallClip}><path d="M1850 128H1930V232H1850ZM1836 248H1920V360H1836Z" /></clipPath>
+        <clipPath id={streamClip}><path d="M1830 360H2005L2090 408H1830ZM1870 490H2060L2150 550L2100 612H1780L1740 568ZM1770 630H2172V724H1840Z" /></clipPath>
+      </defs>
+      <g clipPath={`url(#${waterfallClip})`} fill="#e0ffff">
+        <g className="scene-motion scene-waterfall"><path d="M1861 116H1866V156H1861ZM1883 148H1888V185H1883ZM1910 171H1915V211H1910ZM1850 242H1856V284H1850ZM1875 277H1881V315H1875ZM1900 310H1906V350H1900Z" /></g>
+      </g>
+      <g clipPath={`url(#${streamClip})`} fill="#e4ffff">
+        <g className="scene-motion scene-stream"><path d="M1860 369H1890V373H1860ZM1940 385H1960V389H1940ZM1910 511H1945V515H1910ZM2020 542H2048V546H2020ZM1820 571H1845V575H1820ZM1900 646H1930V650H1900ZM2080 687H2115V691H2080Z" /></g>
+      </g>
+      {[{ left: 1920, top: 372 }, { left: 1970, top: 525 }, { left: 1820, top: 605 }, { left: 2110, top: 668 }].map((ripple, index) => <PixelRipple key={index} {...ripple} delay={`${index * -.43}s`} />)}
+      {[{ left: 90, top: 230 }, { left: 260, top: 300 }, { left: 510, top: 330 }, { left: 1980, top: 170 }, { left: 2080, top: 275 }, { left: 1770, top: 320 }].map((petal, index) => <PixelPetal key={index} {...petal} drift={index % 2 ? "76px" : "-42px"} delay={`${index * -1.3}s`} />)}
+      <g className="scene-night-sky">{[[130, 70], [460, 95], [770, 58], [1410, 55], [1650, 80], [2030, 45]].map(([left, top], index) => <g key={index} transform={`translate(${left} ${top})`}><path className="scene-motion scene-night-star" style={{ animationDelay: `${index * -.53}s` }} d="M-2-7H2V-2H7V2H2V7H-2V2H-7V-2H-2Z" fill="#fff8d8" /></g>)}</g>
+      <g transform="translate(250 -225)"><HeaderResidents phase={phase} active={active} /></g>
+    </svg>
+    <div className="desktop-header-title" aria-hidden="true"><img src="/pixel/poring-standalone.png" width={58} height={58} alt="" /><div><span>RO MVP / Mini</span><strong>重生時間</strong></div></div>
+  </div>;
+}
+
 export function AnimatedHeader({ phase = "day", tall = false, paused = false }: { phase?: ScenePhase; tall?: boolean; paused?: boolean }) {
   const { reference, visible } = useSceneVisibility();
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [desktopScene, setDesktopScene] = useState(false);
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(preference.matches);
+    const desktopPreference = window.matchMedia("(min-width: 1100px)");
+    const update = () => {
+      setReducedMotion(preference.matches);
+      setDesktopScene(desktopPreference.matches);
+    };
     update();
     preference.addEventListener("change", update);
-    return () => preference.removeEventListener("change", update);
+    desktopPreference.addEventListener("change", update);
+    return () => {
+      preference.removeEventListener("change", update);
+      desktopPreference.removeEventListener("change", update);
+    };
   }, []);
   const identifier = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const waterfallClip = `header-waterfall-${identifier}`;
@@ -105,6 +141,7 @@ export function AnimatedHeader({ phase = "day", tall = false, paused = false }: 
 
   return (
     <div ref={reference} className="living-scene animated-header" data-header-layout={tall ? "tall" : "standard"} data-scene-phase={phase} data-scene-visible={visible ? "true" : "false"}>
+      {desktopScene ? <DesktopHeaderScene phase={phase} active={visible && !paused && !reducedMotion} /> : <div className="mobile-header-scene">
       <img
         className="animated-header-image"
         src={tall ? phase === "day" ? "/art/ro-header-tall-morning.png" : phase === "night" ? "/art/ro-header-tall-night.png" : "/art/ro-header-tall-preview.png" : SCENE_ASSETS[phase].header}
@@ -161,6 +198,7 @@ export function AnimatedHeader({ phase = "day", tall = false, paused = false }: 
           <HeaderResidents phase={phase} active={visible && !paused && !reducedMotion} tall={tall} />
         </g>
       </svg>
+      </div>}
     </div>
   );
 }

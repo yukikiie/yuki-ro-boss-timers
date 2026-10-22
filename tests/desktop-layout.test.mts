@@ -9,7 +9,9 @@ const page = readSource("../src/boss-timer-app.tsx");
 
 function mediaBody(minimum: number) {
   const marker = `@media (min-width: ${minimum}px)`;
-  const start = styles.indexOf("{", styles.indexOf(marker));
+  const markerIndex = styles.indexOf(marker);
+  assert.ok(markerIndex >= 0, marker);
+  const start = styles.indexOf("{", markerIndex);
   assert.ok(start > 0);
   let depth = 1;
   let end = start + 1;
@@ -33,24 +35,34 @@ function declarations(source: string, selector: string) {
 
 test("desktop styles leave mobile and tablet geometry untouched", () => {
   const mobile = styles.slice(0, styles.indexOf("@media")).trim();
-  assert.match(mobile, /^\.boss-card-slot\s*\{\s*display: contents;\s*\}$/);
-  assert.deepEqual([...styles.matchAll(/@media\s*\(([^)]+)\)/g)].map(match => match[1]), ["min-width: 1100px", "min-width: 1400px"]);
+  assert.equal(declarations(mobile, ".boss-card-slot").display, "contents");
+  assert.equal(declarations(mobile, ".desktop-header-scene").display, "none");
+  assert.doesNotMatch(mobile, /(?:^|[;{])\s*(?:width|height|padding|margin|position|font-size)\s*:/);
+  const breakpoints = [...styles.matchAll(/@media\s*\(min-width:\s*(\d+)px\)/g)].map(match => Number(match[1]));
+  assert.ok(breakpoints.includes(1100));
+  assert.ok(breakpoints.every(minimum => minimum >= 1100));
   const main = readSource("../src/main.tsx");
   assert.ok(main.indexOf('import "./desktop-layout.css"') > main.indexOf('import "./living-scene.css"'));
   assert.match(page, /return <div className="boss-card-slot" key=\{boss\.id\}><article className=\{`boss-card /);
   assert.match(page, /<\/article><\/div>;/);
 });
 
-test("wide viewports use a bounded scene sidebar and two or three card columns", () => {
+test("wide viewports use a full-width panoramic header and three card columns", () => {
   const desktop = mediaBody(1100);
   const shell = declarations(desktop, ".app-shell");
   assert.equal(shell.display, "grid");
   assert.equal(shell["max-width"], "1440px");
   assert.equal(shell.width, "calc(100% - 48px)");
-  assert.equal(shell["grid-template-columns"], "var(--desktop-sidebar-width) minmax(0, 1fr)");
-  assert.equal(shell["--desktop-sidebar-width"], "clamp(260px, 22vw, 300px)");
+  assert.equal(shell["align-content"], "start");
+  const timerShell = declarations(desktop, ".app-shell.reference-timers");
+  assert.equal(timerShell["grid-template-columns"], "repeat(2, minmax(0, 1fr))");
+  assert.equal(timerShell["grid-template-rows"], "auto auto");
   assert.equal(declarations(desktop, ".app-shell .map-masthead")["container-type"], "inline-size");
-  assert.equal(declarations(desktop, ".reference-timers .boss-grid")["grid-template-columns"], "repeat(2, minmax(0, 1fr))");
+  assert.equal(declarations(desktop, ".reference-timers .animated-header")["grid-column"], "1 / -1");
+  assert.equal(declarations(desktop, ".reference-timers .animated-header").width, "100%");
+  assert.equal(declarations(desktop, ".reference-timers .mobile-header-scene").display, "none");
+  assert.equal(declarations(desktop, ".reference-timers .desktop-header-scene").display, "block");
+  assert.equal(declarations(desktop, ".reference-timers .boss-grid")["grid-template-columns"], "repeat(3, minmax(0, 1fr))");
   assert.equal(declarations(mediaBody(1400), ".reference-timers .boss-grid")["grid-template-columns"], "repeat(3, minmax(0, 1fr))");
   assert.equal(declarations(desktop, ".app-shell .main-nav").display, "grid");
   assert.equal(declarations(desktop, ".app-shell .mobile-nav").display, "none");
@@ -69,29 +81,51 @@ test("every desktop card owns the sizing context for portraits, badges and count
   assert.equal(declarations(desktop, ".reference-timers .boss-identity h3")["font-size"], "clamp(13px, 4.08cqi, 17px)");
   assert.match(readSource("../src/approved-art.css"), /--countdown-height: calc\(26 \* var\(--b-unit\)\)/);
   assert.match(readSource("../src/reference-countdown.css"), /height: var\(--countdown-height, 28px\)/);
+  const openSlot = declarations(desktop, ".reference-timers .boss-card-slot:has(.card-menu-open)");
+  assert.equal(openSlot.position, "relative");
+  assert.equal(openSlot["z-index"], "32");
 });
 
-test("desktop paints each complete scene once without sizing it to the boss grid", () => {
+test("desktop paints the complete garden once behind the grid at its natural ratio", () => {
   const desktop = mediaBody(1100);
-  const shell = declarations(desktop, ".app-shell");
-  assert.equal(shell["--desktop-scene-height"], "calc(var(--desktop-garden-top) + var(--desktop-sidebar-width) * 2129 / 739)");
   const main = declarations(desktop, ".app-shell.reference-timers[data-scene-phase] .main-shell");
   assert.equal(main.background, "none");
-  assert.equal(main["min-height"], "var(--desktop-scene-height)");
+  assert.equal(main["min-height"], "0");
+  assert.equal(main.display, "grid");
+  assert.equal(main["grid-column"], "1 / -1");
+  assert.equal(main["grid-row"], "2");
+  assert.equal(main["align-content"], "start");
+  const content = declarations(desktop, ".reference-timers .main-content");
+  assert.equal(content["grid-area"], "1 / 1");
+  assert.equal(content["align-self"], "start");
   const garden = declarations(desktop, ".reference-timers .living-garden");
-  assert.equal(garden.width, "var(--desktop-sidebar-width)");
+  assert.equal(garden.position, "relative");
+  assert.equal(garden.inset, "auto");
+  assert.equal(garden["grid-area"], "1 / 1");
+  assert.equal(garden["align-self"], "start");
+  assert.equal(garden.width, "100%");
   assert.equal(garden.height, undefined);
   assert.equal(garden["background-image"], "var(--scene-garden-image)");
   assert.equal(garden["background-size"], "100% auto");
   assert.equal(garden["background-repeat"], "no-repeat");
   assert.equal(garden["background-position"], "center top");
-  assert.equal(garden.right, "auto");
-  assert.equal(garden.bottom, "auto");
   assert.match(readSource("../src/living-scene.css"), /\.living-garden \{[^}]*aspect-ratio: 739 \/ 2129/);
   assert.match(readSource("../src/components/living-scene.tsx"), /viewBox="0 0 739 2129" preserveAspectRatio="xMidYMin meet"/);
   assert.equal(declarations(desktop, ".app-shell .map-art")["aspect-ratio"], "3 / 2");
   assert.doesNotMatch(styles, /cover|mirror|repeat-[xy]|background-size:\s*[^;]*100%\s+100%|scale\(/);
-  assert.doesNotMatch(shell["--desktop-scene-height"], /cqi|100%/);
+  assert.doesNotMatch(styles, /--desktop-scene-height|--desktop-garden-top|--desktop-sidebar-width/);
+  const header = declarations(desktop, ".reference-timers .desktop-header-image");
+  assert.equal(header.width, "100%");
+  assert.equal(header.height, "auto");
+  assert.equal(header["aspect-ratio"], undefined);
+  const overlay = declarations(desktop, ".reference-timers .desktop-header-scene > svg");
+  assert.equal(overlay.position, "absolute");
+  assert.equal(overlay.inset, "0");
+  assert.equal(overlay.width, "100%");
+  assert.equal(overlay.height, "100%");
+  const tools = declarations(desktop, ".reference-timers .timer-tools[open]");
+  assert.equal(tools.position, "relative");
+  assert.equal(tools.inset, "auto");
 });
 
 test("desktop controls open through media state without timer or storage side effects", () => {

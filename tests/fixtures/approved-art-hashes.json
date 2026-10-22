@@ -1,0 +1,206 @@
+[
+  {
+    "path": "/art/boss-icons/dark-chaser-30039.png",
+    "sha256": "e738314b5f8b509cb0452a6455cecf44929d6b174b623990c3d5f63c626faa77"
+  },
+  {
+    "path": "/art/boss-icons/undead-wizard-31014.png",
+    "sha256": "135d946638385204e2b083a87fc0836435dd375709483c64e088bfc19f986ae9"
+  },
+  {
+    "path": "/art/boss-icons/zombie-dragon-30025.png",
+    "sha256": "10f37191add69e691dbba13ec60edda3333fb3016b9f140c53247cf0c30be00b"
+  },
+  {
+    "path": "/art/ro-b-reference-source.png",
+    "sha256": "0cf9e751c5e02ef675780ff21e787649ac098ca9d938df953c0a95aebc8b583c"
+  },
+  {
+    "path": "/art/ro-garden-afternoon.png",
+    "sha256": "a341e7de83f8f1c6fa7f9c4fdd8b7093076aee9257fc77c21bd0e033699f85ac"
+  },
+  {
+    "path": "/art/ro-garden-creatures.png",
+    "sha256": "052fe635e5b5aa314ab8a14c6e9a1bc724b6254fd64cb9b8ec71dbc5ffee10fa"
+  },
+  {
+    "path": "/art/ro-garden-morning.png",
+    "sha256": "650d886e2a6a848884084b1416b778e07fe73f2aba3c3f3ec92b7b3f363ca93c"
+  },
+  {
+    "path": "/art/ro-garden-night.png",
+    "sha256": "a5c0f1b5980ba4a87f5beb53a9df62978be05031d3da01a2b1cfd9561a984e53"
+  },
+  {
+    "path": "/art/ro-garden-people.png",
+    "sha256": "ba794b24e52c7b50e8d6d61b047a7471c9cab852f4d3a988e34420b7bbb6bee2"
+  },
+  {
+    "path": "/art/ro-garden-walk.png",
+    "sha256": "fed06d2bfa4867c650e4bd9c57bdc6002b1f54b4a4d6498d4df5af2c04f58ca1"
+  },
+  {
+    "path": "/art/ro-header-added-companions.png",
+    "sha256": "fe7b7571edd1cb4f7ac65566fe21a1dc6428400ff650b69c0cdd7c9cca4f8b84"
+  },
+  {
+    "path": "/art/ro-header-added-porings.png",
+    "sha256": "39d5c99d165673eff25a573a3bfeddd743e3a90f7bccda76b2943c096aac346d"
+  },
+  {
+    "path": "/art/ro-header-afternoon.png",
+    "sha256": "fdcf349b3163f10c163b2274260b43f145f94526fe052095e80a6681aae5fc5e"
+  },
+  {
+    "path": "/art/ro-header-living-afternoon.png",
+    "sha256": "d843ab15aca5e4e3f520f3a28c7e4271be9973ab2507e3055970f349fa5333a1"
+  },
+  {
+    "path": "/art/ro-header-living-morning.png",
+    "sha256": "86e29084f06f99203668a85004965b58b6ba7ae956010e373be82daaf8281a2b"
+  },
+  {
+    "path": "/art/ro-header-living-night.png",
+    "sha256": "f89d76abd66128a2014e07fbb449243ead19c61121ea085abbf7289104dede95"
+  },
+  {
+    "path": "/art/ro-header-morning.png",
+    "sha256": "02f65631f4b873b124b9dbb0c04fcdf22211208a3d8d5c968acc4628c88f9477"
+  },
+  {
+    "path": "/art/ro-header-night.png",
+    "sha256": "ec18b0f6068bade435a6ed1ee570afa8efe5e8dede5c3e9b0bb059ff076a22f9"
+  },
+  {
+    "path": "/art/ro-header-residents-afternoon.png",
+    "sha256": "490bfc59cbc38ef10612d254128aeb9b8c0733d80543ef2c31401a534240a1b6"
+  },
+  {
+    "path": "/art/ro-header-residents-morning.png",
+    "sha256": "be9df78e8429419272bde325c442c3db8e46d68ac9dac3628c38b5f023f98011"
+  },
+  {
+    "path": "/art/ro-header-residents-night.png",
+    "sha256": "775d9882ec93e73c33bea72005f1a3829b9c0048fcc5a2efe6565367815e8afd"
+  },
+  {
+    "path": "/art/ro-header-tall-morning.png",
+    "sha256": "735563d0527640825a34ad9155ff2f7ea178d6ddcdd66e2b3dab9092959aea23"
+  },
+  {
+    "path": "/art/ro-header-tall-night.png",
+    "sha256": "864c4bbffb3af2ec2d1285f92d15bf2dfde75f08cb248b26f0a1313a9d06e545"
+  },
+  {
+    "path": "/art/ro-header-tall-preview.png",
+    "sha256": "4cd62878ad13f7fc4ed3a7f2124a1ae6a61d9c15e47d9562cf2fedee6cbc3589"
+  },
+  {
+    "path": "/art/ro-list-garden.png",
+    "sha256": "7ac5da5a995b06d3bb6879859d9b763e0292f7074795960cb74e5898f2a3068c"
+  },
+  {
+    "path": "/art/ro-map-continuous.png",
+    "sha256": "fa2c80ef2ae1b28eb612948b2927dad0fe1d6d2c80a8bc44d2dd1821aff35a27"
+  },
+  {
+    "path": "/art/ro-motion-a.png",
+    "sha256": "529cc34930ce2e8b3721599b6d1a7235de92ac1df39fee0bd081f194371605a2"
+  },
+  {
+    "path": "/art/ro-motion-b.png",
+    "sha256": "abb460811a40196b3e035d5e39986a04fa1d91131ded8db4289a580bd792e08b"
+  },
+  {
+    "path": "/art/ro-motion-c.png",
+    "sha256": "358d0ea1a96a31e927475ba3a62f01483a6b2b65811e6e6a9758d8c7655f5bcf"
+  },
+  {
+    "path": "/art/ro-motion-d.png",
+    "sha256": "6f386c41905146edf5ec70fdf5cacdf9731d16d722fcee19d01a4d47840bd065"
+  },
+  {
+    "path": "/art/ro-pixel-motion-a.png",
+    "sha256": "2747c8340a01103430c07b463a4791185bfe6e57a045966d558a4f8550ab7ca5"
+  },
+  {
+    "path": "/art/ro-pixel-motion-b.png",
+    "sha256": "3a9828ba6f8ec906a6bddd4e5a288459d2f49378b65d83c592a7150cab67873e"
+  },
+  {
+    "path": "/art/ro-pixel-motion-c.png",
+    "sha256": "e8f4b342431595e2d28f4cc253ffc395ca4a125d85583d69ab33c5851f1a1c29"
+  },
+  {
+    "path": "/art/ro-pixel-motion-d.png",
+    "sha256": "f53b2113ebdf2fe2eaa341cc2a0e2108ebfa73c057e3ff149906f0c391bbed8b"
+  },
+  {
+    "path": "/art/ro-pixel-motion-e.png",
+    "sha256": "5e478f81da20dfe1efbe50827226d1642335664cd7cb60819b09bc644feaf423"
+  },
+  {
+    "path": "/art/ro-pixel-motion-f.png",
+    "sha256": "f32a43b07442b9ac7da61401db3472269c5697a3887728a5a0622a181725fb8a"
+  },
+  {
+    "path": "/art/ro-redrawn-expansion.png",
+    "sha256": "44b63d79a48f1c78a4807e40ef58b2c89b0d8baa01437b822ca35b208a2dea54"
+  },
+  {
+    "path": "/art/ro-redrawn-main.png",
+    "sha256": "664ea89b5e898c7197bd32e39e32484d844fcd312057f7b149ae3e2df90a6ae5"
+  },
+  {
+    "path": "/art/ro-regenerated-header.png",
+    "sha256": "768e99aa80f446d92de65db4170bbccd9ab16da589b906d29d6976bb60e89a54"
+  },
+  {
+    "path": "/pixel/dream-garden.webp",
+    "sha256": "44708ee0cd88a3c0e4d6048ba5a637cbece53bffb6f853c77134d190f2e79f68"
+  },
+  {
+    "path": "/pixel/poring-standalone.png",
+    "sha256": "fb7736ddb9dd340d80bec442f66f36a55269d75fddfc0edb48d7986ea1142ee7"
+  },
+  {
+    "path": "/pixel/quest-night.webp",
+    "sha256": "a27849739fb4d5b558a20b35c58591eb38f5bc7ce7edcfce8005fa4ed40c9e9d"
+  },
+  {
+    "path": "/pixel/ro-bosses-expansion-reference-v3.webp",
+    "sha256": "ac4d083a4601640e20597309e986ad59d312a81dea3e0b844136bd20c78868f6"
+  },
+  {
+    "path": "/pixel/ro-bosses-expansion-standalone.png",
+    "sha256": "88ee304058969a042a73feeaa143b01aa5eb34c4d6f829651ece29fe1fc05ea6"
+  },
+  {
+    "path": "/pixel/ro-bosses-expansion.webp",
+    "sha256": "0ce19d24d53e6b4034deefe3230b663272f7a0e1ba4ace4b621366df409ca3b8"
+  },
+  {
+    "path": "/pixel/ro-bosses-reference-v2.webp",
+    "sha256": "753fa29957abd3fc65852c736deed6289d29288682ff19cc3c736fdb723bbdf9"
+  },
+  {
+    "path": "/pixel/ro-bosses-standalone.png",
+    "sha256": "182448edf96c23fe1e1fd99b048cdae3a7ea63f1f2036c789a4e7bb1a04dac2e"
+  },
+  {
+    "path": "/pixel/ro-bosses.webp",
+    "sha256": "682b54cf3ddbe99db86a390d8fcd4fbed1fe908892e07e4f25bc3401adbd0189"
+  },
+  {
+    "path": "/pixel/ro-map-standalone.png",
+    "sha256": "f7f0f07c5ba85eba0728e0b28505de2bb8f0f42bdff1cc33b426d6591a3a81be"
+  },
+  {
+    "path": "/pixel/ro-map.webp",
+    "sha256": "0dce89da970ba84c61d32e7eeb25ae6d7c2c6b1eeedbae89f980f2fc1635cdd6"
+  },
+  {
+    "path": "/pixel/ro-world.webp",
+    "sha256": "721acba7b7fbb14d3b2aaabf088fd6a26d72c0693b946467c680df8abce0ebc0"
+  }
+]
