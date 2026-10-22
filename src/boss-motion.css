@@ -1,4 +1,7 @@
 .motion-portrait, .motion-portrait image { image-rendering: pixelated; }
+.native-motion-portrait { position: relative; }
+.native-motion-canvas { position: absolute; bottom: 0; left: 50%; height: 100%; transform: translateX(-50%); }
+.native-motion-canvas img { position: absolute; display: block; image-rendering: pixelated; }
 .motion-frame { opacity: 0; animation: boss-pose-frames 2.8s steps(1, end) infinite; }
 .motion-frame-0 { opacity: 1; }
 .motion-portrait[data-visible="false"] .motion-frame, .motion-paused .motion-frame { animation-play-state: paused; }

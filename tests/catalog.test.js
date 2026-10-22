@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { bossCatalog, bossDetails, sortBossesByRespawn, sortBossesForDisplay } from "../lib/boss-catalog.js";
+import { defaultBosses } from "../lib/timers.js";
 
 test("catalog contains the eighteen confirmed compact metadata records", () => {
   assert.deepEqual(bossCatalog.map(({ id, name, kind, size, element, race, spriteIndex, favorite }) => [id, name, kind, size, element, race, spriteIndex, favorite]), [
@@ -74,6 +75,45 @@ test("catalog metadata cannot be mutated through lookup results", () => {
   assert.ok(bossCatalog.every(Object.isFrozen));
   assert.throws(() => { bossDetails({ id: "atroce" }).race = "人形"; }, TypeError);
   assert.equal(bossDetails({ id: "atroce" }).race, "動物");
+});
+
+test("the exact saved Tirfing ID resolves verified metadata without inventing a sprite or new stats", () => {
+  const details = bossDetails({ id: "custom-qinmln" });
+  assert.deepEqual(details, { id: "custom-qinmln", name: "獸牙怪", kind: "Mini", size: "中", element: "暗", race: "無形" });
+  assert.equal(Object.hasOwn(details, "spriteIndex"), false);
+  assert.equal(Object.hasOwn(details, "favorite"), false);
+  assert.equal(Object.hasOwn(details, "level"), false);
+  assert.equal(Object.hasOwn(details, "respawnMinutes"), false);
+  assert.ok(Object.isFrozen(details));
+  assert.throws(() => { details.size = "大"; }, TypeError);
+  assert.equal(bossDetails({ id: "custom-qinmln", name: "影魔" }), details);
+  assert.equal(bossDetails({ id: "atroce", name: "獸牙怪" }), bossCatalog[0]);
+});
+
+test("only normalized full traditional or simplified Tirfing names receive its metadata", () => {
+  const details = bossDetails({ id: "custom-qinmln" });
+  for (const name of ["獸牙怪", "兽牙怪", " 獸 牙 怪 ", "兽\u3000牙\u3000怪"]) {
+    assert.equal(bossDetails({ id: "custom-another-tirfing", name }), details);
+  }
+  for (const name of ["獸牙", "兽牙", "牙怪", "獸牙怪王", "小獸牙怪", "獸・牙怪", "TIRFING", "1204"]) {
+    assert.equal(bossDetails({ id: "custom-unrelated", name }), null);
+  }
+  assert.equal(bossDetails({ id: "1204" }), null);
+  assert.equal(bossDetails({ id: "custom-qinmln-extra" }), null);
+});
+
+test("Tirfing lookup does not add default records or mutate a saved timer", () => {
+  const timestamp = Date.UTC(2026, 9, 23, 4);
+  const defaults = defaultBosses(timestamp);
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(defaults.length, 18);
+  assert.equal(bossCatalog.some(boss => boss.id === "custom-qinmln" || boss.name === "獸牙怪"), false);
+  assert.equal(defaults.some(boss => boss.id === "custom-qinmln"), false);
+  const boss = Object.freeze({ id: "custom-qinmln", name: "獸牙怪", kind: "Mini", favorite: true, status: "counting", dueAt: timestamp + 3600000, observedAt: timestamp, source: "manual", cycle: "2026-10-23", respawnMinutes: 120 });
+  const before = JSON.stringify(boss);
+  bossDetails(boss);
+  assert.equal(JSON.stringify(boss), before);
+  assert.equal(bossDetails(boss).race, "無形");
 });
 
 test("respawn ordering puts the earliest mixed Mini or MVP first regardless of favorites", () => {

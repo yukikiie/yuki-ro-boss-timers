@@ -31,3 +31,36 @@ export function AnimatedBossPortrait({ spriteIndex }: { spriteIndex: number }) {
     </g>)}
   </svg>;
 }
+
+export function NativeAnimatedBossPortrait({ id, source, stillSource, width, height, stillFrame, paused = false }: { id: string; source: string; stillSource: string; width: number; height: number; stillFrame: { left: number; top: number; width: number; height: number }; paused?: boolean }) {
+  const portraitRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [documentVisible, setDocumentVisible] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const element = portraitRef.current;
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateVisibility = () => setDocumentVisible(!document.hidden);
+    const updateMotion = () => setReducedMotion(preference.matches);
+    updateVisibility();
+    updateMotion();
+    document.addEventListener("visibilitychange", updateVisibility);
+    preference.addEventListener("change", updateMotion);
+    const observer = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "80px" });
+    if (element) observer?.observe(element);
+    if (!observer) setVisible(true);
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", updateVisibility);
+      preference.removeEventListener("change", updateMotion);
+    };
+  }, []);
+
+  const playing = visible && documentVisible && !reducedMotion && !paused;
+  return <div ref={portraitRef} className="boss-figure native-motion-portrait" aria-hidden="true" data-native-motion={id} data-native-playing={playing}>
+    <span className="native-motion-canvas" style={{ aspectRatio: `${width} / ${height}` }}>
+      <img src={playing ? source : stillSource} alt="" width={playing ? width : stillFrame.width} height={playing ? height : stillFrame.height} style={playing ? { left: 0, top: 0, width: "100%", height: "100%" } : { left: `${stillFrame.left / width * 100}%`, top: `${stillFrame.top / height * 100}%`, width: `${stillFrame.width / width * 100}%`, height: `${stillFrame.height / height * 100}%` }} />
+    </span>
+  </div>;
+}

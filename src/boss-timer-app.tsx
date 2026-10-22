@@ -4,10 +4,10 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { apiFetch, appBasePath } from "./api";
 import { activateApplicationWorker, isApplicationRegistration } from "./push-registration";
 import { bossCatalog, bossDetails, sortBossesForDisplay } from "../lib/boss-catalog.js";
-import { portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
+import { portraitAnimation, portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
 import { upcomingBosses } from "../lib/timers.js";
 import { ReferenceCountdown } from "./components/reference-countdown";
-import { AnimatedBossPortrait } from "./components/animated-boss-portrait";
+import { AnimatedBossPortrait, NativeAnimatedBossPortrait } from "./components/animated-boss-portrait";
 import { AnimatedHeader, LivingGarden } from "./components/living-scene";
 import { useScenePhase } from "../hooks/use-scene-phase";
 import { SCENE_ASSETS, type SceneMode } from "../lib/scene-time";
@@ -116,9 +116,12 @@ function BossMetadata({ boss }: { boss: Boss }) {
   if (!details) return null;
   return <div className="boss-metadata" aria-label="Boss 資訊"><span className="attribute-chip chip-size" aria-label={`體型：${details.size}型`}>{details.size}</span><span className={`attribute-chip chip-element element-${details.element}`} aria-label={`屬性：${details.element}`}><PixelAttributeIcon value={details.element} />{details.element}</span><span className="attribute-chip chip-race" aria-label={`種族：${details.race}`}><PixelAttributeIcon value={details.race} race />{details.race}</span></div>;
 }
-function BossPortrait({ boss }: { boss: Boss }) {
-  const details = bossDetails(boss) || portraitMotion(boss);
+function BossPortrait({ boss, paused = false }: { boss: Boss; paused?: boolean }) {
+  const metadata = bossDetails(boss);
+  const details = metadata && "spriteIndex" in metadata ? metadata : portraitMotion(boss);
   if (details) return <div className={`boss-portrait portrait-${details.id}`} aria-hidden="true"><AnimatedBossPortrait spriteIndex={details.spriteIndex} /></div>;
+  const animation = portraitAnimation(boss);
+  if (animation) return <div className="boss-portrait portrait-native-animation" aria-hidden="true"><NativeAnimatedBossPortrait {...animation} paused={paused} /></div>;
   const icon = portraitIcon(boss);
   if (icon) return <div className="boss-portrait portrait-native-icon" aria-hidden="true"><img className="native-boss-icon" src={icon} alt="" width="75" height="75" data-portrait-icon={boss.id} /></div>;
   return <BossSigil bossId={boss.id} index={0} />;
@@ -393,7 +396,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
                 <BossCardFrame featured={featured} />
                 {featured && <div className="featured-label">下一隻</div>}
                 <div className="boss-card-top"><span className={`kind-label kind-${boss.kind.toLowerCase()}`}>{boss.kind === "MVP" ? <Diamond size={10} fill="currentColor" /> : <Sparkles size={11} />}{boss.kind}</span><div className="card-actions"><button className={`icon-button favorite-button ${boss.favorite ? "is-favorite" : ""}`} aria-label={`${boss.favorite ? "取消" : "加入"}最愛 ${boss.name}`} disabled={busy} onClick={() => void mutate("favorite", { bossId: boss.id, favorite: !boss.favorite }, boss.favorite ? "已取消最愛" : "已加入最愛")}><Star size={16} fill={boss.favorite ? "currentColor" : "none"} /></button><div className="menu-wrap"><button className="icon-button" aria-label={`${boss.name} 更多選項`} aria-expanded={menu === boss.id} onClick={() => setMenu(menu === boss.id ? null : boss.id)}><MoreHorizontal size={19} /></button>{menu === boss.id && <><button className="menu-dismiss" aria-label="關閉選單" onClick={() => setMenu(null)} /><div className="card-menu"><button disabled={busy} onClick={() => void mutate("resting", { bossId: boss.id }, `${boss.name} 已標記休眠`)}><Moon size={15} />標記休眠</button><button disabled={busy || resting} onClick={() => confirmKill(boss)} title={`從現在開始 ${boss.respawnMinutes / 60} 小時倒數`}><Check size={15} />剛被擊殺</button><button disabled={busy} onClick={() => void mutate("clear", { bossId: boss.id }, "倒數已清除")}><RefreshCw size={15} />清除倒數</button><button className="danger-text" disabled={busy} onClick={() => { if (window.confirm(`移除 ${boss.name}？此 Boss 的倒數也會清除。`)) void mutate("remove", { bossId: boss.id }, "Boss 已移除"); }}><Trash2 size={15} />移除 Boss</button></div></>}</div></div></div>
-                <div className="boss-portrait-wrap"><BossPortrait boss={boss} /></div>
+                <div className="boss-portrait-wrap"><BossPortrait boss={boss} paused={!motionEnabled || reducedMotion} /></div>
                 <div className="boss-identity"><div className="boss-name-row"><h3 className={Array.from(boss.name).length > 4 ? "boss-name-long" : undefined} title={boss.name}>{boss.name}</h3><BossMetadata boss={boss} /></div><div className={`boss-status ${due ? "status-due" : counting ? "status-counting" : ""}`}><span />{isAsleep ? "休眠中" : due ? "預計已出現" : counting ? "倒數中" : "等待設定"}<span className="respawn-duration">{boss.respawnMinutes / 60} 小時重生</span></div></div>
                 <div className="boss-countdown"><strong className={!counting ? "empty-countdown" : ""}><ReferenceCountdown value={counting && now ? durationText(((boss.dueAt || now) - now) / 1000) : "--:--:--"} /></strong><p>{isAsleep ? "下一次輪替後，重新確認此 Boss" : counting ? <>預計出現 <span>{timeText(boss.dueAt)} HKT</span></> : "輸入遊戲中的實際倒數"}</p></div>
                 <div className="card-button-row" role="group" aria-label={`${boss.name} 計時操作`}><button className="button button-card button-kill" aria-label={`${boss.name} 剛被擊殺`} title={`確認擊殺後，自動從現在開始 ${boss.respawnMinutes / 60} 小時倒數`} disabled={busy || resting} onClick={() => confirmKill(boss)}>剛被擊殺</button><button className="button button-card button-adjust" aria-label={`${boss.name} 設定倒數`} disabled={busy || resting} onClick={() => openCountdown(boss)}>設定倒數</button></div>

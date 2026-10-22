@@ -79,7 +79,8 @@ test("animated portraits and scenery support pause, reduced motion and hidden-do
   assert.match(page, /暫停所有動畫/);
   assert.match(page, /播放所有動畫/);
   assert.match(page, /bosswatch\.motion/);
-  assert.doesNotMatch(styles, /@keyframes[^}]*bounce|@keyframes[^}]*shake|transform:\s*translate/);
+  const atlasStyles = styles.replace(/\.native-motion-canvas\s*\{[^}]*\}/g, "");
+  assert.doesNotMatch(atlasStyles, /@keyframes[^}]*bounce|@keyframes[^}]*shake|transform:\s*translate/);
 });
 
 test("header and long garden contain scene-specific water, petal and light animations", () => {
@@ -107,6 +108,7 @@ test("all six action atlases use transparent PNGs with matching declared dimensi
 test("the production app retains real timers and routes all matching portraits through the existing renderer", () => {
   const page = readSource("../src/boss-timer-app.tsx");
   assert.match(page, /export default function Home\(\) \{ return <BossTimerApp \/>; \}/);
-  assert.match(page, /bossDetails\(boss\) \|\| portraitMotion\(boss\)/);
+  assert.match(page, /const metadata = bossDetails\(boss\);/);
+  assert.match(page, /metadata && "spriteIndex" in metadata \? metadata : portraitMotion\(boss\)/);
   assert.match(page, /sortBossesForDisplay\(filtered\)/);
 });

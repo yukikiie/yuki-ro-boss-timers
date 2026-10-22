@@ -12,4 +12,12 @@ These are the user's verified native portrait references, downloaded unchanged f
 
 This art-only lookup adds no metadata, timers, default catalog records or notification behavior. Existing portrait-slot dimensions and all earlier action sheets remain unchanged. Generated poses follow the supplied identities and established pixel style; they are not official native game animation frames or an exact recovery of unavailable full-body references.
 
-The images originate from the referenced game-art collection, not this project's generated-art pipeline; no ownership or independent redistribution license is asserted here.
+## 獸牙怪 native animation
+
+The existing 獸牙怪 (`custom-qinmln`) card uses the unchanged native TIRFING animation from https://ro.dvg.cn/monsterinfo.php?id=1204. `tirfing-1204.gif` is downloaded from https://ro.dvg.cn/dbsource/mob/gif/1204.gif: an 82×126 transparent canvas, eighteen 100 ms frames and an infinite loop. The complete sword remains inside the original canvas; it is not cropped, masked or repainted.
+
+`tirfing-1204.png`, downloaded unchanged from https://ro.dvg.cn/dbsource/mob/png/1204.png, is the transparent 47×93 first pose. The renderer places it at (18, 24) inside the same 82×126 canvas when paused, offscreen, hidden or reduced-motion is enabled, avoiding a size or position jump. The earlier twenty-one articulated sprites are unchanged.
+
+Only the source's 中型、暗、無形 attributes are added to this existing custom card. Its saved Mini classification, ID, timers and default catalog membership are unchanged; source level, combat statistics and spawn rules are not imported.
+
+The images originate from the referenced game-art collections, not this project's generated-art pipeline; no ownership or independent redistribution license is asserted here.

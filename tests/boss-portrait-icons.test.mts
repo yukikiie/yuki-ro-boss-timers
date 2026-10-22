@@ -8,7 +8,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { bossCatalog, bossDetails } from "../lib/boss-catalog.js";
-import { portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
+import { portraitAnimation, portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
 import { defaultBosses } from "../lib/timers.js";
 import { rewritePublicAssetPaths } from "../src/asset-paths.ts";
 
@@ -21,14 +21,15 @@ const source = (path: string) => readFileSync(new URL(path, import.meta.url), "u
 
 function loadPortrait() {
   const requireModule = createRequire(import.meta.url);
-  const portraitSource = source("../src/boss-timer-app.tsx").match(/function BossPortrait\(\{ boss \}: \{ boss: Boss \}\) \{[\s\S]*?\n\}\n(?=function BossSigil)/)?.[0];
+  const portraitSource = source("../src/boss-timer-app.tsx").match(/function BossPortrait\([\s\S]*?\n\}\n(?=function BossSigil)/)?.[0];
   assert.ok(portraitSource);
   const javascript = ts.transpileModule(`export ${portraitSource}`, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const moduleValue = { exports: {} as Record<string, React.ComponentType<{ boss: { id: string; name: string } }>> };
+  const moduleValue = { exports: {} as Record<string, React.ComponentType<{ boss: { id: string; name: string }; paused?: boolean }>> };
   vm.runInNewContext(javascript, {
     module: moduleValue, exports: moduleValue.exports, require: requireModule,
-    bossDetails, portraitIcon, portraitMotion,
+    bossDetails, portraitAnimation, portraitIcon, portraitMotion,
     AnimatedBossPortrait: ({ spriteIndex }: { spriteIndex: number }) => React.createElement("svg", { "data-preserved-motion": spriteIndex }),
+    NativeAnimatedBossPortrait: ({ id, paused }: { id: string; paused: boolean }) => React.createElement("svg", { "data-native-animation": id, "data-native-paused": String(paused) }),
     BossSigil: () => React.createElement("div", { "data-generic-sigil": "true" }),
   });
   return moduleValue.exports.BossPortrait;
@@ -112,4 +113,18 @@ test("native icon styling stays inside the current portrait slot and URLs retain
   const rewritten = rewritePublicAssetPaths(source("../lib/boss-portrait-icons.js"), "/yuki-ro-boss-timers/");
   for (const reference of references) assert.ok(rewritten.includes(`/yuki-ro-boss-timers/art/boss-icons/${reference.file}`));
   assert.doesNotMatch(rewritten, /source: "\/art\//);
+});
+
+test("metadata-only beast cards use the native animation and receive the global pause state", () => {
+  const Portrait = loadPortrait();
+  for (const boss of [{ id: "custom-qinmln", name: "獸牙怪" }, { id: "different-custom-id", name: "兽牙怪" }]) {
+    for (const paused of [false, true]) {
+      const markup = renderToStaticMarkup(React.createElement(Portrait, { boss, paused }));
+      assert.match(markup, /portrait-native-animation/);
+      assert.match(markup, /data-native-animation="tirfing"/);
+      assert.match(markup, new RegExp(`data-native-paused="${String(paused)}"`));
+      assert.doesNotMatch(markup, /data-preserved-motion|data-generic-sigil|native-boss-icon/);
+    }
+  }
+  assert.match(source("../src/boss-timer-app.tsx"), /<BossPortrait boss=\{boss\} paused=\{!motionEnabled \|\| reducedMotion\} \/>/);
 });
