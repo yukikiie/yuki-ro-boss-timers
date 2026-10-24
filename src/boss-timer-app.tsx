@@ -44,6 +44,13 @@ function timeText(timestamp: number | null) {
   if (!timestamp) return "—";
   return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hour: "2-digit", minute: "2-digit" }).format(timestamp);
 }
+function routeTimeText(timestamp: number, now: number) {
+  const dueDate = new Date(timestamp + 8 * 3600000).toISOString().slice(0, 10);
+  const currentDate = new Date(now + 8 * 3600000).toISOString().slice(0, 10);
+  const dateLabel = dueDate === currentDate ? "" : `${dueDate.slice(5).replace("-", "/")} `;
+  const clock = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(timestamp);
+  return `${dateLabel}${clock}`;
+}
 export function AlertKindStatus({ kinds }: { kinds?: ("MVP" | "Mini")[] }) {
   if (!Array.isArray(kinds)) return null;
   return <p className="settings-intro" aria-label="目前提醒類型">MVP 通知{kinds.includes("MVP") ? "已啟用" : "已關閉"} · Mini 通知{kinds.includes("Mini") ? "已啟用" : "已關閉"}</p>;
@@ -59,7 +66,10 @@ export function UpcomingBossRoute({ bosses, now, resting = false }: { bosses: Bo
     <h2 className="visually-hidden">下一站與接著準備</h2>
     <ol>{queue.map((boss, index) => <li key={boss.id} data-route-boss={boss.id} data-route-position={index === 0 ? "first" : "next"}>
       <span className="route-step">{index === 0 ? "先前往" : "接著準備"}</span><strong className="route-boss-name" title={bossCanonicalName(boss)}>{bossDisplayName(boss)}</strong>
-      <time className="route-countdown" dateTime={new Date(boss.dueAt!).toISOString()} title={`預計 ${timeText(boss.dueAt)} HKT 出現`} aria-label={`${bossCanonicalName(boss)}，距離預計出現 ${durationText((boss.dueAt! - now) / 1000)}`}>{durationText((boss.dueAt! - now) / 1000)}</time>
+      <div className="route-timing">
+        <time className="route-countdown" dateTime={new Date(boss.dueAt!).toISOString()} title={`預計 ${routeTimeText(boss.dueAt!, now)} HKT 出現`} aria-label={`${bossCanonicalName(boss)}，距離預計出現 ${durationText((boss.dueAt! - now) / 1000)}`}>{durationText((boss.dueAt! - now) / 1000)}</time>
+        <time className="route-spawn-time" dateTime={new Date(boss.dueAt!).toISOString()}>預計 {routeTimeText(boss.dueAt!, now)} HKT</time>
+      </div>
     </li>)}</ol>
     {gap !== null && <p className="route-gap"><span>{closeGap ? "緊接重生" : "出現間隔"}</span><strong>{durationText(gap)}</strong><span>先處理前一隻，再準備下一隻</span></p>}
     <p className="route-note">依實際倒數排序，不受篩選影響；到時後仍需確認是否出現或擊殺。</p>

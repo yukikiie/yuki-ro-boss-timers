@@ -82,6 +82,43 @@ test("route order ignores MVP and favorite priority and does not mutate saved ti
   assert.doesNotMatch(pageSource, /<UpcomingBossRoute bosses=\{visibleBosses\}/);
 });
 
+test("each selected destination visibly shows its exact HKT deadline including seconds", () => {
+  const bosses = withCountdowns([{ id: "death-knight", seconds: 337 }, { id: "naght-sieger", seconds: 552 }]);
+  const previous = JSON.stringify(bosses);
+  const markup = renderRoute(bosses);
+  assert.match(markup, /class="route-spawn-time" dateTime="2026-10-20T06:05:37.000Z">預計 14:05:37 HKT<\/time>/);
+  assert.match(markup, /class="route-spawn-time" dateTime="2026-10-20T06:09:12.000Z">預計 14:09:12 HKT<\/time>/);
+  assert.match(markup, /00:05:37/);
+  assert.match(markup, /00:09:12/);
+  assert.equal(JSON.stringify(bosses), previous);
+});
+
+test("absolute HKT time stays fixed as the countdown advances without rounding the deadline", () => {
+  const bosses = withCountdowns([{ id: "death-knight", seconds: 337 }]);
+  bosses.find((boss) => boss.id === "death-knight")!.dueAt! += 450;
+  const previous = JSON.stringify(bosses);
+  for (const elapsed of [0, 1000, 14200]) {
+    const markup = renderRoute(bosses, now + elapsed);
+    assert.match(markup, /class="route-spawn-time" dateTime="2026-10-20T06:05:37.450Z">預計 14:05:37 HKT<\/time>/);
+  }
+  assert.match(renderRoute(bosses), /00:05:38/);
+  assert.match(renderRoute(bosses, now + 14200), /00:05:24/);
+  assert.equal(JSON.stringify(bosses), previous);
+});
+
+test("HKT midnight shows the next date and never formats midnight as hour 24", () => {
+  const timestamp = Date.parse("2026-10-20T15:59:00Z");
+  const bosses = [
+    { ...withCountdowns([{ id: "death-knight", seconds: 60 }]).find((boss) => boss.id === "death-knight")!, dueAt: timestamp + 59000, observedAt: timestamp },
+    { ...withCountdowns([{ id: "naght-sieger", seconds: 60 }]).find((boss) => boss.id === "naght-sieger")!, dueAt: timestamp + 61000, observedAt: timestamp },
+  ];
+  const markup = renderRoute(bosses, timestamp);
+  assert.match(markup, />預計 23:59:59 HKT<\/time>/);
+  assert.match(markup, />預計 10\/21 00:00:01 HKT<\/time>/);
+  assert.doesNotMatch(markup, />預計 24:/);
+  assert.match(renderRoute(bosses, timestamp + 60000), />預計 00:00:01 HKT<\/time>/);
+});
+
 test("expired and unconfirmed timers never become navigation targets or imply another kill", () => {
   const bosses = withCountdowns([{ id: "death-knight", seconds: 60 }, { id: "naght-sieger", seconds: 360 }]);
   const expired = bosses.find((boss) => boss.id === "death-knight")!;

@@ -36,7 +36,9 @@ body { background: #f9dfec; font-family: var(--font-sans); font-weight: 800; col
 .upcoming-route li + li { border-left: 1px solid #c9b7dd; padding-left: 2cqi; }
 .upcoming-route .route-step { color: #7e4d8d; font-size: max(2.6cqi, 10px); }
 .upcoming-route .route-boss-name { font-size: max(3.2cqi, 12px); line-height: 1.35; overflow-wrap: anywhere; }
+.upcoming-route .route-timing { display: grid; gap: .7cqi; min-width: 0; }
 .upcoming-route .route-countdown { color: #211650; font-family: var(--font-mono); font-size: max(3.8cqi, 15px); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.upcoming-route .route-spawn-time { color: #725b7c; font-family: var(--font-readable); font-size: max(2.6cqi, 10px); line-height: 1.5; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .upcoming-route .route-gap { display: flex; flex-wrap: wrap; align-items: center; gap: .7cqi 1.5cqi; margin-top: 1.6cqi; padding-top: 1.4cqi; border-top: 1px solid #dfd0e9; font-size: max(2.3cqi, 9px); line-height: 1.4; }
 .upcoming-route .route-gap strong { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .upcoming-route-close .route-gap > span:first-child { padding: .5cqi 1.2cqi; color: #75294e; background: #ffdaeb; border: 1px solid #d78eae; }

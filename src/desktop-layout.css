@@ -458,6 +458,14 @@
     font-size: 23px;
   }
 
+  .reference-timers .upcoming-route .route-timing {
+    gap: 4px;
+  }
+
+  .reference-timers .upcoming-route .route-spawn-time {
+    font-size: 12px;
+  }
+
   .reference-timers .upcoming-route .route-gap {
     gap: 6px 12px;
     margin-top: 7px;
