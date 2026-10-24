@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { apiFetch, appBasePath } from "./api";
 import { activateApplicationWorker, isApplicationRegistration } from "./push-registration";
 import { bossCatalog, bossDetails, sortBossesForDisplay } from "../lib/boss-catalog.js";
+import { bossCanonicalName, bossDisplayName } from "../lib/boss-names.js";
 import { portraitAnimation, portraitIcon, portraitMotion } from "../lib/boss-portrait-icons.js";
 import { upcomingBosses } from "../lib/timers.js";
 import { ReferenceCountdown } from "./components/reference-countdown";
@@ -24,7 +25,7 @@ type AppState = {
   schedule: { cycle: string; resting: boolean; nextReset: number; restStart: number };
   bosses: Boss[];
   alerts: { id: string; title: string; message: string; createdAt: number; status: string }[];
-  push: { configured: boolean; publicKey: string | null; subscriptions: number; schedulerReady: boolean };
+  push: { configured: boolean; publicKey: string | null; subscriptions: number; schedulerReady: boolean; alertKinds?: ("MVP" | "Mini")[] };
 };
 type View = "timers" | "notifications" | "guide";
 type TimerDialog = { type: "countdown"; boss: Boss } | { type: "kill"; boss: Boss } | { type: "add" } | null;
@@ -43,6 +44,11 @@ function timeText(timestamp: number | null) {
   if (!timestamp) return "—";
   return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hour: "2-digit", minute: "2-digit" }).format(timestamp);
 }
+export function AlertKindStatus({ kinds }: { kinds?: ("MVP" | "Mini")[] }) {
+  if (!Array.isArray(kinds)) return null;
+  return <p className="settings-intro" aria-label="目前提醒類型">MVP 通知{kinds.includes("MVP") ? "已啟用" : "已關閉"} · Mini 通知{kinds.includes("Mini") ? "已啟用" : "已關閉"}</p>;
+}
+
 export function UpcomingBossRoute({ bosses, now, resting = false }: { bosses: Boss[]; now: number; resting?: boolean }) {
   if (resting || !Number.isSafeInteger(now) || now <= 0) return null;
   const queue = upcomingBosses(bosses, now).slice(0, 2) as Boss[];
@@ -52,8 +58,8 @@ export function UpcomingBossRoute({ bosses, now, resting = false }: { bosses: Bo
   return <section className={`upcoming-route ${closeGap ? "upcoming-route-close" : ""}`} aria-label="出發順序，依已確認的重生倒數">
     <h2 className="visually-hidden">下一站與接著準備</h2>
     <ol>{queue.map((boss, index) => <li key={boss.id} data-route-boss={boss.id} data-route-position={index === 0 ? "first" : "next"}>
-      <span className="route-step">{index === 0 ? "先前往" : "接著準備"}</span><strong className="route-boss-name">{boss.name}</strong>
-      <time className="route-countdown" dateTime={new Date(boss.dueAt!).toISOString()} title={`預計 ${timeText(boss.dueAt)} HKT 出現`} aria-label={`${boss.name}，距離預計出現 ${durationText((boss.dueAt! - now) / 1000)}`}>{durationText((boss.dueAt! - now) / 1000)}</time>
+      <span className="route-step">{index === 0 ? "先前往" : "接著準備"}</span><strong className="route-boss-name" title={bossCanonicalName(boss)}>{bossDisplayName(boss)}</strong>
+      <time className="route-countdown" dateTime={new Date(boss.dueAt!).toISOString()} title={`預計 ${timeText(boss.dueAt)} HKT 出現`} aria-label={`${bossCanonicalName(boss)}，距離預計出現 ${durationText((boss.dueAt! - now) / 1000)}`}>{durationText((boss.dueAt! - now) / 1000)}</time>
     </li>)}</ol>
     {gap !== null && <p className="route-gap"><span>{closeGap ? "緊接重生" : "出現間隔"}</span><strong>{durationText(gap)}</strong><span>先處理前一隻，再準備下一隻</span></p>}
     <p className="route-note">依實際倒數排序，不受篩選影響；到時後仍需確認是否出現或擊殺。</p>
@@ -306,14 +312,14 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
     event.preventDefault();
     if (dialog?.type === "kill") {
       if (busy || resting) return;
-      if (await mutate("kill", { bossId: dialog.boss.id }, `${dialog.boss.name} 已重新開始 ${dialog.boss.respawnMinutes / 60} 小時倒數`)) setDialog(null);
+      if (await mutate("kill", { bossId: dialog.boss.id }, `${bossDisplayName(dialog.boss)} 已重新開始 ${dialog.boss.respawnMinutes / 60} 小時倒數`)) setDialog(null);
     } else if (dialog?.type === "countdown") {
       if ([hours, minutes, seconds].some((field) => !/^\d{1,2}$/.test(field)) || Number(minutes) > 59 || Number(seconds) > 59 || Number(hours) > 23) {
         setFormError("請輸入有效時間：小時 0–23，分鐘及秒數 0–59。"); return;
       }
       const total = Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
       if (total < 1) { setFormError("倒數時間必須大於 0 秒。"); return; }
-      if (await mutate("countdown", { bossId: dialog.boss.id, seconds: total }, `${dialog.boss.name} 的倒數已設定`)) setDialog(null);
+      if (await mutate("countdown", { bossId: dialog.boss.id, seconds: total }, `${bossDisplayName(dialog.boss)} 的倒數已設定`)) setDialog(null);
     } else if (dialog?.type === "add") {
       if (!newName.trim()) { setFormError("請輸入 Boss 名稱。"); return; }
       if (await mutate("add", { name: newName.trim(), kind: newKind }, "已新增 Boss，接著設定倒數吧")) setDialog(null);
@@ -392,14 +398,17 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
               const due = counting && Boolean(now && (boss.dueAt || Infinity) <= now);
               const isAsleep = resting || boss.status === "resting";
               const featured = featuredBoss?.id === boss.id;
-              return <div className="boss-card-slot" key={boss.id}><article className={`boss-card ${featured ? "card-featured" : ""} ${counting ? "card-counting" : ""} ${due ? "card-due" : ""} ${menu === boss.id ? "card-menu-open" : ""}`} aria-label={`${boss.name}，${boss.kind}${featured ? "，下一隻重生" : ""}`}>
+              const displayName = bossDisplayName(boss);
+              const canonicalName = bossCanonicalName(boss);
+              const accessibleName = displayName === canonicalName ? displayName : `${displayName}（${canonicalName}）`;
+              return <div className="boss-card-slot" key={boss.id}><article className={`boss-card ${featured ? "card-featured" : ""} ${counting ? "card-counting" : ""} ${due ? "card-due" : ""} ${menu === boss.id ? "card-menu-open" : ""}`} aria-label={`${accessibleName}，${boss.kind}${featured ? "，下一隻重生" : ""}`}>
                 <BossCardFrame featured={featured} />
                 {featured && <div className="featured-label">下一隻</div>}
-                <div className="boss-card-top"><span className={`kind-label kind-${boss.kind.toLowerCase()}`}>{boss.kind === "MVP" ? <Diamond size={10} fill="currentColor" /> : <Sparkles size={11} />}{boss.kind}</span><div className="card-actions"><button className={`icon-button favorite-button ${boss.favorite ? "is-favorite" : ""}`} aria-label={`${boss.favorite ? "取消" : "加入"}最愛 ${boss.name}`} disabled={busy} onClick={() => void mutate("favorite", { bossId: boss.id, favorite: !boss.favorite }, boss.favorite ? "已取消最愛" : "已加入最愛")}><Star size={16} fill={boss.favorite ? "currentColor" : "none"} /></button><div className="menu-wrap"><button className="icon-button" aria-label={`${boss.name} 更多選項`} aria-expanded={menu === boss.id} onClick={() => setMenu(menu === boss.id ? null : boss.id)}><MoreHorizontal size={19} /></button>{menu === boss.id && <><button className="menu-dismiss" aria-label="關閉選單" onClick={() => setMenu(null)} /><div className="card-menu"><button disabled={busy} onClick={() => void mutate("resting", { bossId: boss.id }, `${boss.name} 已標記休眠`)}><Moon size={15} />標記休眠</button><button disabled={busy || resting} onClick={() => confirmKill(boss)} title={`從現在開始 ${boss.respawnMinutes / 60} 小時倒數`}><Check size={15} />剛被擊殺</button><button disabled={busy} onClick={() => void mutate("clear", { bossId: boss.id }, "倒數已清除")}><RefreshCw size={15} />清除倒數</button><button className="danger-text" disabled={busy} onClick={() => { if (window.confirm(`移除 ${boss.name}？此 Boss 的倒數也會清除。`)) void mutate("remove", { bossId: boss.id }, "Boss 已移除"); }}><Trash2 size={15} />移除 Boss</button></div></>}</div></div></div>
+                <div className="boss-card-top"><span className={`kind-label kind-${boss.kind.toLowerCase()}`}>{boss.kind === "MVP" ? <Diamond size={10} fill="currentColor" /> : <Sparkles size={11} />}{boss.kind}</span><div className="card-actions"><button className={`icon-button favorite-button ${boss.favorite ? "is-favorite" : ""}`} aria-label={`${boss.favorite ? "取消" : "加入"}最愛 ${canonicalName}`} disabled={busy} onClick={() => void mutate("favorite", { bossId: boss.id, favorite: !boss.favorite }, boss.favorite ? "已取消最愛" : "已加入最愛")}><Star size={16} fill={boss.favorite ? "currentColor" : "none"} /></button><div className="menu-wrap"><button className="icon-button" aria-label={`${canonicalName} 更多選項`} aria-expanded={menu === boss.id} onClick={() => setMenu(menu === boss.id ? null : boss.id)}><MoreHorizontal size={19} /></button>{menu === boss.id && <><button className="menu-dismiss" aria-label="關閉選單" onClick={() => setMenu(null)} /><div className="card-menu"><button disabled={busy} onClick={() => void mutate("resting", { bossId: boss.id }, `${displayName} 已標記休眠`)}><Moon size={15} />標記休眠</button><button disabled={busy || resting} onClick={() => confirmKill(boss)} title={`從現在開始 ${boss.respawnMinutes / 60} 小時倒數`}><Check size={15} />剛被擊殺</button><button disabled={busy} onClick={() => void mutate("clear", { bossId: boss.id }, "倒數已清除")}><RefreshCw size={15} />清除倒數</button><button className="danger-text" disabled={busy} onClick={() => { if (window.confirm(`移除 ${accessibleName}？此 Boss 的倒數也會清除。`)) void mutate("remove", { bossId: boss.id }, "Boss 已移除"); }}><Trash2 size={15} />移除 Boss</button></div></>}</div></div></div>
                 <div className="boss-portrait-wrap"><BossPortrait boss={boss} paused={!motionEnabled || reducedMotion} /></div>
-                <div className="boss-identity"><div className="boss-name-row"><h3 className={Array.from(boss.name).length > 4 ? "boss-name-long" : undefined} title={boss.name}>{boss.name}</h3><BossMetadata boss={boss} /></div><div className={`boss-status ${due ? "status-due" : counting ? "status-counting" : ""}`}><span />{isAsleep ? "休眠中" : due ? "預計已出現" : counting ? "倒數中" : "等待設定"}<span className="respawn-duration">{boss.respawnMinutes / 60} 小時重生</span></div></div>
+                <div className="boss-identity"><div className="boss-name-row"><h3 className={Array.from(displayName).length > 4 ? "boss-name-long" : undefined} title={canonicalName}>{displayName}</h3><BossMetadata boss={boss} /></div><div className={`boss-status ${due ? "status-due" : counting ? "status-counting" : ""}`}><span />{isAsleep ? "休眠中" : due ? "預計已出現" : counting ? "倒數中" : "等待設定"}<span className="respawn-duration">{boss.respawnMinutes / 60} 小時重生</span></div></div>
                 <div className="boss-countdown"><strong className={!counting ? "empty-countdown" : ""}><ReferenceCountdown value={counting && now ? durationText(((boss.dueAt || now) - now) / 1000) : "--:--:--"} /></strong><p>{isAsleep ? "下一次輪替後，重新確認此 Boss" : counting ? <>預計出現 <span>{timeText(boss.dueAt)} HKT</span></> : "輸入遊戲中的實際倒數"}</p></div>
-                <div className="card-button-row" role="group" aria-label={`${boss.name} 計時操作`}><button className="button button-card button-kill" aria-label={`${boss.name} 剛被擊殺`} title={`確認擊殺後，自動從現在開始 ${boss.respawnMinutes / 60} 小時倒數`} disabled={busy || resting} onClick={() => confirmKill(boss)}>剛被擊殺</button><button className="button button-card button-adjust" aria-label={`${boss.name} 設定倒數`} disabled={busy || resting} onClick={() => openCountdown(boss)}>設定倒數</button></div>
+                <div className="card-button-row" role="group" aria-label={`${canonicalName} 計時操作`}><button className="button button-card button-kill" aria-label={`${canonicalName} 剛被擊殺`} title={`確認擊殺後，自動從現在開始 ${boss.respawnMinutes / 60} 小時倒數`} disabled={busy || resting} onClick={() => confirmKill(boss)}>剛被擊殺</button><button className="button button-card button-adjust" aria-label={`${canonicalName} 設定倒數`} disabled={busy || resting} onClick={() => openCountdown(boss)}>設定倒數</button></div>
               </article></div>;
             })}</div> : <div className="empty-list"><Crosshair size={30} strokeWidth={1} /><h3>{"這裡還沒有 Boss"}</h3><p>{favoritesOnly ? "為 Boss 點亮星號，或關閉「只看最愛」。" : "新增你想追蹤的 Boss，再輸入遊戲中的實際時間。"}</p></div>}
           </section>
@@ -409,6 +418,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
 
         {view === "notifications" && <div className="notifications-layout"><section className="settings-panel"><div className="settings-panel-heading"><span className="settings-icon"><Smartphone size={25} strokeWidth={1.5} /></span><div><p className="eyebrow">PHONE NOTIFICATIONS</p><h2>連接你的 iPhone</h2></div><span className={`device-badge ${pushReady ? "device-ready" : ""}`}><span />{pushReady ? "已連接" : subscription ? "請驗證" : "尚未連接"}</span></div>
           <p className="settings-intro">設定完成後，網站與電腦都不必一直開著。Cloudflare 會每分鐘檢查倒數提醒，手機需保持網路連線並允許通知。</p>
+          <AlertKindStatus kinds={data?.push.alertKinds} />
           <div className={`scheduler-status ${data?.push.schedulerReady ? "scheduler-online" : ""}`}><span /><strong>雲端背景提醒{data?.push.schedulerReady ? "已就緒" : "未就緒"}</strong><span>{data?.push.schedulerReady ? "Cloudflare 每分鐘檢查" : "請確認雲端通知服務設定"}</span></div>
           <div className="reminder-milestones">{[{ time: "10", caption: "分鐘前", label: "準備出發" }, { time: "05", caption: "分鐘前", label: "就快到了" }, { time: "01", caption: "分鐘前", label: "最後準備" }, { time: "00", caption: "出現時", label: "冒險開始" }].map((milestone) => <div key={milestone.time}><Bell size={15} /><strong>{milestone.time}<small>{milestone.caption}</small></strong><span>{milestone.label}</span></div>)}</div>
           {browser.ios && !browser.standalone && <div className="ios-instructions"><div><span className="step-number">1</span><p>在 <strong>Safari</strong> 開啟此網站，點選分享按鈕。</p></div><div><span className="step-number">2</span><p>選擇 <strong>「加入主畫面」</strong>，再從新圖示開啟。</p></div><div><span className="step-number">3</span><p>回到這裡點選「允許通知」，並傳送測試。</p></div><span className="ios-note">iPhone 須使用 iOS 16.4 或更新版本。</span></div>}
@@ -432,7 +442,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
         <button className="dialog-close icon-button" disabled={busy} aria-label="關閉視窗" onClick={() => setDialog(null)}><X size={20} /></button>
         <span className="dialog-symbol">{dialog.type === "countdown" ? <Timer size={25} /> : dialog.type === "kill" ? <Check size={25} /> : <Plus size={25} />}</span>
         <p className="eyebrow">{dialog.type === "countdown" ? "SET YOUR COUNTDOWN" : dialog.type === "kill" ? "CONFIRM BOSS DEFEAT" : "A NEW ADVENTURE"}</p>
-        <h2 id="dialog-title">{dialog.type === "add" ? "新增你的 Boss" : dialog.boss.name}</h2>
+        <h2 id="dialog-title" title={dialog.type === "add" ? undefined : bossCanonicalName(dialog.boss)}>{dialog.type === "add" ? "新增你的 Boss" : bossDisplayName(dialog.boss)}</h2>
         <p className="dialog-description">{dialog.type === "countdown" ? "請輸入遊戲中目前顯示的剩餘時間。" : dialog.type === "kill" ? `確認剛剛擊殺後，會以確認當下的伺服器時間重新開始 ${dialog.boss.respawnMinutes / 60} 小時倒數，取代目前倒數；不需要輸入時間。` : "加入想追蹤的 Boss，建立獨立倒數。"}</p>
         <form onSubmit={(event) => void submitDialog(event)}>
           {dialog.type === "countdown" ? <><div className="duration-inputs">{[{ label: "小時", value: hours, change: setHours }, { label: "分鐘", value: minutes, change: setMinutes }, { label: "秒", value: seconds, change: setSeconds }].map((field, index) => <div key={field.label}><label>{field.label}<input aria-label={field.label} type="text" inputMode="numeric" pattern="[0-9]{1,2}" maxLength={2} value={field.value} onFocus={(event) => event.target.select()} onChange={(event) => field.change(event.target.value.replace(/\D/g, "").slice(0, 2))} autoFocus={index === 0} disabled={busy} /></label>{index < 2 && <span>:</span>}</div>)}</div><div className="form-tip"><Bell size={14} /><p>只建立尚未經過的提醒；不補發已錯過的 10、5 或 1 分鐘通知。</p></div>{resting && <p className="inline-error">目前是每日休眠時段，請 05:00 HKT 後確認新輪替。</p>}</> : dialog.type === "add" ? <div className="add-fields"><label>Boss 名稱<input autoFocus maxLength={40} placeholder="例如：阿特羅斯" value={newName} onChange={(event) => setNewName(event.target.value)} disabled={busy} /></label><label>類型<select value={newKind} onChange={(event) => setNewKind(event.target.value as "MVP" | "Mini")} disabled={busy}><option value="MVP">MVP · 擊殺後 3 小時</option><option value="Mini">Mini · 擊殺後 2 小時</option></select></label></div> : <><div className="form-tip"><Timer size={14} /><p>{dialog.boss.kind} · {dialog.boss.respawnMinutes / 60} 小時重生。僅在 Boss 實際死亡後確認；倒數結束不會視為再次擊殺。</p></div>{resting && <p className="inline-error">目前是每日休眠時段，請 05:00 HKT 後確認新輪替。</p>}</>}

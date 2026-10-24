@@ -67,7 +67,7 @@ test("pixel Death Knight matches the reference footprint without stretching its 
   }
 });
 
-test("old eighteen retain the reference footprint and the three additions use their maximum unclipped fixed scale", () => {
+test("old eighteen retain the reference footprint and the additions use their maximum unclipped fixed scale", () => {
   const reference = [0, 1].reduce((total, index) => total + motion.bossIdleSilhouetteAreas[index] * projectedFrame(motion.motionDetails(index)!, 0).scale ** 2, 0) / 2;
   for (let index = 0; index < motion.bossMotion.length; index++) {
     const details = motion.motionDetails(index)!;

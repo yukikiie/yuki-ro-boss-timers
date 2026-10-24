@@ -21,3 +21,9 @@ The existing 獸牙怪 (`custom-qinmln`) card uses the unchanged native TIRFING 
 Only the source's 中型、暗、無形 attributes are added to this existing custom card. Its saved Mini classification, ID, timers and default catalog membership are unchanged; source level, combat statistics and spawn rules are not imported.
 
 The images originate from the referenced game-art collections, not this project's generated-art pipeline; no ownership or independent redistribution license is asserted here.
+
+## 基因 articulated portrait and attributes
+
+The existing `custom-1hb3imu` record uses the personal display name 基因 and canonical identity 暗・基因學者. Its MVP classification, 中型、火、人形 attributes follow the user's supplied in-game references. This metadata-only addition does not add a default boss or rewrite any saved timer fields.
+
+The portrait selects motion index 21 from the new transparent `/art/ro-pixel-motion-g.png` atlas, with four distinct drawn idle, wind-up, flaming-axe attack and recovery poses. The monochrome hair, high collar, segmented armor and flaming axe are redrawn from the supplied character references in the established portrait style; these are generated articulated poses, not official game animation frames or a cropped game screenshot. `lib/pixel-motion-g.json` records the source dimensions and measured complete pose regions. The existing visibility, global Pause and reduced-motion handling applies unchanged. Earlier portrait assets and all header/garden backgrounds remain byte-identical.

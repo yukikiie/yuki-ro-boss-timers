@@ -4,8 +4,9 @@ import pixelMotionC from "./pixel-motion-c.json";
 import pixelMotionD from "./pixel-motion-d.json";
 import pixelMotionE from "./pixel-motion-e.json";
 import pixelMotionF from "./pixel-motion-f.json";
+import pixelMotionG from "./pixel-motion-g.json";
 
-const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF];
+const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF, pixelMotionG];
 
 export const motionAtlases = pixelAtlases.map(({ source, width, height }) => ({ source, width, height }));
 export const motionSpriteLocations = [
@@ -16,6 +17,7 @@ export const motionSpriteLocations = [
   { atlasIndex: 5, row: 0 },
   { atlasIndex: 5, row: 1 },
   { atlasIndex: 5, row: 2 },
+  { atlasIndex: 6, row: 0 },
 ];
 export const motionFrameBounds = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].rows[row]);
 
@@ -41,6 +43,7 @@ export const bossMotion = [
   { id: "dark-chaser", action: "雙刃蓄勢與交叉斬擊", duration: 1.2 },
   { id: "undead-wizard", action: "舉杖蓄能與紫焰施法", duration: 1.6 },
   { id: "zombie-dragon", action: "展翼蓄勢與紫焰吐息", duration: 1.5 },
+  { id: "dark-geneticist", action: "焰斧蓄勢與揮砍", duration: 1.4 },
 ] as const;
 
 export const bossIdleSilhouetteAreas = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].idleAreas[row]);

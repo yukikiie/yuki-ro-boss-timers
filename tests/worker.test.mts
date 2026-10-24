@@ -168,7 +168,7 @@ test("public opt-in removes the code requirement without changing saved timers o
   assertPrivateResponse(encoded);
   const data = JSON.parse(encoded);
   assert.deepEqual(Object.keys(data).sort(), ["alerts", "bosses", "push", "revision", "schedule", "serverNow"]);
-  assert.deepEqual(Object.keys(data.push).sort(), ["configured", "lastDispatchAt", "publicKey", "schedulerReady", "subscriptions"]);
+  assert.deepEqual(Object.keys(data.push).sort(), ["alertKinds", "configured", "lastDispatchAt", "publicKey", "schedulerReady", "subscriptions"]);
   assert.equal(data.push.publicKey, vapid.publicKey);
   assert.equal(data.push.subscriptions, 1);
   assert.equal(data.bosses.find((boss: { id: string }) => boss.id === "death-knight").dueAt, noon + 300_000);
@@ -290,6 +290,8 @@ test("public mode leaves minute cron and per-device10/5/1/spawn dedup unchanged 
 test("deployment explicitly opts into public timers without putting private values in Wrangler variables", async () => {
   const configuration = JSON.parse(await readFile(new URL("../worker/wrangler.jsonc", import.meta.url), "utf8"));
   assert.equal(configuration.vars.PUBLIC_TIMERS, "true");
+  assert.equal(configuration.vars.MVP_ALERTS_ENABLED, "true");
+  assert.equal(configuration.vars.MINI_ALERTS_ENABLED, "true");
   assert.equal(configuration.vars.ALLOWED_ORIGIN, allowedOrigin);
   assert.deepEqual(configuration.triggers.crons, ["* * * * *"]);
   assert.equal("OWNER_KEY_SHA256" in configuration.vars, false);
@@ -452,6 +454,169 @@ test("minute scheduled dispatch works without a browser, deduplicates, and expir
   assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
   assert.match(current.pushes[3].payload.title, /重生時間到/);
   assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  current.sqlite.close();
+});
+
+test("alert-kind policy defaults to both kinds and reports a read-only Mini-only policy without secrets", async () => {
+  const legacy = fixture();
+  const originalState = await (await legacy.request("/api/state")).json();
+  assert.deepEqual(originalState.push.alertKinds, ["MVP", "Mini"]);
+  legacy.sqlite.close();
+  const current = fixture({ PUBLIC_TIMERS: "true", OWNER_KEY_SHA256: undefined, MVP_ALERTS_ENABLED: "false", MINI_ALERTS_ENABLED: "true" });
+  const response = await current.request("/api/state", "GET", undefined, { Authorization: null });
+  assert.equal(response.status, 200);
+  const encoded = await response.text();
+  assertPrivateResponse(encoded);
+  assert.deepEqual(JSON.parse(encoded).push.alertKinds, ["Mini"]);
+  assert.equal(JSON.parse(encoded).bosses.some((boss: { kind: string }) => boss.kind === "MVP"), true);
+  assert.equal((await current.request("/api/push/preferences", "POST", { MVP_ALERTS_ENABLED: "true" }, { Authorization: null })).status, 404);
+  current.sqlite.close();
+});
+
+test("alert-kind flags disable only boolean false or trimmed case-insensitive false", async () => {
+  for (const flag of [false, "false", "False", " FALSE "]) {
+    const current = fixture({ MVP_ALERTS_ENABLED: flag, MINI_ALERTS_ENABLED: flag });
+    assert.deepEqual((await current.service.state(ownerIdentity)).push.alertKinds, []);
+    await current.request("/api/push/subscribe", "POST", subscription);
+    await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 60 });
+    await current.request("/api/bosses", "POST", { action: "countdown", bossId: "boitata", seconds: 60 });
+    assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+    assert.equal(current.pushes.length, 0);
+    current.sqlite.close();
+  }
+  for (const flag of [undefined, true, "true", "", "0", "off"]) {
+    const current = fixture({ MVP_ALERTS_ENABLED: flag, MINI_ALERTS_ENABLED: flag });
+    assert.deepEqual((await current.service.state(ownerIdentity)).push.alertKinds, ["MVP", "Mini"]);
+    current.sqlite.close();
+  }
+});
+
+test("muted MVP timers produce no10/5/1/spawn push attempts or delivery claims", async () => {
+  const current = fixture({ MVP_ALERTS_ENABLED: "false", MINI_ALERTS_ENABLED: "true" });
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 590 });
+  for (const offset of [0, 300_000, 530_000, 590_000, 710_000]) {
+    current.now(noon + offset);
+    const result = await handleScheduled(current.environment, current.dependencies);
+    assert.equal(result.accepted, 0);
+    assert.equal(result.failed, 0);
+  }
+  assert.equal(current.pushes.length, 0);
+  assert.equal(current.sqlite.prepare("SELECT COUNT(*) AS count FROM push_deliveries").get()?.count, 0);
+  assert.equal(current.sqlite.prepare("SELECT COUNT(*) AS count FROM timer_alerts").get()?.count, 0);
+  const state = await current.service.state(ownerIdentity);
+  const morocc = state.bosses.find((boss: { id: string }) => boss.id === "morocc");
+  assert.equal(morocc.dueAt, noon + 590_000);
+  assert.equal(morocc.observedAt, noon);
+  assert.equal(morocc.source, "manual");
+  assert.equal(morocc.kind, "MVP");
+  assert.equal(state.push.schedulerReady, true);
+  assert.equal(state.push.subscriptions, 1);
+  current.sqlite.close();
+});
+
+test("Mini alerts retain all four windows and dedup while MVP timers and subscriptions remain stored", async () => {
+  const current = fixture({ MVP_ALERTS_ENABLED: "false", MINI_ALERTS_ENABLED: "true" });
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 590 });
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "boitata", seconds: 590 });
+  const before = (await current.service.state(ownerIdentity)).bosses;
+  const subscriptionsBefore = current.sqlite.prepare("SELECT * FROM push_subscriptions").all();
+  for (const offset of [0, 300_000, 530_000, 590_000]) {
+    current.now(noon + offset);
+    assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 1);
+    assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  }
+  assert.deepEqual(current.pushes.map((push) => push.payload.title), ["波伊塔塔 · 10 分鐘提醒", "波伊塔塔 · 5 分鐘提醒", "波伊塔塔 · 1 分鐘提醒", "波伊塔塔 · 重生時間到"]);
+  for (const push of current.pushes) assert.doesNotMatch(push.payload.body, /夢羅克|MVP/);
+  const after = (await current.service.state(ownerIdentity)).bosses;
+  assert.deepEqual(after.map(({ status, ...saved }) => saved), before.map(({ status, ...saved }) => saved));
+  assert.equal(after.find((boss: { id: string }) => boss.id === "morocc").status, "due");
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM push_subscriptions").all(), subscriptionsBefore);
+  assert.equal(current.sqlite.prepare("SELECT COUNT(*) AS count FROM push_deliveries").get()?.count, 4);
+  assert.equal(current.sqlite.prepare("SELECT COUNT(*) AS count FROM timer_alerts").get()?.count, 4);
+  current.sqlite.close();
+});
+
+test("Mini-only route context excludes an earlier MVP without altering any valid saved timer or revision", async () => {
+  const current = fixture({ MVP_ALERTS_ENABLED: "false", MINI_ALERTS_ENABLED: "true" });
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "death-knight", seconds: 300 });
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "naght-sieger", seconds: 360 });
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "boitata", seconds: 420 });
+  const before = current.sqlite.prepare("SELECT * FROM timer_accounts WHERE user_id=?").get(ownerIdentity);
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 2);
+  assert.deepEqual(current.pushes.map((push) => push.payload.title), ["納戶特基格 · 10 分鐘提醒", "波伊塔塔 · 10 分鐘提醒"]);
+  for (const push of current.pushes) {
+    assert.match(push.payload.body, /先前往 納戶特基格（剩 6 分鐘）/);
+    assert.match(push.payload.body, /接著準備 波伊塔塔（剩 7 分鐘；相隔 1 分鐘）/);
+    assert.doesNotMatch(push.payload.body, /死靈騎士|MVP/);
+  }
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM timer_accounts WHERE user_id=?").get(ownerIdentity), before);
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  current.sqlite.close();
+});
+
+test("final dispatch recheck cancels a formerly Mini candidate when it is now a muted MVP", async () => {
+  const current = fixture({ MVP_ALERTS_ENABLED: "false", MINI_ALERTS_ENABLED: "true" });
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "boitata", seconds: 590 });
+  const originalDatabase = current.environment.DB!;
+  let revised = false;
+  current.environment.DB = {
+    prepare(query: string) {
+      if (query === "SELECT bosses FROM timer_accounts WHERE user_id=?" && !revised) {
+        revised = true;
+        const saved = current.sqlite.prepare("SELECT bosses FROM timer_accounts WHERE user_id=?").get(ownerIdentity) as { bosses: string };
+        const changed = JSON.parse(saved.bosses).map((boss: { id: string }) => boss.id === "boitata" ? { ...boss, kind: "MVP" } : boss);
+        current.sqlite.prepare("UPDATE timer_accounts SET bosses=?,revision=revision+1 WHERE user_id=?").run(JSON.stringify(changed), ownerIdentity);
+      }
+      return originalDatabase.prepare(query);
+    },
+  } as unknown as D1Database;
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).accepted, 0);
+  assert.equal(revised, true);
+  assert.equal(current.pushes.length, 0);
+  assert.equal(current.sqlite.prepare("SELECT status FROM push_deliveries").get()?.status, "cancelled");
+  assert.equal(current.sqlite.prepare("SELECT COUNT(*) AS count FROM timer_alerts").get()?.count, 0);
+  current.sqlite.close();
+});
+
+test("muting MVP alerts does not retry an existing failed MVP delivery or remove its history", async () => {
+  const current = fixture();
+  await current.request("/api/push/subscribe", "POST", subscription);
+  await current.request("/api/bosses", "POST", { action: "countdown", bossId: "morocc", seconds: 590 });
+  current.pushResult({ ok: false, status: 503, expired: false });
+  assert.equal((await handleScheduled(current.environment, current.dependencies)).failed, 1);
+  const deliveryBefore = current.sqlite.prepare("SELECT * FROM push_deliveries").all();
+  const historyBefore = current.sqlite.prepare("SELECT * FROM timer_alerts").all();
+  current.environment.MVP_ALERTS_ENABLED = "false";
+  current.environment.MINI_ALERTS_ENABLED = "true";
+  for (const offset of [60_000, 300_000, 530_000, 590_000]) {
+    current.now(noon + offset);
+    const result = await handleScheduled(current.environment, current.dependencies);
+    assert.equal(result.accepted, 0);
+    assert.equal(result.failed, 0);
+  }
+  assert.equal(current.pushes.length, 1);
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM push_deliveries").all(), deliveryBefore);
+  assert.deepEqual(current.sqlite.prepare("SELECT * FROM timer_alerts").all(), historyBefore);
+  assert.deepEqual((await (await current.request("/api/state")).json()).push.alertKinds, ["Mini"]);
+  current.sqlite.close();
+});
+
+test("MVP mute leaves explicit device test notifications and kind-independent subscription operations working", async () => {
+  const current = fixture({ MVP_ALERTS_ENABLED: "false", MINI_ALERTS_ENABLED: "true" });
+  await current.request("/api/push/subscribe", "POST", subscription);
+  const response = await current.request("/api/push/test", "POST", { endpoint: subscription.endpoint });
+  assert.equal(response.status, 200);
+  const encoded = await response.text();
+  assertPrivateResponse(encoded);
+  assert.equal(JSON.parse(encoded).testAccepted, true);
+  assert.deepEqual(JSON.parse(encoded).push.alertKinds, ["Mini"]);
+  assert.equal(current.pushes.length, 1);
+  assert.equal(current.pushes[0].payload.title, "Yuki RO · 通知測試");
+  assert.equal((await current.request("/api/push/status", "POST", { endpoint: subscription.endpoint })).status, 200);
   current.sqlite.close();
 });
 

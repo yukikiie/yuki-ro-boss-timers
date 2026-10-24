@@ -8,6 +8,8 @@
   "workers_dev": true,
   "vars": {
     "PUBLIC_TIMERS": "true",
+    "MVP_ALERTS_ENABLED": "true",
+    "MINI_ALERTS_ENABLED": "true",
     "ALLOWED_ORIGIN": "https://yukikiie.github.io",
     "APP_URL": "https://yukikiie.github.io/yuki-ro-boss-timers/",
     "VAPID_SUBJECT": "https://yukikiie.github.io/yuki-ro-boss-timers/"

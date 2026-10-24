@@ -5,6 +5,7 @@ import vm from "node:vm";
 import { createApiClient, normalizedBasePath, validatedApiOrigin } from "../src/api.ts";
 import { normalizeAssetBase, rewritePublicAssetPaths } from "../src/asset-paths.ts";
 import { activateApplicationWorker, isApplicationRegistration } from "../src/push-registration.ts";
+import { bossDisplayName } from "../lib/boss-names.js";
 
 const base = "/yuki-ro-boss-timers/";
 function stateResponse() { return Response.json({ serverNow: 1234, bosses: [] }); }
@@ -123,7 +124,7 @@ test("every boss exposes confirmed kill and manual countdown as separate visible
   const app = await readFile(new URL("../src/boss-timer-app.tsx", import.meta.url), "utf8");
   const actionRow = app.match(/<div className="card-button-row"[\s\S]*?<\/div>/)?.[0];
   assert.ok(actionRow);
-  assert.match(actionRow, /role="group" aria-label=\{`\$\{boss\.name\} 計時操作`\}/);
+  assert.match(actionRow, /role="group" aria-label=\{`\$\{canonicalName\} 計時操作`\}/);
   assert.equal((actionRow.match(/<button\b/g) || []).length, 2);
   assert.match(actionRow, /button-kill[\s\S]*?onClick=\{\(\) => confirmKill\(boss\)\}>剛被擊殺<\/button>/);
   assert.match(actionRow, /button-adjust[\s\S]*?onClick=\{\(\) => openCountdown\(boss\)\}>設定倒數<\/button>/);
@@ -172,6 +173,7 @@ test("only explicit kill form submission mutates the boss and closes after succe
       const boss = Object.freeze({ id: "fixture-boss", name: "測試 Boss", respawnMinutes });
       const handler = vm.runInNewContext(`async (event) => {${handlerBody}}`, {
         busy, resting, dialog: { type: "kill", boss },
+        bossDisplayName,
         setDialog: (value: null) => closed.push(value),
         mutate: async (action: string, values: unknown, message: string) => { mutations.push({ action, values: JSON.parse(JSON.stringify(values)), message }); return accepted; },
       }) as (event: { preventDefault: () => void }) => Promise<void>;
@@ -191,7 +193,7 @@ test("only explicit kill form submission mutates the boss and closes after succe
 test("kill modal labels its duration, requires no time fields and focuses a non-mutating Cancel", async () => {
   const app = await readFile(new URL("../src/boss-timer-app.tsx", import.meta.url), "utf8");
   const modal = app.slice(app.indexOf('{dialog && <div className="modal-backdrop"'));
-  assert.match(modal, /dialog\.type === "add" \? "新增你的 Boss" : dialog\.boss\.name/);
+  assert.match(modal, /dialog\.type === "add" \? "新增你的 Boss" : bossDisplayName\(dialog\.boss\)/);
   assert.match(modal, /確認當下的伺服器時間重新開始 \$\{dialog\.boss\.respawnMinutes \/ 60\} 小時倒數，取代目前倒數；不需要輸入時間/);
   assert.match(modal, /dialog\.type === "add" \? <div className="add-fields"/);
   assert.match(modal, /確認擊殺 · \$\{dialog\.boss\.respawnMinutes \/ 60\}小時/);

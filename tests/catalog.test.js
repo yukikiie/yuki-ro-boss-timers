@@ -70,6 +70,18 @@ test("unknown custom bosses never receive invented metadata", () => {
   }
 });
 
+test("only the approved personal shortcuts resolve existing metadata without changing saved names", () => {
+  const shortcuts = [["妮小姐", "lady-tanee"], ["大神官", "fallen-bishop"], ["47", "death-knight"], ["塔奧", "tao-gunka"], ["波波塔塔", "boitata"], ["光頭", "naght-sieger"], ["元素", "dark-elementalist"], ["遊俠", "dark-ranger"]];
+  for (const [name, id] of shortcuts) {
+    const boss = Object.freeze({ id: "custom-shortcut-fixture", name, dueAt: 1792760400000, observedAt: 1792756800000, status: "counting" });
+    const before = JSON.stringify(boss);
+    assert.equal(bossDetails(boss), bossCatalog.find(entry => entry.id === id));
+    assert.equal(JSON.stringify(boss), before);
+  }
+  assert.equal(bossDetails({ id: "atroce", name: "47" }), bossCatalog[0]);
+  for (const name of ["逐影", "047", "47號", "47秒", "大神官王", "波波", "暗遊俠", "元素使", "暗元素使"]) assert.equal(bossDetails({ name }), null);
+});
+
 test("catalog metadata cannot be mutated through lookup results", () => {
   assert.ok(Object.isFrozen(bossCatalog));
   assert.ok(bossCatalog.every(Object.isFrozen));
@@ -114,6 +126,41 @@ test("Tirfing lookup does not add default records or mutate a saved timer", () =
   bossDetails(boss);
   assert.equal(JSON.stringify(boss), before);
   assert.equal(bossDetails(boss).race, "無形");
+});
+
+test("the saved geneticist ID resolves only verified compact metadata without replacing existing identities", () => {
+  const details = bossDetails({ id: "custom-1hb3imu", name: "基因" });
+  assert.deepEqual(details, { id: "custom-1hb3imu", name: "暗・基因學者", kind: "MVP", size: "中", element: "火", race: "人形" });
+  for (const field of ["spriteIndex", "favorite", "level", "respawnMinutes"]) assert.equal(Object.hasOwn(details, field), false);
+  assert.ok(Object.isFrozen(details));
+  assert.throws(() => { details.element = "暗"; }, TypeError);
+  assert.equal(bossDetails({ id: "custom-1hb3imu", name: "影魔" }), details);
+  assert.equal(bossDetails({ id: "atroce", name: "基因" }), bossCatalog[0]);
+  assert.equal(bossDetails({ id: "custom-qinmln", name: "基因" }).name, "獸牙怪");
+});
+
+test("geneticist metadata accepts its approved shortcut and exact normalized full name, not partial guesses", () => {
+  const details = bossDetails({ id: "custom-1hb3imu" });
+  for (const name of ["基因", " 暗 ・ 基因學者 ", "暗·基因學者", "暗．基因學者", "暗.基因學者"]) {
+    assert.equal(bossDetails({ id: "custom-geneticist-fixture", name }), details);
+  }
+  for (const name of ["基因學者", "暗基因學者", "基因王", "小基因", "暗・基因", "Geneticist", "140"]) {
+    assert.equal(bossDetails({ id: "custom-unrelated", name }), null, name);
+  }
+  assert.equal(bossDetails({ id: "custom-1hb3imu-extra" }), null);
+});
+
+test("geneticist metadata leaves all eighteen defaults and the saved custom timer unchanged", () => {
+  const timestamp = Date.UTC(2026, 9, 24, 4);
+  const defaults = defaultBosses(timestamp);
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(defaults.length, 18);
+  assert.equal(bossCatalog.some(boss => boss.id === "custom-1hb3imu" || boss.name === "暗・基因學者"), false);
+  assert.equal(defaults.some(boss => boss.id === "custom-1hb3imu"), false);
+  const boss = Object.freeze({ id: "custom-1hb3imu", name: "基因", kind: "MVP", favorite: false, status: "counting", dueAt: timestamp + 3600000, observedAt: timestamp, source: "manual", cycle: "2026-10-24", respawnMinutes: 120 });
+  const before = JSON.stringify(boss);
+  assert.equal(bossDetails(boss).name, "暗・基因學者");
+  assert.equal(JSON.stringify(boss), before);
 });
 
 test("respawn ordering puts the earliest mixed Mini or MVP first regardless of favorites", () => {

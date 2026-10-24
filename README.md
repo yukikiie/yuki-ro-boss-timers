@@ -56,6 +56,8 @@ At 03:00–05:00 Hong Kong time, countdowns are cleared and alerts are suppresse
 
 Reminders cover ten minutes, five minutes, one minute and the two-minute spawn window, with durable per-device deduplication and bounded retry attempts. Late entry never backfills missed reminder stages. A scheduler outage can miss a window; stale notifications are not replayed later as if current.
 
+After the one-time phone notification connection, saving a valid countdown automatically schedules its remaining reminder stages. No assistant request, daily enable step or open computer is required. The production Worker enables both MVP and Mini reminders and runs its minute cron continuously. `MVP_ALERTS_ENABLED` and `MINI_ALERTS_ENABLED` are optional service mute controls; both default enabled and are explicitly `true` in the current deployment. The notification center displays the server's actual policy alongside scheduler health. Phone delivery still requires a valid subscription, network access and OS notification permission.
+
 The compact route strip selects the earliest two confirmed future countdowns across the whole roster, independently of MVP/Mini and favorite filters. It shows the first destination, the next preparation target and their due-time gap; five minutes or less is highlighted. Expired countdowns leave this navigation queue without implying a kill, clearing the timer or starting a new countdown. Reminder messages identify the next confirmed target to prepare for.
 
 ## Development

@@ -8,6 +8,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import * as catalog from "../lib/boss-catalog.js";
+import * as bossNames from "../lib/boss-names.js";
 import * as portraitIcons from "../lib/boss-portrait-icons.js";
 import * as timers from "../lib/timers.js";
 import * as sceneTime from "../lib/scene-time.ts";
@@ -63,6 +64,7 @@ function renderRoster(count: number, width: number, phase: sceneTime.ScenePhase,
       },
     },
     "../lib/boss-catalog.js": catalog,
+    "../lib/boss-names.js": bossNames,
     "../lib/boss-portrait-icons.js": portraitIcons,
     "../lib/timers.js": timers,
     "../lib/scene-time": sceneTime,

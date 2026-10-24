@@ -46,11 +46,13 @@ test("the exact three saved custom IDs resolve to their unchanged native referen
   }
 });
 
-test("only normalized full names receive icons, without abbreviated or mistaken aliases", () => {
+test("only normalized full names and explicit approved shortcuts receive icons", () => {
   for (const name of ["暗・逐影", "暗·逐影", "暗．逐影", " 暗 ・ 逐影 ", "暗\u3000·\u3000逐影"]) assert.equal(portraitIcon({ name }), "/art/boss-icons/dark-chaser-30039.png");
   assert.equal(portraitIcon({ name: " 亡 靈 巫 師 " }), "/art/boss-icons/undead-wizard-31014.png");
   assert.equal(portraitIcon({ name: " 殭屍龍 " }), "/art/boss-icons/zombie-dragon-30025.png");
-  for (const input of [null, undefined, "亡靈巫師", {}, { name: "逐影" }, { name: "暗逐影" }, { name: "亡靈" }, { name: "殭屍" }, { name: "龍" }, { name: "寒冰龍" }, { name: "影魔" }, { id: "custom-unknown", name: "自訂 Boss" }]) {
+  assert.equal(portraitIcon({ name: "逐影" }), "/art/boss-icons/dark-chaser-30039.png");
+  assert.deepEqual(portraitMotion({ name: "逐影" }), { id: "dark-chaser", spriteIndex: 18 });
+  for (const input of [null, undefined, "亡靈巫師", {}, { name: "暗逐影" }, { name: "逐" }, { name: "逐影王" }, { name: "亡靈" }, { name: "殭屍" }, { name: "龍" }, { name: "寒冰龍" }, { name: "影魔" }, { id: "custom-unknown", name: "自訂 Boss" }]) {
     assert.equal(portraitIcon(input), null);
     assert.equal(portraitMotion(input), null);
   }
@@ -103,6 +105,42 @@ test("the three custom cards select real pose animation and retain all eighteen 
   }
   const unknown = renderToStaticMarkup(React.createElement(Portrait, { boss: { id: "custom-unknown", name: "Unknown Boss" } }));
   assert.match(unknown, /data-generic-sigil="true"/);
+});
+
+test("geneticist uses four-pose motion by saved ID, official name and approved shortcut without an atlas-as-icon fallback", () => {
+  const Portrait = loadPortrait();
+  const expected = { id: "dark-geneticist", spriteIndex: 21 };
+  for (const boss of [{ id: "custom-1hb3imu", name: "基因" }, { id: "custom-1hb3imu", name: "Unknown" }, ...["基因", "暗・基因學者", "暗·基因學者", "暗．基因學者", " 暗 . 基因學者 "].map(name => ({ id: "different-custom-id", name }))]) {
+    const before = JSON.stringify(boss);
+    assert.deepEqual(portraitMotion(boss), expected);
+    assert.equal(portraitIcon(boss), null);
+    assert.equal(portraitAnimation(boss), null);
+    const markup = renderToStaticMarkup(React.createElement(Portrait, { boss }));
+    assert.match(markup, /data-preserved-motion="21"/);
+    assert.doesNotMatch(markup, /data-native-animation|data-generic-sigil|<img/);
+    assert.equal(JSON.stringify(boss), before);
+  }
+  for (const name of ["基因學者", "暗基因學者", "小基因", "基因王", "暗・基因", "Geneticist"]) {
+    assert.equal(portraitMotion({ name }), null, name);
+  }
+  assert.equal(portraitMotion({ id: "custom-1hb3imu-extra" }), null);
+  assert.equal(portraitIcon({ id: "custom-1hb3imu", name: "獸牙怪" }), null);
+  assert.deepEqual(portraitMotion({ id: "custom-5qip79", name: "基因" }), { id: "dark-chaser", spriteIndex: 18 });
+});
+
+test("the geneticist motion lookup preserves its existing timer identity and all default records", () => {
+  const now = Date.parse("2026-10-24T04:00:00Z");
+  const defaults = defaultBosses(now);
+  const snapshot = JSON.stringify(defaults);
+  const boss = Object.freeze({ id: "custom-1hb3imu", name: "基因", kind: "MVP", status: "counting", dueAt: now + 3600000, observedAt: now, source: "manual", favorite: false, cycle: "2026-10-24", respawnMinutes: 120 });
+  const before = JSON.stringify(boss);
+  assert.deepEqual(portraitMotion(boss), { id: "dark-geneticist", spriteIndex: 21 });
+  assert.equal(bossDetails(boss)?.element, "火");
+  assert.equal(JSON.stringify(boss), before);
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(defaults.length, 18);
+  assert.equal(defaults.some(entry => entry.id === boss.id), false);
+  assert.equal(JSON.stringify(defaultBosses(now)), snapshot);
 });
 
 test("native icon styling stays inside the current portrait slot and URLs retain GitHub base paths", () => {

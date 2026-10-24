@@ -11,6 +11,7 @@ const requireModule = createRequire(import.meta.url);
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 const timers = await import(new URL("../lib/timers.js", import.meta.url).href) as typeof import("../lib/timers.js");
 const catalog = await import(new URL("../lib/boss-catalog.js", import.meta.url).href) as typeof import("../lib/boss-catalog.js");
+const bossNames = await import(new URL("../lib/boss-names.js", import.meta.url).href) as typeof import("../lib/boss-names.js");
 const sceneTime = await import(new URL("../lib/scene-time.ts", import.meta.url).href) as typeof import("../lib/scene-time");
 const pageSource = source("../src/boss-timer-app.tsx");
 
@@ -20,6 +21,7 @@ function loadPage() {
   }).outputText;
   const dependencies: Record<string, unknown> = {
     "../lib/boss-catalog.js": catalog,
+    "../lib/boss-names.js": bossNames,
     "../lib/timers.js": timers,
     "../lib/scene-time": sceneTime,
     "../hooks/use-scene-phase": { useScenePhase: () => "afternoon" },

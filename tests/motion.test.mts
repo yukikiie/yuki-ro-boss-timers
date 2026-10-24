@@ -28,13 +28,13 @@ const motion = loadModule("../lib/boss-motion.ts");
 type MotionDetails = { id: string; action: string; duration: number; source: string; width: number; height: number; row: number; cellWidth: number; cellHeight: number; frames: { left: number; top: number; width: number; height: number; offsetLeft: number; offsetTop: number }[] };
 const motionDetails = motion.motionDetails as (index: number) => MotionDetails | null;
 
-test("all twenty-one selected bosses have distinct character actions and four-frame atlas positions", () => {
-  const expectedIds = ["atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger", "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon", "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon"];
+test("all twenty-two selected bosses have distinct character actions and four-frame atlas positions", () => {
+  const expectedIds = ["atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger", "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon", "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist"];
   const actions = new Set();
   for (const [index, id] of expectedIds.entries()) {
     const details = motionDetails(index)!;
     assert.equal(details.id, id);
-    assert.equal(details.row, index < 15 ? index % 4 : index < 18 ? index - 15 : index - 18);
+    assert.equal(details.row, index < 15 ? index % 4 : index < 18 ? index - 15 : index < 21 ? index - 18 : 0);
     assert.equal(details.frames.length, 4);
     for (const frame of details.frames) {
       assert.ok(frame.offsetLeft >= 0 && frame.offsetTop >= 0);
@@ -47,19 +47,19 @@ test("all twenty-one selected bosses have distinct character actions and four-fr
     assert.ok(details.duration >= .7 && details.duration <= 3);
     actions.add(details.action);
   }
-  assert.equal(actions.size, 21);
-  for (const invalid of [-1, 21, 1.5, NaN]) assert.equal(motionDetails(invalid), null);
+  assert.equal(actions.size, 22);
+  for (const invalid of [-1, 22, 1.5, NaN]) assert.equal(motionDetails(invalid), null);
 });
 
 test("animated portraits render four clipped poses per boss, without whole-image transforms", () => {
   const components = loadModule("../src/components/animated-boss-portrait.tsx", { "../../lib/boss-motion": motion });
   const Portrait = components.AnimatedBossPortrait as React.ComponentType<{ spriteIndex: number }>;
-  const markup = renderToStaticMarkup(React.createElement(React.Fragment, null, ...Array.from({ length: 21 }, (_, spriteIndex) => React.createElement(Portrait, { key: spriteIndex, spriteIndex }))));
-  assert.equal((markup.match(/data-motion-boss=/g) || []).length, 21);
-  assert.equal((markup.match(/data-frame=/g) || []).length, 84);
+  const markup = renderToStaticMarkup(React.createElement(React.Fragment, null, ...Array.from({ length: 22 }, (_, spriteIndex) => React.createElement(Portrait, { key: spriteIndex, spriteIndex }))));
+  assert.equal((markup.match(/data-motion-boss=/g) || []).length, 22);
+  assert.equal((markup.match(/data-frame=/g) || []).length, 88);
   const clips = [...markup.matchAll(/<clipPath id="([^"]+)"/g)].map(match => match[1]);
-  assert.equal(clips.length, 84);
-  assert.equal(new Set(clips).size, 84);
+  assert.equal(clips.length, 88);
+  assert.equal(new Set(clips).size, 88);
   assert.doesNotMatch(markup, /ro-b-reference-source|ro-redrawn-main|ro-redrawn-expansion|transform=/);
   assert.match(markup, /animation-delay:-0\.66s/);
 });
@@ -95,8 +95,8 @@ test("header and long garden contain scene-specific water, petal and light anima
   assert.doesNotMatch(markup, /pattern|foreignObject|heart|<text/);
 });
 
-test("all six action atlases use transparent PNGs with matching declared dimensions", () => {
-  for (const index of [0, 4, 8, 12, 15, 18]) {
+test("all seven action atlases use transparent PNGs with matching declared dimensions", () => {
+  for (const index of [0, 4, 8, 12, 15, 18, 21]) {
     const details = motionDetails(index)!;
     const bytes = readFileSync(new URL(`../public${details.source}`, import.meta.url));
     assert.equal(bytes.readUInt32BE(16), details.width);

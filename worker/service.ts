@@ -11,6 +11,8 @@ export type WorkerEnvironment = VapidEnvironment & {
   DB?: D1Database;
   OWNER_KEY_SHA256?: string;
   PUBLIC_TIMERS?: string;
+  MVP_ALERTS_ENABLED?: string | boolean;
+  MINI_ALERTS_ENABLED?: string | boolean;
   ALLOWED_ORIGIN?: string;
   APP_URL?: string;
 };
@@ -103,10 +105,19 @@ export async function digest(value: string) {
   return Array.from(new Uint8Array(hashed), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function alertsEnabled(value: string | boolean | undefined) {
+  return value !== false && !(typeof value === "string" && value.trim().toLowerCase() === "false");
+}
+
 export function createTimerService(environment: WorkerEnvironment, dependencies: ServiceDependencies = {}) {
   const clock = dependencies.now || Date.now;
   const push = dependencies.sendPush || sendPush;
   const env = { ...environment, VAPID_SUBJECT: environment.VAPID_SUBJECT || environment.APP_URL || applicationUrl };
+  const alertPolicy = { MVP: alertsEnabled(env.MVP_ALERTS_ENABLED), Mini: alertsEnabled(env.MINI_ALERTS_ENABLED) };
+
+  function alertBosses(bosses: ReturnType<typeof normalizeBosses>) {
+    return bosses.filter((boss) => boss.kind === "MVP" ? alertPolicy.MVP : boss.kind === "Mini" && alertPolicy.Mini);
+  }
 
   function database() {
     if (!env.DB) throw new ApiError("資料庫尚未就緒，請稍後重試。", 503);
@@ -139,6 +150,7 @@ export function createTimerService(environment: WorkerEnvironment, dependencies:
       revision: current.saved.revision,
       alerts: history.results,
       push: {
+        alertKinds: (["MVP", "Mini"] as const).filter((kind) => alertPolicy[kind]),
         configured: Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY && env.VAPID_SUBJECT),
         publicKey: env.VAPID_PUBLIC_KEY || null,
         subscriptions: devices?.count || 0,
@@ -229,7 +241,7 @@ export function createTimerService(environment: WorkerEnvironment, dependencies:
         if (normalized !== record.bosses) await storage.prepare("UPDATE timer_accounts SET bosses=?,revision=revision+1,updated_at=? WHERE user_id=? AND revision=?")
           .bind(normalized, now, record.user_id, record.revision).run();
         const devices = await storage.prepare("SELECT * FROM push_subscriptions WHERE user_id=? LIMIT 8").bind(record.user_id).all<SubscriptionRow>();
-        for (const reminder of reminderCandidates(bosses, now)) {
+        for (const reminder of reminderCandidates(alertBosses(bosses), now)) {
           const alertId = await digest(`${record.user_id}:${reminder.cycleKey}:${reminder.threshold}`);
           for (const device of devices.results) {
             const claimedAt = clock();
@@ -245,7 +257,7 @@ export function createTimerService(environment: WorkerEnvironment, dependencies:
             if (!claimed) continue;
             const fresh = await storage.prepare("SELECT bosses FROM timer_accounts WHERE user_id=?").bind(record.user_id).first<{ bosses: string }>();
             const validatedAt = clock();
-            const freshCandidate = fresh && reminderCandidates(normalizeBosses(JSON.parse(fresh.bosses), validatedAt), validatedAt)
+            const freshCandidate = fresh && reminderCandidates(alertBosses(normalizeBosses(JSON.parse(fresh.bosses), validatedAt)), validatedAt)
               .find((candidate) => candidate.cycleKey === reminder.cycleKey && candidate.threshold === reminder.threshold);
             if (!freshCandidate) {
               await storage.prepare("UPDATE push_deliveries SET status='cancelled',updated_at=? WHERE id=?").bind(clock(), deliveryId).run();
