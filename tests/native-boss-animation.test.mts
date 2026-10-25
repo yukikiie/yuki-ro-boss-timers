@@ -86,11 +86,11 @@ function gifFrames(bytes: Buffer) {
   throw new Error("GIF trailer is missing");
 }
 
-test("native animation resolves only the exact saved ID and normalized full beast names", () => {
+test("the retained native reference remains compatible while beast cards select the new pixel motion", () => {
   for (const boss of [{ id: "custom-qinmln" }, { id: "custom-qinmln", name: "Unknown" }, { name: "獸牙怪" }, { name: "兽牙怪" }, { id: "different-custom-id", name: " 獸 牙 怪 " }]) {
     assert.equal(portraitAnimation(boss), animation);
     assert.equal(portraitIcon(boss), animation.stillSource);
-    assert.equal(portraitMotion(boss), null);
+    assert.deepEqual(portraitMotion(boss), { id: "tirfing", spriteIndex: 22 });
   }
   assert.deepEqual(animation, {
     id: "tirfing", source: "/art/boss-icons/tirfing-1204.gif", stillSource: "/art/boss-icons/tirfing-1204.png",
@@ -98,6 +98,7 @@ test("native animation resolves only the exact saved ID and normalized full beas
   });
   for (const boss of [null, undefined, false, 1204, "獸牙怪", [], {}, { id: "custom-qinmln-extra" }, { name: "獸牙" }, { name: "獸人英雄" }, { name: "獸牙怪王" }, { name: "Tirfing" }, { name: "Custom Boss" }]) {
     assert.equal(portraitAnimation(boss), null);
+    assert.equal(portraitMotion(boss), null);
   }
   assert.ok(Object.isFrozen(animation));
   assert.ok(Object.isFrozen(animation.stillFrame));
@@ -226,7 +227,7 @@ test("native visibility and reduced-motion listeners update correctly and clean 
   assert.deepEqual(removed.sort(), ["document:visibilitychange", "motion:change"]);
 });
 
-test("native lookup does not add defaults, mutate timers or replace any of the twenty-one old pose selections", () => {
+test("the retained native reference does not add defaults or mutate timers and saved IDs keep their motion indices", () => {
   const timestamp = Date.parse("2026-10-22T04:00:00Z");
   const defaults = defaultBosses(timestamp);
   const snapshot = JSON.stringify(defaults);
@@ -243,6 +244,7 @@ test("native lookup does not add defaults, mutate timers or replace any of the t
   const saved = Object.freeze({ id: "custom-qinmln", name: "獸牙怪", status: "counting", dueAt: timestamp + 7200000, observedAt: timestamp, sent: [600], favorite: true });
   const savedSnapshot = JSON.stringify(saved);
   assert.equal(portraitAnimation(saved), animation);
+  assert.deepEqual(portraitMotion(saved), { id: "tirfing", spriteIndex: 22 });
   assert.equal(JSON.stringify(saved), savedSnapshot);
   assert.equal(JSON.stringify(defaults), snapshot);
   assert.equal(JSON.stringify(defaultBosses(timestamp)), snapshot);

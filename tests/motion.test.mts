@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
@@ -28,13 +29,13 @@ const motion = loadModule("../lib/boss-motion.ts");
 type MotionDetails = { id: string; action: string; duration: number; source: string; width: number; height: number; row: number; cellWidth: number; cellHeight: number; frames: { left: number; top: number; width: number; height: number; offsetLeft: number; offsetTop: number }[] };
 const motionDetails = motion.motionDetails as (index: number) => MotionDetails | null;
 
-test("all twenty-two selected bosses have distinct character actions and four-frame atlas positions", () => {
-  const expectedIds = ["atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger", "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon", "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist"];
+test("all twenty-three selected bosses have distinct character actions and four-frame atlas positions", () => {
+  const expectedIds = ["atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger", "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon", "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing"];
   const actions = new Set();
   for (const [index, id] of expectedIds.entries()) {
     const details = motionDetails(index)!;
     assert.equal(details.id, id);
-    assert.equal(details.row, index < 15 ? index % 4 : index < 18 ? index - 15 : index < 21 ? index - 18 : 0);
+    assert.equal(details.row, index < 15 ? index % 4 : index < 18 ? index - 15 : index === 20 ? 2 : 0);
     assert.equal(details.frames.length, 4);
     for (const frame of details.frames) {
       assert.ok(frame.offsetLeft >= 0 && frame.offsetTop >= 0);
@@ -47,19 +48,31 @@ test("all twenty-two selected bosses have distinct character actions and four-fr
     assert.ok(details.duration >= .7 && details.duration <= 3);
     actions.add(details.action);
   }
-  assert.equal(actions.size, 22);
-  for (const invalid of [-1, 22, 1.5, NaN]) assert.equal(motionDetails(invalid), null);
+  assert.equal(actions.size, 23);
+  for (const invalid of [-1, 23, 1.5, NaN]) assert.equal(motionDetails(invalid), null);
+});
+
+test("the wizard restyle preserves every other existing motion selection and complete optical geometry", () => {
+  const indices = [...Array.from({ length: 19 }, (_, index) => index), 20, 21];
+  const snapshot = indices.map(index => motionDetails(index));
+  assert.equal(createHash("sha256").update(JSON.stringify(snapshot)).digest("hex"), "db0a61b910b90f2f778c45b61708a17024bf28f846160311b4bbc12bfbbd8f9a");
+  const wizard = motionDetails(19)!;
+  assert.equal(wizard.id, "undead-wizard");
+  assert.equal(wizard.action, "舉杖蓄能與紫焰施法");
+  assert.equal(wizard.duration, 1.6);
+  assert.equal(wizard.source, "/art/ro-pixel-motion-h.png");
+  assert.equal(motionDetails(22)!.source, "/art/ro-pixel-motion-i.png");
 });
 
 test("animated portraits render four clipped poses per boss, without whole-image transforms", () => {
   const components = loadModule("../src/components/animated-boss-portrait.tsx", { "../../lib/boss-motion": motion });
   const Portrait = components.AnimatedBossPortrait as React.ComponentType<{ spriteIndex: number }>;
-  const markup = renderToStaticMarkup(React.createElement(React.Fragment, null, ...Array.from({ length: 22 }, (_, spriteIndex) => React.createElement(Portrait, { key: spriteIndex, spriteIndex }))));
-  assert.equal((markup.match(/data-motion-boss=/g) || []).length, 22);
-  assert.equal((markup.match(/data-frame=/g) || []).length, 88);
+  const markup = renderToStaticMarkup(React.createElement(React.Fragment, null, ...Array.from({ length: 23 }, (_, spriteIndex) => React.createElement(Portrait, { key: spriteIndex, spriteIndex }))));
+  assert.equal((markup.match(/data-motion-boss=/g) || []).length, 23);
+  assert.equal((markup.match(/data-frame=/g) || []).length, 92);
   const clips = [...markup.matchAll(/<clipPath id="([^"]+)"/g)].map(match => match[1]);
-  assert.equal(clips.length, 88);
-  assert.equal(new Set(clips).size, 88);
+  assert.equal(clips.length, 92);
+  assert.equal(new Set(clips).size, 92);
   assert.doesNotMatch(markup, /ro-b-reference-source|ro-redrawn-main|ro-redrawn-expansion|transform=/);
   assert.match(markup, /animation-delay:-0\.66s/);
 });
@@ -95,14 +108,31 @@ test("header and long garden contain scene-specific water, petal and light anima
   assert.doesNotMatch(markup, /pattern|foreignObject|heart|<text/);
 });
 
-test("all seven action atlases use transparent PNGs with matching declared dimensions", () => {
-  for (const index of [0, 4, 8, 12, 15, 18, 21]) {
+test("all nine action atlases use transparent PNGs with matching declared dimensions", () => {
+  for (const index of [0, 4, 8, 12, 15, 18, 21, 19, 22]) {
     const details = motionDetails(index)!;
     const bytes = readFileSync(new URL(`../public${details.source}`, import.meta.url));
     assert.equal(bytes.readUInt32BE(16), details.width);
     assert.equal(bytes.readUInt32BE(20), details.height);
     assert.equal(bytes[25], 6);
   }
+});
+
+test("restyled wizard and sword use the shared four-pose pause, visibility and reduced-motion mechanism", () => {
+  const components = loadModule("../src/components/animated-boss-portrait.tsx", { "../../lib/boss-motion": motion });
+  const Portrait = components.AnimatedBossPortrait as React.ComponentType<{ spriteIndex: number }>;
+  for (const [spriteIndex, id, source] of [[19, "undead-wizard", "/art/ro-pixel-motion-h.png"], [22, "tirfing", "/art/ro-pixel-motion-i.png"]] as const) {
+    const markup = renderToStaticMarkup(React.createElement("div", { className: "motion-paused" }, React.createElement(Portrait, { spriteIndex })));
+    assert.ok(markup.includes(`data-motion-boss="${id}"`));
+    assert.equal((markup.match(/data-frame=/g) || []).length, 4);
+    assert.equal((markup.match(/class="motion-frame motion-frame-/g) || []).length, 4);
+    assert.match(markup, /data-visible="false"/);
+    assert.equal((markup.match(new RegExp(`href="${source}"`, "g")) || []).length, 4);
+    assert.doesNotMatch(markup, /\.gif|native-motion|<img|transform=/);
+  }
+  const styles = readSource("../src/boss-motion.css");
+  assert.match(styles, /\.motion-portrait\[data-visible="false"\] \.motion-frame, \.motion-paused \.motion-frame \{ animation-play-state: paused; \}/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{\s*\.motion-frame \{ animation: none !important; opacity: 0; \}\s*\.motion-frame-0 \{ opacity: 1; \}/);
 });
 
 test("the production app retains real timers and routes all matching portraits through the existing renderer", () => {

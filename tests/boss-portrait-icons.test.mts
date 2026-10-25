@@ -153,16 +153,20 @@ test("native icon styling stays inside the current portrait slot and URLs retain
   assert.doesNotMatch(rewritten, /source: "\/art\//);
 });
 
-test("metadata-only beast cards use the native animation and receive the global pause state", () => {
+test("metadata-only beast cards use the shared pixel animation instead of the native reference in every pause state", () => {
   const Portrait = loadPortrait();
-  for (const boss of [{ id: "custom-qinmln", name: "獸牙怪" }, { id: "different-custom-id", name: "兽牙怪" }]) {
+  for (const boss of [{ id: "custom-qinmln", name: "獸牙怪" }, { id: "custom-qinmln", name: "Unknown" }, { id: "different-custom-id", name: "兽牙怪" }, { id: "another-custom-id", name: " 獸 牙 怪 " }]) {
     for (const paused of [false, true]) {
+      const before = JSON.stringify(boss);
       const markup = renderToStaticMarkup(React.createElement(Portrait, { boss, paused }));
-      assert.match(markup, /portrait-native-animation/);
-      assert.match(markup, /data-native-animation="tirfing"/);
-      assert.match(markup, new RegExp(`data-native-paused="${String(paused)}"`));
-      assert.doesNotMatch(markup, /data-preserved-motion|data-generic-sigil|native-boss-icon/);
+      assert.match(markup, /portrait-tirfing/);
+      assert.match(markup, /data-preserved-motion="22"/);
+      assert.doesNotMatch(markup, /portrait-native-animation|data-native-animation|data-generic-sigil|native-boss-icon|\.gif/);
+      assert.deepEqual(portraitMotion(boss), { id: "tirfing", spriteIndex: 22 });
+      assert.equal(JSON.stringify(boss), before);
     }
   }
+  for (const name of ["獸牙", "兽牙", "牙怪", "獸牙怪王", "小獸牙怪", "Tirfing", "1204"]) assert.equal(portraitMotion({ name }), null, name);
+  assert.deepEqual(portraitMotion({ id: "custom-14l2kgf", name: "獸牙怪" }), { id: "undead-wizard", spriteIndex: 19 });
   assert.match(source("../src/boss-timer-app.tsx"), /<BossPortrait boss=\{boss\} paused=\{!motionEnabled \|\| reducedMotion\} \/>/);
 });

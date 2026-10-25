@@ -5,8 +5,10 @@ import pixelMotionD from "./pixel-motion-d.json";
 import pixelMotionE from "./pixel-motion-e.json";
 import pixelMotionF from "./pixel-motion-f.json";
 import pixelMotionG from "./pixel-motion-g.json";
+import pixelMotionH from "./pixel-motion-h.json";
+import pixelMotionI from "./pixel-motion-i.json";
 
-const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF, pixelMotionG];
+const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF, pixelMotionG, pixelMotionH, pixelMotionI];
 
 export const motionAtlases = pixelAtlases.map(({ source, width, height }) => ({ source, width, height }));
 export const motionSpriteLocations = [
@@ -15,9 +17,10 @@ export const motionSpriteLocations = [
   { atlasIndex: 4, row: 1 },
   { atlasIndex: 4, row: 2 },
   { atlasIndex: 5, row: 0 },
-  { atlasIndex: 5, row: 1 },
+  { atlasIndex: 7, row: 0 },
   { atlasIndex: 5, row: 2 },
   { atlasIndex: 6, row: 0 },
+  { atlasIndex: 8, row: 0 },
 ];
 export const motionFrameBounds = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].rows[row]);
 
@@ -44,6 +47,7 @@ export const bossMotion = [
   { id: "undead-wizard", action: "舉杖蓄能與紫焰施法", duration: 1.6 },
   { id: "zombie-dragon", action: "展翼蓄勢與紫焰吐息", duration: 1.5 },
   { id: "dark-geneticist", action: "焰斧蓄勢與揮砍", duration: 1.4 },
+  { id: "tirfing", action: "魔劍蓄勢、斬擊與咬刃", duration: 1.2 },
 ] as const;
 
 export const bossIdleSilhouetteAreas = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].idleAreas[row]);

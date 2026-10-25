@@ -10,7 +10,7 @@ type Bounds = [number, number, number, number];
 type PixelAtlas = { source: string; width: number; height: number; rows: Bounds[][]; idleAreas: number[] };
 
 const preservedSheetIds = ["a", "b", "c", "d"] as const;
-const sheetIds = [...preservedSheetIds, "e", "f", "g"] as const;
+const sheetIds = [...preservedSheetIds, "e", "f", "g", "h", "i"] as const;
 const readManifest = (sheet: string) => JSON.parse(readFileSync(new URL(`../lib/pixel-motion-${sheet}.json`, import.meta.url), "utf8")) as PixelAtlas;
 const atlases = sheetIds.map(readManifest);
 const alphaCache = new Map<string, Uint8Array>();
@@ -27,6 +27,7 @@ const preservedPixelHashes = [
   "f53b2113ebdf2fe2eaa341cc2a0e2108ebfa73c057e3ff149906f0c391bbed8b",
   "5e478f81da20dfe1efbe50827226d1642335664cd7cb60819b09bc644feaf423",
   "f32a43b07442b9ac7da61401db3472269c5697a3887728a5a0622a181725fb8a",
+  "2bc31efcbe7a6eca2420f4833108f2e2393c4e9371b1df4e3a60152fae1c4283",
 ];
 const spriteLocations = [
   ...Array.from({ length: 15 }, (_, index) => ({ atlasIndex: Math.floor(index / 4), row: index % 4 })),
@@ -34,14 +35,15 @@ const spriteLocations = [
   { atlasIndex: 4, row: 1 },
   { atlasIndex: 4, row: 2 },
   { atlasIndex: 5, row: 0 },
-  { atlasIndex: 5, row: 1 },
+  { atlasIndex: 7, row: 0 },
   { atlasIndex: 5, row: 2 },
   { atlasIndex: 6, row: 0 },
+  { atlasIndex: 8, row: 0 },
 ];
 const bossIds = [
   "atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger",
   "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon",
-  "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist",
+  "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing",
 ];
 
 function pngAlpha(atlas: PixelAtlas) {
@@ -146,7 +148,7 @@ function pngRgba(atlas: PixelAtlas) {
 }
 
 for (const [sheetIndex, atlas] of atlases.entries()) {
-  const rowCount = sheetIds[sheetIndex] === "g" ? 1 : ["e", "f"].includes(sheetIds[sheetIndex]) ? 3 : 4;
+  const rowCount = ["g", "h", "i"].includes(sheetIds[sheetIndex]) ? 1 : ["e", "f"].includes(sheetIds[sheetIndex]) ? 3 : 4;
   test(`pixel sheet ${sheetIds[sheetIndex]} has ${rowCount * 4} separate integer ROIs inside its RGBA image`, () => {
     assert.equal(atlas.source, `/art/ro-pixel-motion-${sheetIds[sheetIndex]}.png`);
     assert.ok(Number.isInteger(atlas.width) && atlas.width > 0);
@@ -164,14 +166,20 @@ for (const [sheetIndex, atlas] of atlases.entries()) {
         assert.ok(left + width <= atlas.width && top + height <= atlas.height);
       }
     }
+    const alpha = pngAlpha(atlas);
     for (const [frameIndex, [left, top, width, height]] of frames.entries()) {
       for (let otherIndex = frameIndex + 1; otherIndex < frames.length; otherIndex++) {
         const [otherLeft, otherTop, otherWidth, otherHeight] = frames[otherIndex];
-        assert.ok(left + width <= otherLeft || otherLeft + otherWidth <= left || top + height <= otherTop || otherTop + otherHeight <= top,
-          `${atlas.source}: overlapping ROIs ${frameIndex} and ${otherIndex}`);
+        const disjoint = left + width <= otherLeft || otherLeft + otherWidth <= left || top + height <= otherTop || otherTop + otherHeight <= top;
+        if (disjoint) continue;
+        assert.equal(sheetIds[sheetIndex], "h", `${atlas.source}: overlapping ROIs ${frameIndex} and ${otherIndex}`);
+        for (let vertical = Math.max(top, otherTop); vertical < Math.min(top + height, otherTop + otherHeight); vertical++) {
+          for (let horizontal = Math.max(left, otherLeft); horizontal < Math.min(left + width, otherLeft + otherWidth); horizontal++) {
+            assert.ok(alpha[vertical * atlas.width + horizontal] <= 10, `${atlas.source}: shared foreground between ROIs ${frameIndex} and ${otherIndex}`);
+          }
+        }
       }
     }
-    const alpha = pngAlpha(atlas);
     assert.ok(alpha.some(value => value === 0), `${atlas.source}: no transparent background`);
     assert.ok(alpha.some(value => value > 10), `${atlas.source}: no foreground`);
   });
@@ -202,7 +210,7 @@ for (const [sheetIndex, atlas] of atlases.entries()) {
   });
 }
 
-test("boss motion maps twenty-two bosses to seven pixel sheets and eighty-eight selected frames", () => {
+test("boss motion maps twenty-three bosses to nine pixel sheets and ninety-two selected frames", () => {
   const moduleValue = { exports: {} as Record<string, unknown> };
   const javascript = ts.transpileModule(readFileSync(new URL("../lib/boss-motion.ts", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -222,8 +230,8 @@ test("boss motion maps twenty-two bosses to seven pixel sheets and eighty-eight 
   assert.deepEqual(normalized.motionFrameBounds, spriteLocations.map(({ atlasIndex, row }) => atlases[atlasIndex].rows[row]));
   assert.deepEqual(normalized.bossIdleSilhouetteAreas, spriteLocations.map(({ atlasIndex, row }) => atlases[atlasIndex].idleAreas[row]));
   assert.deepEqual(normalized.bossMotion.map((boss: { id: string }) => boss.id), bossIds);
-  assert.equal(normalized.motionFrameBounds.length, 22);
-  assert.equal(normalized.motionFrameBounds.flat().length, 88);
+  assert.equal(normalized.motionFrameBounds.length, 23);
+  assert.equal(normalized.motionFrameBounds.flat().length, 92);
   const detailsFor = moduleValue.exports.motionDetails as (index: number) => {
     id: string; source: string; width: number; height: number; row: number;
     frames: { left: number; top: number; width: number; height: number }[];
@@ -241,7 +249,7 @@ test("boss motion maps twenty-two bosses to seven pixel sheets and eighty-eight 
     assert.deepEqual(JSON.parse(JSON.stringify(details.frames.map(({ left, top, width, height }) => [left, top, width, height]))), atlas.rows[row], `${details.id}: selected frame bounds`);
   }
   assert.equal(detailsFor(-1), null);
-  assert.equal(detailsFor(22), null);
+  assert.equal(detailsFor(23), null);
 });
 
 test("original motion PNGs remain retained unchanged beside their pixel replacements", () => {
@@ -253,17 +261,21 @@ test("original motion PNGs remain retained unchanged beside their pixel replacem
   }
 });
 
-test("existing A–F pixel PNGs remain byte-for-byte unchanged when atlas G is added", () => {
-  for (const [index, sheet] of [...preservedSheetIds, "e", "f"].entries()) {
+test("existing A–G pixel PNGs remain byte-for-byte unchanged when wizard and Tirfing are restyled", () => {
+  for (const [index, sheet] of [...preservedSheetIds, "e", "f", "g"].entries()) {
     const bytes = readFileSync(new URL(`../public/art/ro-pixel-motion-${sheet}.png`, import.meta.url));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), preservedPixelHashes[index], `ro-pixel-motion-${sheet}.png changed`);
   }
 });
 
-test("geneticist has four distinct tightly bounded drawn pixel poses and no omitted foreground", () => {
-  const atlas = atlases[6];
+for (const { sheetIndex, label, hash } of [
+  { sheetIndex: 6, label: "geneticist", hash: "2bc31efcbe7a6eca2420f4833108f2e2393c4e9371b1df4e3a60152fae1c4283" },
+  { sheetIndex: 7, label: "undead wizard", hash: "4e349375601c80c5a68591a8c5f11a6a8ff07e20114bace40fb00075e6c9b8e8" },
+  { sheetIndex: 8, label: "Tirfing", hash: "f041953d71d1ee3e0d3704329439999561b5a002911ab853e75d681ce691692b" },
+]) test(`${label} has four distinct tightly bounded drawn pixel poses and no omitted foreground`, () => {
+  const atlas = atlases[sheetIndex];
   const bytes = readFileSync(new URL(`../public${atlas.source}`, import.meta.url));
-  assert.equal(createHash("sha256").update(bytes).digest("hex"), "2bc31efcbe7a6eca2420f4833108f2e2393c4e9371b1df4e3a60152fae1c4283");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), hash);
   const alpha = pngAlpha(atlas);
   const rgba = pngRgba(atlas);
   const covered = new Uint8Array(atlas.width * atlas.height);
@@ -287,7 +299,7 @@ test("geneticist has four distinct tightly bounded drawn pixel poses and no omit
   assert.equal(new Set(hashes).size, 4);
   for (let position = 0; position < alpha.length; position++) {
     assert.equal(rgba[position * 4 + 3], alpha[position]);
-    if (alpha[position] > 10) assert.equal(covered[position], 1, `Geneticist foreground ${position} is omitted or shared`);
+    if (alpha[position] > 10) assert.equal(covered[position], 1, `${label} foreground ${position} is omitted or shared`);
   }
 });
 
