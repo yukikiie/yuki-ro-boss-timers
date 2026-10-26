@@ -71,15 +71,17 @@ test("unknown custom bosses never receive invented metadata", () => {
 });
 
 test("only the approved personal shortcuts resolve existing metadata without changing saved names", () => {
-  const shortcuts = [["妮小姐", "lady-tanee"], ["大神官", "fallen-bishop"], ["47", "death-knight"], ["塔奧", "tao-gunka"], ["波波塔塔", "boitata"], ["光頭", "naght-sieger"], ["元素", "dark-elementalist"], ["遊俠", "dark-ranger"]];
+  const shortcuts = [["妮小姐", "lady-tanee"], ["大神官", "fallen-bishop"], ["47", "death-knight"], ["塔奧", "tao-gunka"], ["波波塔塔", "boitata"], ["光頭", "naght-sieger"], ["元素", "dark-elementalist"], ["遊俠", "dark-ranger"], ["逐影", "custom-5qip79"]];
   for (const [name, id] of shortcuts) {
     const boss = Object.freeze({ id: "custom-shortcut-fixture", name, dueAt: 1792760400000, observedAt: 1792756800000, status: "counting" });
     const before = JSON.stringify(boss);
-    assert.equal(bossDetails(boss), bossCatalog.find(entry => entry.id === id));
+    const details = bossDetails({ id });
+    assert.ok(details);
+    assert.equal(bossDetails(boss), details);
     assert.equal(JSON.stringify(boss), before);
   }
   assert.equal(bossDetails({ id: "atroce", name: "47" }), bossCatalog[0]);
-  for (const name of ["逐影", "047", "47號", "47秒", "大神官王", "波波", "暗遊俠", "元素使", "暗元素使"]) assert.equal(bossDetails({ name }), null);
+  for (const name of ["047", "47號", "47秒", "大神官王", "波波", "暗遊俠", "元素使", "暗元素使"]) assert.equal(bossDetails({ name }), null);
 });
 
 test("catalog metadata cannot be mutated through lookup results", () => {

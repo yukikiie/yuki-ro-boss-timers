@@ -100,7 +100,7 @@ function PixelPoring() {
   return <img className="poring-icon" src="/pixel/poring-standalone.png" alt="" width="58" height="58" />;
 }
 function PixelAttributeIcon({ value, race = false }: { value: string; race?: boolean }) {
-  const icon = race ? value : value.slice(0, 1);
+  const icon = race || value === "不死" ? value : value.slice(0, 1);
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     {icon === "風" ? <><path d="M16 21C8 23 2 17 4 10C6 3 15 1 20 7C23 11 19 15 15 13C12 11 14 7 17 9" /><path d="M8 8C5 11 7 16 11 16H15C19 16 20 19 17 21M9 19L9 22" /></> :
     icon === "火" ? <><path d="M13 2C14 8 19 9 19 15C19 20 16 22 12 22S5 19 5 15C5 12 7 10 8 8C8 13 11 13 11 9C11 7 11 4 13 2Z" fill="#ff9a31" stroke="#a94c34" /><path d="M12 12C12 16 9 15 9 18C9 20 10 21 12 21S15 20 15 18C15 16 13 15 12 12Z" fill="#fff073" stroke="none" /></> :

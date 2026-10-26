@@ -69,7 +69,7 @@ test("native portraits retain their exact downloaded PNG dimensions and bytes", 
   }
 });
 
-test("art-only lookup preserves default eighteen records and never changes saved timer fields", () => {
+test("portrait lookup and verified custom metadata preserve the default eighteen records and all saved timer fields", () => {
   const now = Date.parse("2026-10-21T04:00:00Z");
   const before = defaultBosses(now);
   const snapshot = JSON.stringify(before);
@@ -79,12 +79,23 @@ test("art-only lookup preserves default eighteen records and never changes saved
     assert.equal(portraitIcon(boss), null);
     assert.equal(portraitMotion(boss), null);
   }
-  for (const reference of references) {
-    const boss = Object.freeze({ id: reference.id, name: reference.name, kind: "MVP", status: "counting", dueAt: now + 3600000, observedAt: now, source: "manual", favorite: false, cycle: "2026-10-21" });
+  const expectedMetadata = [
+    { id: "custom-5qip79", name: "暗・逐影", kind: "MVP", size: "小", element: "不死", race: "人形" },
+    { id: "custom-14l2kgf", name: "亡靈巫師", kind: "Mini", size: "中", element: "不死", race: "不死" },
+    { id: "custom-1n83kp1", name: "殭屍龍", kind: "MVP", size: "大", element: "暗", race: "龍" },
+  ];
+  for (const [index, reference] of references.entries()) {
+    const metadata = expectedMetadata[index];
+    const boss = Object.freeze({ id: reference.id, name: reference.name, kind: metadata.kind, status: "counting", dueAt: now + 3600000, observedAt: now, source: "manual", favorite: false, cycle: "2026-10-21", respawnMinutes: metadata.kind === "Mini" ? 120 : 180 });
     const saved = JSON.stringify(boss);
     assert.ok(portraitIcon(boss));
-    assert.ok(portraitMotion(boss));
-    assert.equal(bossDetails(boss), null);
+    assert.equal(portraitMotion(boss)?.spriteIndex, 18 + index);
+    const details = bossDetails(boss);
+    assert.deepEqual(details, metadata);
+    assert.ok(details && Object.isFrozen(details));
+    assert.equal(Object.hasOwn(details, "spriteIndex"), false);
+    assert.equal(Reflect.set(details, "race", "changed"), false);
+    assert.equal(details.race, metadata.race);
     assert.equal(JSON.stringify(boss), saved);
   }
   assert.equal(JSON.stringify(defaultBosses(now)), snapshot);

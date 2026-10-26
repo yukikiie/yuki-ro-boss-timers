@@ -1,5 +1,7 @@
 # Native custom-boss portrait references
 
+The user's supplied monster-info screenshots confirm these restored compact attributes: 亡靈巫師 (`custom-14l2kgf`): Mini／中型／不死屬性／不死; 逐影 (`custom-5qip79`, 暗・逐影): MVP／小型／不死屬性／人形; 殭屍龍 (`custom-1n83kp1`): MVP／大型／暗屬性／龍. These are frozen metadata-only lookups, not additions to the default roster or changes to stored names, timers or animation indices. The in-page undead element uses the existing skull icon and a teal badge. Screenshots are references only and are not published as artwork.
+
 These are the user's verified native portrait references, downloaded unchanged from the public rxx-web monster image collection on 2026-10-21. Dark Chaser is 74×75 pixels; the other two PNGs are 75×75. These reference PNGs remain unchanged, rather than being cropped, repainted or moved as a substitute for character animation.
 
 | Saved boss | File | Source |
