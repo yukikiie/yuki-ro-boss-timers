@@ -44,7 +44,7 @@
   .app-shell.reference-timers {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: auto auto;
-    row-gap: var(--desktop-gap);
+    row-gap: 0;
   }
 
   .reference-timers .map-masthead {

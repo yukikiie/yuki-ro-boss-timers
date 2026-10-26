@@ -54,9 +54,12 @@ test("wide viewports use a full-width panoramic header and three card columns", 
   assert.equal(shell["max-width"], "1440px");
   assert.equal(shell.width, "calc(100% - 48px)");
   assert.equal(shell["align-content"], "start");
+  assert.equal(shell.gap, "var(--desktop-gap)");
+  assert.equal(shell["--desktop-gap"], "20px");
   const timerShell = declarations(desktop, ".app-shell.reference-timers");
   assert.equal(timerShell["grid-template-columns"], "repeat(2, minmax(0, 1fr))");
   assert.equal(timerShell["grid-template-rows"], "auto auto");
+  assert.equal(timerShell["row-gap"], "0");
   assert.equal(declarations(desktop, ".app-shell .map-masthead")["container-type"], "inline-size");
   assert.equal(declarations(desktop, ".reference-timers .animated-header")["grid-column"], "1 / -1");
   assert.equal(declarations(desktop, ".reference-timers .animated-header").width, "100%");
