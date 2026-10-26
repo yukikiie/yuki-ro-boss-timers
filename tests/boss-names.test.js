@@ -13,9 +13,11 @@ const expectedNames = [
   ["dark-elementalist", "暗・元素使", "元素"],
   ["dark-ranger", "暗・遊俠", "遊俠"],
   ["custom-1hb3imu", "暗・基因學者", "基因"],
+  ["custom-1xgl1sj", "代行刑者", "代行"],
+  ["custom-1hknmq6", "尼德豪克的影子", "影龍"],
 ];
 
-test("the registry contains exactly the ten approved personal shortcuts and official identities", () => {
+test("the registry contains exactly the twelve approved personal shortcuts and official identities", () => {
   assert.deepEqual(bossNameRegistry.map(({ id, name, displayName }) => [id, name, displayName]), expectedNames);
   for (const entry of bossNameRegistry) {
     assert.deepEqual(entry.aliases, [entry.displayName]);
@@ -82,6 +84,21 @@ test("unknown custom names remain exactly as entered instead of receiving invent
     assert.equal(bossDisplayName(boss), "");
     assert.equal(bossCanonicalName(boss), "");
   }
+});
+
+test("executioner and shadow dragon keep their saved shortcuts and resolve only complete approved identities", () => {
+  for (const [id, name, displayName] of expectedNames.slice(10)) {
+    const entry = resolveBossName(id);
+    for (const input of [id, name, displayName, ` ${name.split("").join(" ")} `]) {
+      assert.equal(resolveBossName(input), entry);
+      assert.equal(bossDisplayName({ name: input }), displayName);
+      assert.equal(bossCanonicalName({ name: input }), name);
+    }
+    assert.equal(bossCanonicalName({ id, name: "47" }), name);
+  }
+  for (const input of ["代", "代行者", "代行刑", "代行王", "尼德豪克", "影", "影龍王", "影龍的影子", "Nidhogg", "custom-1xgl1sj-extra", "custom-1hknmq6-extra"]) assert.equal(resolveBossName(input), null, input);
+  assert.equal(bossDisplayName({ id: "custom-1xgl1sj", name: "影龍" }), "代行");
+  assert.equal(bossDisplayName({ id: "custom-1hknmq6", name: "代行" }), "影龍");
 });
 
 test("registry entries and nested aliases cannot be mutated through lookup results", () => {

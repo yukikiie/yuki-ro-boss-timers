@@ -7,8 +7,13 @@ import pixelMotionF from "./pixel-motion-f.json";
 import pixelMotionG from "./pixel-motion-g.json";
 import pixelMotionH from "./pixel-motion-h.json";
 import pixelMotionI from "./pixel-motion-i.json";
+import pixelMotionJ from "./pixel-motion-j.json";
+import pixelMotionK from "./pixel-motion-k.json";
+import pixelMotionL from "./pixel-motion-l.json";
+import pixelMotionM from "./pixel-motion-m.json";
+import pixelMotionN from "./pixel-motion-n.json";
 
-const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF, pixelMotionG, pixelMotionH, pixelMotionI];
+const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF, pixelMotionG, pixelMotionH, pixelMotionI, pixelMotionJ, pixelMotionK, pixelMotionL, pixelMotionM, pixelMotionN];
 
 export const motionAtlases = pixelAtlases.map(({ source, width, height }) => ({ source, width, height }));
 export const motionSpriteLocations = [
@@ -16,11 +21,13 @@ export const motionSpriteLocations = [
   { atlasIndex: 4, row: 0 },
   { atlasIndex: 4, row: 1 },
   { atlasIndex: 4, row: 2 },
-  { atlasIndex: 5, row: 0 },
+  { atlasIndex: 12, row: 0 },
   { atlasIndex: 7, row: 0 },
-  { atlasIndex: 5, row: 2 },
-  { atlasIndex: 6, row: 0 },
+  { atlasIndex: 13, row: 0 },
+  { atlasIndex: 11, row: 0 },
   { atlasIndex: 8, row: 0 },
+  { atlasIndex: 9, row: 0 },
+  { atlasIndex: 10, row: 0 },
 ];
 export const motionFrameBounds = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].rows[row]);
 
@@ -48,6 +55,8 @@ export const bossMotion = [
   { id: "zombie-dragon", action: "展翼蓄勢與紫焰吐息", duration: 1.5 },
   { id: "dark-geneticist", action: "焰斧蓄勢與揮砍", duration: 1.4 },
   { id: "tirfing", action: "魔劍蓄勢、斬擊與咬刃", duration: 1.2 },
+  { id: "valkyrie-executioner", action: "羽翼蓄勢與長槍斬擊", duration: 1.4 },
+  { id: "shadow-dragon", action: "暗龍蓄能、吐息與振翼", duration: 1.5 },
 ] as const;
 
 export const bossIdleSilhouetteAreas = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].idleAreas[row]);

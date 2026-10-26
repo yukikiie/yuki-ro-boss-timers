@@ -143,6 +143,40 @@ test("the geneticist motion lookup preserves its existing timer identity and all
   assert.equal(JSON.stringify(defaultBosses(now)), snapshot);
 });
 
+test("saved executioner and shadow dragon names use real pose animations without native or generic replacements", () => {
+  const Portrait = loadPortrait();
+  const records = [
+    { id: "custom-1xgl1sj", name: "代行刑者", shortcut: "代行", motionId: "valkyrie-executioner", spriteIndex: 23, size: "中", race: "天使" },
+    { id: "custom-1hknmq6", name: "尼德豪克的影子", shortcut: "影龍", motionId: "shadow-dragon", spriteIndex: 24, size: "大", race: "龍" },
+  ];
+  const now = Date.parse("2026-10-27T04:00:00Z");
+  const defaults = JSON.stringify(defaultBosses(now));
+  for (const [index, record] of records.entries()) {
+    const expected = { id: record.motionId, spriteIndex: record.spriteIndex };
+    for (const name of [record.shortcut, record.name, ` ${record.name.split("").join(" ")} `]) {
+      assert.deepEqual(portraitMotion({ id: "custom-fixture", name }), expected);
+      const boss = Object.freeze({ id: record.id, name, kind: "MVP", status: "counting", dueAt: now + (index + 1) * 3600000, observedAt: now, source: "manual", favorite: false, cycle: "2026-10-27", respawnMinutes: 180 });
+      const before = JSON.stringify(boss);
+      assert.deepEqual(portraitMotion(boss), expected);
+      assert.equal(portraitIcon(boss), null);
+      assert.equal(portraitAnimation(boss), null);
+      assert.equal(bossDetails(boss)?.size, record.size);
+      assert.equal(bossDetails(boss)?.element, "暗");
+      assert.equal(bossDetails(boss)?.race, record.race);
+      for (const paused of [false, true]) {
+        const markup = renderToStaticMarkup(React.createElement(Portrait, { boss, paused }));
+        assert.ok(markup.includes(`data-preserved-motion="${record.spriteIndex}"`));
+        assert.doesNotMatch(markup, /data-native-animation|data-generic-sigil|native-boss-icon|<img/);
+      }
+      assert.equal(JSON.stringify(boss), before);
+    }
+    assert.deepEqual(portraitMotion({ id: record.id, name: records[1 - index].name }), expected);
+  }
+  for (const name of ["代", "代行者", "代行王", "尼德豪克", "影", "影龍王", "影龍的影子", "Nidhogg"]) assert.equal(portraitMotion({ name }), null, name);
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(JSON.stringify(defaultBosses(now)), defaults);
+});
+
 test("native icon styling stays inside the current portrait slot and URLs retain GitHub base paths", () => {
   const styles = source("../src/approved-art.css");
   assert.match(styles, /\.reference-timers \.portrait-native-icon \.native-boss-icon \{[^}]*height: 100%;[^}]*object-fit: contain;[^}]*border-radius: 50%/);

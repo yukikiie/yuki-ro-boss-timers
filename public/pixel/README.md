@@ -82,6 +82,6 @@ Earlier scene/redraw prompts remain in `output/ro-regenerated-scenes-prompts.txt
 
 ## Typography and interface
 
-Names, compact size/element/race badges, navigation and controls are real text or code-native symbols. Chinese UI text uses `public/fonts/BosswatchUI-Reference800.woff2`, an OFL-licensed Noto Sans TC weight-800 subset, not the generated reference's original font. The illustrated title has an accessible HTML heading. Countdown digits, colon and dash use consistent native SVG paths, not extracted raster glyphs.
+Names, compact size/element/race badges, navigation and controls are real text or code-native symbols. Boss names use the full self-hosted `public/fonts/BosswatchBossNames-800.woff2` Noto Sans TC weight-800 font at a uniform 17px, including long names and personal shortcuts. Other Chinese UI text retains `public/fonts/BosswatchUI-Reference800.woff2`, the original OFL-licensed subset. These are not the generated reference's original font. The illustrated title has an accessible HTML heading. Countdown digits, colon and dash use consistent native SVG paths, not extracted raster glyphs.
 
 Preview routes use sample state and never read or mutate real timers or register/send push notifications. The manifest identity and notification subscription scope remain unchanged.

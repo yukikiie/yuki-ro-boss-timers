@@ -4,7 +4,9 @@ An independent GitHub Pages copy of the Yuki pixel boss timer. It retains the ap
 
 The original hosted app is a separate application. This repository contains no original Site identity, runtime credentials, live database, notification subscriptions or dispatcher configuration.
 
-The saved custom bosses use four distinct drawn action poses selected through the art-only `portraitMotion` resolver and the same animation renderer as the eighteen catalog bosses. 暗·逐影 and 殭屍龍 retain `ro-pixel-motion-f.png`; 亡靈巫師 uses the matching chunky pixel redraw in `ro-pixel-motion-h.png`, and 獸牙怪 uses `ro-pixel-motion-i.png` instead of its thin native GIF. This is posed character animation, not movement of a still icon. The native reference assets remain unchanged. No default boss records, stored IDs, timers or metadata change. Asset sources are recorded in `public/art/boss-icons/README.md`.
+The saved custom bosses use four distinct drawn action poses selected through the art-only `portraitMotion` resolver and the same animation renderer as the eighteen catalog bosses. Their matching chunky pixel sheets are M/H/N/L/I for 逐影、亡靈巫師、殭屍龍、基因、獸牙怪, plus J/K for 代行 and 影龍. The latter two keep their visible shortcuts and receive the user's verified 中／暗／天使 and 大／暗／龍 attributes. This is posed character animation, not movement of a still icon. Earlier sheets and native references remain unchanged. No default boss records, stored IDs or timer values change. Asset sources are recorded in `public/art/boss-icons/README.md`.
+
+Every card and upcoming-route boss name uses one self-hosted Noto Sans TC weight-800 face at 17px, matching the reference style. Full character coverage prevents mixed fallback glyphs; longer names wrap without shrinking. See `public/fonts/BosswatchBossNames-README.md`.
 
 ## Architecture
 

@@ -163,6 +163,37 @@ test("geneticist metadata leaves all eighteen defaults and the saved custom time
   assert.equal(JSON.stringify(boss), before);
 });
 
+test("saved executioner and shadow dragon identities resolve verified metadata while preserving all timer fields", () => {
+  const timestamp = Date.UTC(2026, 9, 27, 4);
+  const defaults = defaultBosses(timestamp);
+  const defaultsSnapshot = JSON.stringify(defaults);
+  const expected = [
+    { id: "custom-1xgl1sj", name: "代行刑者", kind: "MVP", size: "中", element: "暗", race: "天使" },
+    { id: "custom-1hknmq6", name: "尼德豪克的影子", kind: "MVP", size: "大", element: "暗", race: "龍" },
+  ];
+  for (const [index, record] of expected.entries()) {
+    const shortcut = index === 0 ? "代行" : "影龍";
+    const details = bossDetails({ id: record.id, name: shortcut });
+    assert.deepEqual(details, record);
+    assert.ok(Object.isFrozen(details));
+    assert.throws(() => { details.size = "小"; }, TypeError);
+    for (const field of ["spriteIndex", "favorite", "level", "respawnMinutes"]) assert.equal(Object.hasOwn(details, field), false);
+    for (const name of [shortcut, record.name, ` ${record.name.split("").join(" ")} `]) assert.equal(bossDetails({ id: "custom-fixture", name }), details);
+    assert.equal(bossDetails({ id: record.id, name: expected[1 - index].name }), details);
+    assert.equal(bossDetails({ id: "atroce", name: shortcut }), bossCatalog[0]);
+    const saved = Object.freeze({ id: record.id, name: shortcut, kind: "MVP", status: "counting", dueAt: timestamp + (index + 1) * 3600000, observedAt: timestamp, source: "manual", favorite: true, cycle: "2026-10-27", respawnMinutes: 180 });
+    const before = JSON.stringify(saved);
+    assert.equal(bossDetails(saved), details);
+    assert.equal(JSON.stringify(saved), before);
+    assert.equal(defaults.some(boss => boss.id === record.id), false);
+    assert.equal(bossCatalog.some(boss => boss.id === record.id), false);
+  }
+  for (const name of ["代行者", "代行王", "代行刑", "尼德豪克", "影龍王", "影", "影龍的影子"]) assert.equal(bossDetails({ name }), null, name);
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(defaults.length, 18);
+  assert.equal(JSON.stringify(defaultBosses(timestamp)), defaultsSnapshot);
+});
+
 test("respawn ordering puts the earliest mixed Mini or MVP first regardless of favorites", () => {
   const bosses = [
     { id: "mvp-later", kind: "MVP", status: "counting", dueAt: 1_200, favorite: true },

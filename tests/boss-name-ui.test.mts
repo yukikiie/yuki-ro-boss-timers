@@ -146,7 +146,8 @@ test("unknown custom names remain visible and escaped without invented aliases",
   const boss = fixtureBoss("custom-unregistered", '自訂 <Boss> "測試"');
   const before = JSON.stringify(boss);
   const markup = renderApp([boss]);
-  assert.ok(markup.includes('<h3 class="boss-name-long" title="自訂 &lt;Boss&gt; &quot;測試&quot;">自訂 &lt;Boss&gt; &quot;測試&quot;</h3>'));
+  assert.ok(markup.includes('<h3 title="自訂 &lt;Boss&gt; &quot;測試&quot;">自訂 &lt;Boss&gt; &quot;測試&quot;</h3>'));
+  assert.doesNotMatch(markup, /boss-name-long/);
   assert.doesNotMatch(markup, /<Boss>/);
   assert.equal(JSON.stringify(boss), before);
 });

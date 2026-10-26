@@ -10,7 +10,7 @@ type Bounds = [number, number, number, number];
 type PixelAtlas = { source: string; width: number; height: number; rows: Bounds[][]; idleAreas: number[] };
 
 const preservedSheetIds = ["a", "b", "c", "d"] as const;
-const sheetIds = [...preservedSheetIds, "e", "f", "g", "h", "i"] as const;
+const sheetIds = [...preservedSheetIds, "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"] as const;
 const readManifest = (sheet: string) => JSON.parse(readFileSync(new URL(`../lib/pixel-motion-${sheet}.json`, import.meta.url), "utf8")) as PixelAtlas;
 const atlases = sheetIds.map(readManifest);
 const alphaCache = new Map<string, Uint8Array>();
@@ -28,22 +28,28 @@ const preservedPixelHashes = [
   "5e478f81da20dfe1efbe50827226d1642335664cd7cb60819b09bc644feaf423",
   "f32a43b07442b9ac7da61401db3472269c5697a3887728a5a0622a181725fb8a",
   "2bc31efcbe7a6eca2420f4833108f2e2393c4e9371b1df4e3a60152fae1c4283",
+  "4e349375601c80c5a68591a8c5f11a6a8ff07e20114bace40fb00075e6c9b8e8",
+  "f041953d71d1ee3e0d3704329439999561b5a002911ab853e75d681ce691692b",
+  "11e0a766bcb7889a1ccbff9bfae96ff3189a0509ef83b30afc86a4a180528bad",
+  "641373bf5c48831a2f04f3cd2d467d43b8bdc7f45b859a9a81cbd3f915ae1f0b",
 ];
 const spriteLocations = [
   ...Array.from({ length: 15 }, (_, index) => ({ atlasIndex: Math.floor(index / 4), row: index % 4 })),
   { atlasIndex: 4, row: 0 },
   { atlasIndex: 4, row: 1 },
   { atlasIndex: 4, row: 2 },
-  { atlasIndex: 5, row: 0 },
+  { atlasIndex: 12, row: 0 },
   { atlasIndex: 7, row: 0 },
-  { atlasIndex: 5, row: 2 },
-  { atlasIndex: 6, row: 0 },
+  { atlasIndex: 13, row: 0 },
+  { atlasIndex: 11, row: 0 },
   { atlasIndex: 8, row: 0 },
+  { atlasIndex: 9, row: 0 },
+  { atlasIndex: 10, row: 0 },
 ];
 const bossIds = [
   "atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger",
   "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon",
-  "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing",
+  "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing", "valkyrie-executioner", "shadow-dragon",
 ];
 
 function pngAlpha(atlas: PixelAtlas) {
@@ -148,7 +154,7 @@ function pngRgba(atlas: PixelAtlas) {
 }
 
 for (const [sheetIndex, atlas] of atlases.entries()) {
-  const rowCount = ["g", "h", "i"].includes(sheetIds[sheetIndex]) ? 1 : ["e", "f"].includes(sheetIds[sheetIndex]) ? 3 : 4;
+  const rowCount = ["e", "f"].includes(sheetIds[sheetIndex]) ? 3 : preservedSheetIds.some(sheet => sheet === sheetIds[sheetIndex]) ? 4 : 1;
   test(`pixel sheet ${sheetIds[sheetIndex]} has ${rowCount * 4} separate integer ROIs inside its RGBA image`, () => {
     assert.equal(atlas.source, `/art/ro-pixel-motion-${sheetIds[sheetIndex]}.png`);
     assert.ok(Number.isInteger(atlas.width) && atlas.width > 0);
@@ -210,7 +216,7 @@ for (const [sheetIndex, atlas] of atlases.entries()) {
   });
 }
 
-test("boss motion maps twenty-three bosses to nine pixel sheets and ninety-two selected frames", () => {
+test("boss motion maps twenty-five bosses across fourteen retained pixel sheets with one hundred selected frames", () => {
   const moduleValue = { exports: {} as Record<string, unknown> };
   const javascript = ts.transpileModule(readFileSync(new URL("../lib/boss-motion.ts", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -230,8 +236,8 @@ test("boss motion maps twenty-three bosses to nine pixel sheets and ninety-two s
   assert.deepEqual(normalized.motionFrameBounds, spriteLocations.map(({ atlasIndex, row }) => atlases[atlasIndex].rows[row]));
   assert.deepEqual(normalized.bossIdleSilhouetteAreas, spriteLocations.map(({ atlasIndex, row }) => atlases[atlasIndex].idleAreas[row]));
   assert.deepEqual(normalized.bossMotion.map((boss: { id: string }) => boss.id), bossIds);
-  assert.equal(normalized.motionFrameBounds.length, 23);
-  assert.equal(normalized.motionFrameBounds.flat().length, 92);
+  assert.equal(normalized.motionFrameBounds.length, 25);
+  assert.equal(normalized.motionFrameBounds.flat().length, 100);
   const detailsFor = moduleValue.exports.motionDetails as (index: number) => {
     id: string; source: string; width: number; height: number; row: number;
     frames: { left: number; top: number; width: number; height: number }[];
@@ -249,7 +255,7 @@ test("boss motion maps twenty-three bosses to nine pixel sheets and ninety-two s
     assert.deepEqual(JSON.parse(JSON.stringify(details.frames.map(({ left, top, width, height }) => [left, top, width, height]))), atlas.rows[row], `${details.id}: selected frame bounds`);
   }
   assert.equal(detailsFor(-1), null);
-  assert.equal(detailsFor(23), null);
+  assert.equal(detailsFor(25), null);
 });
 
 test("original motion PNGs remain retained unchanged beside their pixel replacements", () => {
@@ -261,8 +267,8 @@ test("original motion PNGs remain retained unchanged beside their pixel replacem
   }
 });
 
-test("existing A–G pixel PNGs remain byte-for-byte unchanged when wizard and Tirfing are restyled", () => {
-  for (const [index, sheet] of [...preservedSheetIds, "e", "f", "g"].entries()) {
+test("existing A–K pixel PNGs remain byte-for-byte unchanged when three coarse restyles are selected", () => {
+  for (const [index, sheet] of [...preservedSheetIds, "e", "f", "g", "h", "i", "j", "k"].entries()) {
     const bytes = readFileSync(new URL(`../public/art/ro-pixel-motion-${sheet}.png`, import.meta.url));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), preservedPixelHashes[index], `ro-pixel-motion-${sheet}.png changed`);
   }
@@ -272,6 +278,11 @@ for (const { sheetIndex, label, hash } of [
   { sheetIndex: 6, label: "geneticist", hash: "2bc31efcbe7a6eca2420f4833108f2e2393c4e9371b1df4e3a60152fae1c4283" },
   { sheetIndex: 7, label: "undead wizard", hash: "4e349375601c80c5a68591a8c5f11a6a8ff07e20114bace40fb00075e6c9b8e8" },
   { sheetIndex: 8, label: "Tirfing", hash: "f041953d71d1ee3e0d3704329439999561b5a002911ab853e75d681ce691692b" },
+  { sheetIndex: 9, label: "executioner", hash: "11e0a766bcb7889a1ccbff9bfae96ff3189a0509ef83b30afc86a4a180528bad" },
+  { sheetIndex: 10, label: "shadow dragon", hash: "641373bf5c48831a2f04f3cd2d467d43b8bdc7f45b859a9a81cbd3f915ae1f0b" },
+  { sheetIndex: 11, label: "coarse geneticist", hash: "c2999db461c85034c1ef47a2edccd453d18ad2372e11c04318d3b76c216536db" },
+  { sheetIndex: 12, label: "coarse Dark Chaser", hash: "3d8d36e0e518a7adc2d6c135ee631166d1c7e48147b48cc24f83c828b1411379" },
+  { sheetIndex: 13, label: "coarse Zombie Dragon", hash: "c1eb22ee3720662beca1ec3cb9634a33c532cdf8afea87cb421a5557887c8c13" },
 ]) test(`${label} has four distinct tightly bounded drawn pixel poses and no omitted foreground`, () => {
   const atlas = atlases[sheetIndex];
   const bytes = readFileSync(new URL(`../public${atlas.source}`, import.meta.url));

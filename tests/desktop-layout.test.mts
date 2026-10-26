@@ -78,7 +78,7 @@ test("every desktop card owns the sizing context for portraits, badges and count
   const featured = declarations(desktop, ".reference-timers .card-featured");
   assert.equal(featured["grid-column"], "auto");
   assert.equal(featured.height, "max(27.5cqi, 110px)");
-  assert.equal(declarations(desktop, ".reference-timers .boss-identity h3")["font-size"], "clamp(13px, 4.08cqi, 17px)");
+  assert.equal(declarations(desktop, ".reference-timers .boss-identity h3")["font-size"], "var(--boss-name-font-size)");
   assert.match(readSource("../src/approved-art.css"), /--countdown-height: calc\(26 \* var\(--b-unit\)\)/);
   assert.match(readSource("../src/reference-countdown.css"), /height: var\(--countdown-height, 28px\)/);
   const openSlot = declarations(desktop, ".reference-timers .boss-card-slot:has(.card-menu-open)");
