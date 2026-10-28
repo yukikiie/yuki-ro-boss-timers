@@ -130,7 +130,7 @@ test("the visible bottom theme gallery shares all five choices, selected state a
   const app = source("../src/boss-timer-app.tsx");
   assert.match(app, /<BackgroundChooser themeId=\{themeId\} onSelect=\{setThemeId\} \/>/);
   assert.match(app, /<BackgroundSettings themeId=\{themeId\} onSelect=\{setThemeId\} \/>\s*<FontSettings/);
-  assert.ok(app.indexOf("<BackgroundSettings themeId=") > app.indexOf('aria-label="依分類、最愛與指定順序排列的 Boss"'));
+  assert.ok(app.indexOf("<BackgroundSettings themeId=") > app.indexOf('aria-label="依最愛、重生倒數與指定順序排列的 Boss"'));
   assert.match(source("../src/components/font-settings.tsx"), /id="font-settings"/);
 });
 

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { bossCatalog, bossDetails, sortBossesByRespawn, sortBossesForDisplay } from "../lib/boss-catalog.js";
-import { defaultBosses } from "../lib/timers.js";
+import { defaultBosses, updateBoss } from "../lib/timers.js";
 
 test("catalog contains the eighteen confirmed compact metadata records", () => {
   assert.deepEqual(bossCatalog.map(({ id, name, kind, size, element, race, spriteIndex, favorite }) => [id, name, kind, size, element, race, spriteIndex, favorite]), [
@@ -38,14 +38,15 @@ test("live custom IDs resolve the new MVP portraits by their exact normalized na
   assert.equal(orcHero.spriteIndex, 17);
 });
 
-test("untimed catalog display pins its four favorites within their kind and follows the requested image order", () => {
+test("untimed catalog display pins its four favorites globally and keeps the remaining image order", () => {
   const ordered = sortBossesForDisplay(bossCatalog);
-  assert.deepEqual(ordered.slice(0, 9).map((boss) => boss.id), [
-    "atroce", "lady-tanee", "orc-hero", "morocc", "tao-gunka", "fallen-bishop", "death-knight", "holy-angel-poring", "shadow-demon",
+  assert.deepEqual(ordered.map((boss) => boss.id), [
+    "atroce", "lady-tanee", "boitata", "wandering-samurai", "orc-hero", "morocc", "tao-gunka", "fallen-bishop", "death-knight", "holy-angel-poring", "shadow-demon",
+    "chimera", "coelacanth", "naght-sieger", "restful", "ice-dragon", "dark-ranger", "dark-elementalist",
   ]);
-  assert.deepEqual(ordered.slice(9).map((boss) => boss.id), ["boitata", "wandering-samurai", "chimera", "coelacanth", "naght-sieger", "restful", "ice-dragon", "dark-ranger", "dark-elementalist"]);
-  assert.ok(ordered.slice(0, 9).every((boss) => boss.kind === "MVP"));
-  assert.ok(ordered.slice(9).every((boss) => boss.kind === "Mini"));
+  assert.ok(ordered.slice(0, 4).every((boss) => boss.favorite));
+  assert.ok(ordered.slice(4, 11).every((boss) => boss.kind === "MVP" && !boss.favorite));
+  assert.ok(ordered.slice(11).every((boss) => boss.kind === "Mini" && !boss.favorite));
   assert.equal(ordered.length, 18);
 });
 
@@ -240,7 +241,7 @@ test("respawn ordering is immutable and retains duplicate records without dedupl
   assert.equal(ordered[1], duplicate);
 });
 
-test("display groups MVP before Mini and pins favorites while chronological sorting remains separate", () => {
+test("display pins favorites globally then brings active nonfavorite Minis before later or untimed MVPs", () => {
   const bosses = [
     { id: "mini-first", kind: "Mini", status: "counting", dueAt: 100 },
     { id: "mvp-unknown", kind: "MVP", status: "unknown", dueAt: null, favorite: true },
@@ -249,7 +250,7 @@ test("display groups MVP before Mini and pins favorites while chronological sort
     { id: "mvp-first", kind: "MVP", status: "due", dueAt: 600 },
     { id: "mini-unknown", kind: "Mini", status: "unknown", dueAt: null },
   ];
-  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), ["mvp-later", "mvp-unknown", "mvp-first", "mini-first", "mini-later", "mini-unknown"]);
+  assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), ["mvp-later", "mvp-unknown", "mini-first", "mini-later", "mvp-first", "mini-unknown"]);
   assert.equal(sortBossesByRespawn(bosses)[0].id, "mini-first");
   assert.equal(bosses[0].id, "mini-first");
 });
@@ -263,17 +264,17 @@ test("display ordering is immutable and retains duplicate references", () => {
     duplicate,
   ]);
   const ordered = sortBossesForDisplay(bosses);
-  assert.deepEqual(ordered.map((boss) => boss.id), ["mvp-favorite", "mvp-normal", "duplicate", "duplicate"]);
+  assert.deepEqual(ordered.map((boss) => boss.id), ["mvp-favorite", "duplicate", "duplicate", "mvp-normal"]);
   assert.notEqual(ordered, bosses);
+  assert.equal(ordered[1], duplicate);
   assert.equal(ordered[2], duplicate);
-  assert.equal(ordered[3], duplicate);
   assert.equal(bosses[0], duplicate);
   assert.equal(bosses[1].id, "mvp-normal");
   assert.equal(bosses[2].id, "mvp-favorite");
   assert.equal(bosses[3], duplicate);
 });
 
-test("display pins favorites separately in each kind and preserves stable unknown-boss ties", () => {
+test("equal finite deadlines retain input order inside each global favorite group without kind or rank reshuffling", () => {
   const bosses = [
     { id: "mini-normal-first", kind: "Mini", status: "counting", dueAt: 600, favorite: false },
     { id: "mvp-normal-first", kind: "MVP", status: "counting", dueAt: 600, favorite: false },
@@ -283,8 +284,10 @@ test("display pins favorites separately in each kind and preserves stable unknow
     { id: "mini-normal-last", kind: "Mini", status: "counting", dueAt: 600, favorite: false },
   ];
   assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), [
-    "mvp-favorite", "mvp-normal-first", "mvp-normal-last", "mini-favorite", "mini-normal-first", "mini-normal-last",
+    "mini-favorite", "mvp-favorite", "mini-normal-first", "mvp-normal-first", "mvp-normal-last", "mini-normal-last",
   ]);
+  const known = ["dark-elementalist", "custom-5qip79", "chimera", "orc-hero"].map(id => ({ id, kind: bossDetails({ id }).kind, favorite: false, status: "counting", dueAt: 600 }));
+  assert.deepEqual(sortBossesForDisplay(known), known);
 });
 
 test("inactive and invalid nonfavorite timers do not disturb stable custom display order", () => {
@@ -300,23 +303,23 @@ test("inactive and invalid nonfavorite timers do not disturb stable custom displ
     { id: "active-mvp", kind: "MVP", status: "counting", dueAt: 8_640_000_000_000_000 },
   ];
   assert.deepEqual(sortBossesForDisplay(bosses).map((boss) => boss.id), [
-    "mvp-unknown-favorite", "mvp-resting", ...invalid.map((boss) => boss.id), "active-mvp", "mini-unknown", "mini-paused", "active-mini",
+    "mini-unknown", "mvp-unknown-favorite", "active-mini", "active-mvp", "mvp-resting", ...invalid.map((boss) => boss.id), "mini-paused",
   ]);
 });
 
-test("all twenty-one nonfavorites follow the exact image ranks regardless of countdowns", () => {
+test("all twenty-one untimed nonfavorites follow the exact image ranks instead of stale timestamps", () => {
   const expectedMvp = ["orc-hero", "morocc", "custom-1n83kp1", "tao-gunka", "fallen-bishop", "death-knight", "holy-angel-poring", "custom-1hknmq6", "shadow-demon", "custom-1xgl1sj", "custom-1hb3imu", "custom-5qip79"];
   const expectedMini = ["chimera", "custom-qinmln", "custom-14l2kgf", "coelacanth", "naght-sieger", "restful", "ice-dragon", "dark-ranger", "dark-elementalist"];
   const expected = [...expectedMvp, ...expectedMini];
-  const bosses = Object.freeze(expected.map((id, index) => Object.freeze({ id, name: bossDetails({ id }).name, kind: index < expectedMvp.length ? "MVP" : "Mini", favorite: false, status: index % 4 === 0 ? "unknown" : index % 4 === 1 ? "due" : "counting", dueAt: index % 4 === 0 ? null : (expected.length - index) * 1000, observedAt: 500, source: "manual" })).reverse());
+  const bosses = Object.freeze(expected.map((id, index) => Object.freeze({ id, name: bossDetails({ id }).name, kind: index < expectedMvp.length ? "MVP" : "Mini", favorite: false, status: ["unknown", "resting", "paused"][index % 3], dueAt: index % 4 === 0 ? null : (expected.length - index) * 1000, observedAt: 500, source: "manual" })).reverse());
   const before = JSON.stringify(bosses);
   assert.deepEqual(sortBossesForDisplay(bosses).map(boss => boss.id), expected);
-  assert.deepEqual(sortBossesForDisplay(bosses.map(boss => ({ ...boss, status: "counting", dueAt: 50_000 - bosses.indexOf(boss) * 1000 }))).map(boss => boss.id), expected);
+  assert.deepEqual(sortBossesForDisplay(bosses.map(boss => ({ ...boss, status: "unknown", dueAt: null }))).map(boss => boss.id), expected);
   assert.equal(JSON.stringify(bosses), before);
   assert.deepEqual(bossCatalog.map(boss => boss.spriteIndex), Array.from({ length: 18 }, (_, index) => index));
 });
 
-test("favorites use respawn order then stable ties and return to their image rank when removed", () => {
+test("adding or removing favorites changes the pinned group while valid countdowns stay chronological", () => {
   const bosses = [
     { id: "custom-5qip79", kind: "MVP", favorite: false, status: "counting", dueAt: 100 },
     { id: "death-knight", kind: "MVP", favorite: false, status: "counting", dueAt: 900 },
@@ -324,28 +327,51 @@ test("favorites use respawn order then stable ties and return to their image ran
     { id: "morocc", kind: "MVP", favorite: false, status: "counting", dueAt: 100 },
     { id: "dark-elementalist", kind: "Mini", favorite: true, status: "counting", dueAt: 1 },
   ];
-  const initial = ["orc-hero", "morocc", "death-knight", "custom-5qip79", "dark-elementalist"];
+  const initial = ["dark-elementalist", "custom-5qip79", "morocc", "death-knight", "orc-hero"];
   assert.deepEqual(sortBossesForDisplay(bosses).map(boss => boss.id), initial);
   const added = bosses.map(boss => ({ ...boss, favorite: true }));
-  assert.deepEqual(sortBossesForDisplay(added).map(boss => boss.id), ["custom-5qip79", "morocc", "death-knight", "orc-hero", "dark-elementalist"]);
+  assert.deepEqual(sortBossesForDisplay(added).map(boss => boss.id), initial);
   const removed = added.map((boss, index) => ({ ...boss, favorite: bosses[index].favorite }));
   assert.deepEqual(sortBossesForDisplay(removed).map(boss => boss.id), initial);
   const invalid = [null, undefined, NaN, Infinity, -1, 1.5, "1"].map((dueAt, index) => ({ id: `favorite-invalid-${index}`, kind: "MVP", favorite: true, status: "counting", dueAt }));
   const valid = { id: "favorite-valid", kind: "MVP", favorite: true, status: "due", dueAt: 0 };
   assert.deepEqual(sortBossesForDisplay([...invalid, valid]), [valid, ...invalid]);
+  const untimed = ["dark-elementalist", "custom-5qip79", "chimera", "orc-hero"].map(id => ({ id, kind: bossDetails({ id }).kind, favorite: true, status: "unknown", dueAt: null }));
+  assert.deepEqual(sortBossesForDisplay(untimed), untimed);
+  const toggled = untimed.map(boss => ({ ...boss, favorite: false }));
+  assert.deepEqual(sortBossesForDisplay(toggled).map(boss => boss.id), ["orc-hero", "custom-5qip79", "chimera", "dark-elementalist"]);
+});
+
+test("clearing or pausing a countdown returns that card to the untimed fallback without rewriting other timers", () => {
+  const timestamp = Date.UTC(2026, 9, 28, 4);
+  const selected = defaultBosses(timestamp).filter(boss => ["orc-hero", "morocc", "chimera"].includes(boss.id)).map(boss => ({ ...boss, favorite: false }));
+  const timed = [{ id: "orc-hero", seconds: 100 }, { id: "morocc", seconds: 200 }, { id: "chimera", seconds: 50 }].reduce((bosses, entry) => updateBoss(bosses, { type: "countdown", bossId: entry.id, seconds: entry.seconds }, timestamp), selected);
+  const before = JSON.stringify(timed);
+  assert.deepEqual(sortBossesForDisplay(timed).map(boss => boss.id), ["chimera", "orc-hero", "morocc"]);
+  const cleared = updateBoss(timed, { type: "clear", bossId: "chimera" }, timestamp);
+  assert.equal(cleared.find(boss => boss.id === "chimera").dueAt, null);
+  assert.equal(cleared.find(boss => boss.id === "chimera").status, "unknown");
+  assert.deepEqual(sortBossesForDisplay(cleared).map(boss => boss.id), ["orc-hero", "morocc", "chimera"]);
+  for (const [status, dueAt] of [["unknown", null], ["unknown", timestamp + 1], ["paused", timestamp + 1], ["resting", timestamp + 1], ...[NaN, Infinity, -1, 1.5, "1"].map(value => ["counting", value])]) {
+    const inactive = timed.map(boss => boss.id === "chimera" ? { ...boss, status, dueAt } : boss);
+    const snapshot = JSON.stringify(inactive);
+    assert.deepEqual(sortBossesForDisplay(inactive).map(boss => boss.id), ["orc-hero", "morocc", "chimera"]);
+    assert.equal(JSON.stringify(inactive), snapshot);
+  }
+  assert.equal(JSON.stringify(timed), before);
 });
 
 test("display ranks resolve stable identities before exact approved aliases and append unknowns stably", () => {
   const bosses = Object.freeze([
-    Object.freeze({ id: "unknown-later", name: "新 Boss", kind: "MVP", dueAt: 1, status: "counting" }),
-    Object.freeze({ id: "atroce", name: "獸人英雄", kind: "MVP", dueAt: 2, status: "counting" }),
-    Object.freeze({ id: "unknown-alias", name: "逐影", kind: "MVP", dueAt: 3, status: "counting" }),
-    Object.freeze({ id: "orc-hero", name: "逐影", kind: "MVP", dueAt: 4, status: "counting" }),
-    Object.freeze({ id: "unknown-47", name: " ４７ ", kind: "MVP", dueAt: 5, status: "counting" }),
-    Object.freeze({ id: "unknown-partial", name: "影龍王", kind: "MVP", dueAt: 6, status: "counting" }),
-    Object.freeze({ id: "mini-unknown", name: "未知 Mini", kind: "Mini", dueAt: 1, status: "counting" }),
-    Object.freeze({ id: "mini-tirfing", name: "兽牙怪", kind: "Mini", dueAt: 999, status: "counting" }),
-    Object.freeze({ id: "alias-shadow", name: "影龍", kind: "MVP", dueAt: 999, status: "counting" }),
+    Object.freeze({ id: "unknown-later", name: "新 Boss", kind: "MVP", dueAt: 1, status: "unknown" }),
+    Object.freeze({ id: "atroce", name: "獸人英雄", kind: "MVP", dueAt: 2, status: "unknown" }),
+    Object.freeze({ id: "unknown-alias", name: "逐影", kind: "MVP", dueAt: 3, status: "unknown" }),
+    Object.freeze({ id: "orc-hero", name: "逐影", kind: "MVP", dueAt: 4, status: "unknown" }),
+    Object.freeze({ id: "unknown-47", name: " ４７ ", kind: "MVP", dueAt: 5, status: "unknown" }),
+    Object.freeze({ id: "unknown-partial", name: "影龍王", kind: "MVP", dueAt: 6, status: "unknown" }),
+    Object.freeze({ id: "mini-unknown", name: "未知 Mini", kind: "Mini", dueAt: 1, status: "unknown" }),
+    Object.freeze({ id: "mini-tirfing", name: "兽牙怪", kind: "Mini", dueAt: 999, status: "unknown" }),
+    Object.freeze({ id: "alias-shadow", name: "影龍", kind: "MVP", dueAt: 999, status: "unknown" }),
   ]);
   const before = JSON.stringify(bosses);
   assert.deepEqual(sortBossesForDisplay(bosses).map(boss => boss.id), ["orc-hero", "unknown-47", "alias-shadow", "unknown-alias", "unknown-later", "atroce", "unknown-partial", "mini-tirfing", "mini-unknown"]);

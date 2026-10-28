@@ -114,7 +114,7 @@ test("text changes stay scoped, allow wrapping and never scale artwork or SVG co
   assert.match(styles, /\[data-typography-custom\] \.boss-identity h3 \{[^}]*overflow: visible/);
   assert.doesNotMatch(styles, /boss-portrait|boss-countdown|reference-countdown|transform:|zoom:|filter:|background-size:/);
   assert.match(styles, /\.app-shell \.font-settings \{[^}]*font-size: 13px; font-weight: 400; font-style: normal/);
-  assert.ok(app.indexOf("<FontSettings preferences=") > app.indexOf('aria-label="依分類、最愛與指定順序排列的 Boss"'));
+  assert.ok(app.indexOf("<FontSettings preferences=") > app.indexOf('aria-label="依最愛、重生倒數與指定順序排列的 Boss"'));
   assert.ok(app.indexOf("<FontSettings preferences=") < app.indexOf('className="phone-panel"'));
   assert.doesNotMatch(hook + source("../src/components/font-settings.tsx"), /apiFetch|fetch\(|pushManager|serviceWorker|bosswatch\.background|setInterval/);
 });

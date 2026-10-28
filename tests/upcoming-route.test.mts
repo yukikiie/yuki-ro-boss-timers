@@ -90,13 +90,13 @@ test("route order ignores MVP and favorite priority and does not mutate saved ti
   assert.doesNotMatch(pageSource, /<UpcomingBossRoute bosses=\{visibleBosses\}/);
 });
 
-test("fixed card ranks never change the actual first and next countdown destinations", () => {
+test("globally pinned favorites never change the actual first and next countdown destinations", () => {
   const bosses = withCountdowns([{ id: "orc-hero", seconds: 1200 }, { id: "naght-sieger", seconds: 60 }, { id: "death-knight", seconds: 300 }]);
   const before = JSON.stringify(bosses);
   const displayed = catalog.sortBossesForDisplay(bosses) as TestBoss[];
   assert.equal(displayed[0].id, "atroce");
-  assert.ok(displayed.findIndex(boss => boss.id === "orc-hero") < displayed.findIndex(boss => boss.id === "death-knight"));
-  assert.ok(displayed.findIndex(boss => boss.id === "death-knight") < displayed.findIndex(boss => boss.id === "naght-sieger"));
+  assert.ok(displayed.findIndex(boss => boss.id === "naght-sieger") < displayed.findIndex(boss => boss.id === "death-knight"));
+  assert.ok(displayed.findIndex(boss => boss.id === "death-knight") < displayed.findIndex(boss => boss.id === "orc-hero"));
   assert.deepEqual(timers.upcomingBosses(displayed, now).map(boss => boss.id), ["naght-sieger", "death-knight", "orc-hero"]);
   const markup = renderRoute(bosses);
   assert.match(markup, /data-route-boss="naght-sieger" data-route-position="first"/);
@@ -185,7 +185,7 @@ test("safe sample preview exercises the same confirmed route without contacting 
   const featuredCards = (markup.match(/<article\b[^>]*>/g) || []).filter(card => card.includes("card-featured"));
   assert.equal(featuredCards.length, 1);
   assert.match(featuredCards[0], /遊俠（暗・遊俠），Mini，下一隻重生/);
-  assert.ok(markup.indexOf('data-preview-sprite-index="0"') < markup.indexOf('data-preview-sprite-index="7"'));
+  assert.ok(markup.indexOf('data-preview-sprite-index="7"') < markup.indexOf('data-preview-sprite-index="0"'));
   assert.match(pageSource, /observedAt: boss\.remaining \? timestamp : null/);
   assert.match(pageSource, /source: boss\.remaining \? "manual" : null/);
 });
@@ -196,13 +196,15 @@ test("the isolated all-boss preview includes all twenty-five animated identities
   const markup = renderToStaticMarkup(React.createElement(App, { referencePreview: true, previewAllBosses: true }));
   const indices = [...markup.matchAll(/data-preview-sprite-index="(\d+)"/g)].map(match => Number(match[1]));
   assert.deepEqual([...indices].sort((first, second) => first - second), Array.from({ length: 25 }, (_, index) => index));
-  assert.deepEqual(indices, [0, 1, 17, 15, 20, 10, 9, 8, 14, 24, 16, 23, 21, 18, 2, 3, 13, 22, 19, 6, 5, 12, 11, 7, 4]);
+  assert.deepEqual(indices, [0, 1, 2, 3, 4, 5, 6, 7, 17, 15, 20, 10, 9, 8, 14, 24, 16, 23, 21, 18, 13, 22, 19, 12, 11]);
   assert.equal((markup.match(/<article\b[^>]*class="boss-card/g) || []).length, 25);
   assert.equal((markup.match(/aria-label="取消最愛 /g) || []).length, 4);
   assert.equal((markup.match(/<article\b[^>]*class="[^"]*card-counting/g) || []).length, 8);
   assert.match(markup, /data-route-boss="atroce" data-route-position="first"/);
   assert.match(markup, /data-route-boss="lady-tanee" data-route-position="next"/);
-  assert.match(markup, /各類最愛依重生倒數置頂，其餘依指定順序/);
+  assert.match(markup, /最愛置頂；有倒數的 Boss 依重生時間排列，其餘依指定順序。/);
+  assert.match(markup, /最愛・倒數・指定順序/);
+  assert.match(markup, /aria-label="依最愛、重生倒數與指定順序排列的 Boss"/);
   assert.doesNotMatch(markup, /最近重生優先/);
   for (const name of ["逐影", "亡靈巫師", "殭屍龍", "基因", "獸牙怪", "代行", "影龍"]) assert.ok(markup.includes(name), name);
   assert.equal(catalog.bossCatalog.length, 18);
