@@ -216,7 +216,10 @@ for (const [sheetIndex, atlas] of atlases.entries()) {
   });
 }
 
-test("boss motion maps twenty-five bosses across fourteen retained pixel sheets with one hundred selected frames", () => {
+test("boss motion maps twenty-five bosses across five approved sheets with one hundred selected frames", () => {
+  const activeSheets = ["a", "b", "c", "d", "e"];
+  const activeAtlases = activeSheets.map(sheet => JSON.parse(readFileSync(new URL(`../lib/approved-boss-motion-${sheet}.json`, import.meta.url), "utf8")) as PixelAtlas);
+  const activeLocations = Array.from({ length: 25 }, (_, index) => ({ atlasIndex: Math.floor(index / 5), row: index % 5 }));
   const moduleValue = { exports: {} as Record<string, unknown> };
   const javascript = ts.transpileModule(readFileSync(new URL("../lib/boss-motion.ts", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -225,16 +228,16 @@ test("boss motion maps twenty-five bosses across fourteen retained pixel sheets 
     module: moduleValue,
     exports: moduleValue.exports,
     require: (path: string) => {
-      const index = sheetIds.findIndex(sheet => path === `./pixel-motion-${sheet}.json`);
+      const index = activeSheets.findIndex(sheet => path === `./approved-boss-motion-${sheet}.json`);
       assert.ok(index >= 0, `Unexpected boss motion dependency: ${path}`);
-      return { default: atlases[index] };
+      return { default: activeAtlases[index] };
     },
   });
   const normalized = JSON.parse(JSON.stringify(moduleValue.exports));
-  assert.deepEqual(normalized.motionAtlases, atlases.map(({ source, width, height }) => ({ source, width, height })));
-  assert.deepEqual(normalized.motionSpriteLocations, spriteLocations);
-  assert.deepEqual(normalized.motionFrameBounds, spriteLocations.map(({ atlasIndex, row }) => atlases[atlasIndex].rows[row]));
-  assert.deepEqual(normalized.bossIdleSilhouetteAreas, spriteLocations.map(({ atlasIndex, row }) => atlases[atlasIndex].idleAreas[row]));
+  assert.deepEqual(normalized.motionAtlases, activeAtlases.map(({ source, width, height }) => ({ source, width, height })));
+  assert.deepEqual(normalized.motionSpriteLocations, activeLocations);
+  assert.deepEqual(normalized.motionFrameBounds, activeLocations.map(({ atlasIndex, row }) => activeAtlases[atlasIndex].rows[row]));
+  assert.deepEqual(normalized.bossIdleSilhouetteAreas, activeLocations.map(({ atlasIndex, row }) => activeAtlases[atlasIndex].idleAreas[row]));
   assert.deepEqual(normalized.bossMotion.map((boss: { id: string }) => boss.id), bossIds);
   assert.equal(normalized.motionFrameBounds.length, 25);
   assert.equal(normalized.motionFrameBounds.flat().length, 100);
@@ -243,9 +246,9 @@ test("boss motion maps twenty-five bosses across fourteen retained pixel sheets 
     frames: { left: number; top: number; width: number; height: number }[];
   } | null;
   assert.equal(typeof detailsFor, "function");
-  for (const [spriteIndex, { atlasIndex, row }] of spriteLocations.entries()) {
+  for (const [spriteIndex, { atlasIndex, row }] of activeLocations.entries()) {
     const details = detailsFor(spriteIndex);
-    const atlas = atlases[atlasIndex];
+    const atlas = activeAtlases[atlasIndex];
     assert.ok(details, `Missing motion details for ${bossIds[spriteIndex]}`);
     assert.equal(details.id, bossIds[spriteIndex]);
     assert.equal(details.source, atlas.source, `${details.id}: selected source`);

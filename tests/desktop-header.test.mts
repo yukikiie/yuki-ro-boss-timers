@@ -40,6 +40,8 @@ function renderHeader({ desktop = false, phase = "day", paused = false, reduced 
       useState: () => React.useState(stateValues[stateIndex++]),
     },
     "../../lib/scene-time": sceneTime,
+    "../../lib/background-themes": loadModule("../lib/background-themes.ts"),
+    "./theme-residents": { ThemeResidents: () => null },
     "./garden-creature": {
       HeaderResidents: ({ phase: residentPhase, active, tall: residentTall }: { phase: Phase; active: boolean; tall?: boolean }) => React.createElement("g", {
         "data-test-residents": residentPhase,

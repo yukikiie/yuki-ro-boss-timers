@@ -29,13 +29,17 @@ const motion = loadModule("../lib/boss-motion.ts");
 type MotionDetails = { id: string; action: string; duration: number; source: string; width: number; height: number; row: number; cellWidth: number; cellHeight: number; frames: { left: number; top: number; width: number; height: number; offsetLeft: number; offsetTop: number }[] };
 const motionDetails = motion.motionDetails as (index: number) => MotionDetails | null;
 
+test("all twenty-five motion identities, character actions and durations remain stable during the artwork replacement", () => {
+  assert.equal(createHash("sha256").update(JSON.stringify(motion.bossMotion)).digest("hex"), "0d474ed323834ce98d1c3cda0713fddb48c5eb9fdb7e293663965b4580904420");
+});
+
 test("all twenty-five selected bosses have distinct character actions and four-frame atlas positions", () => {
   const expectedIds = ["atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger", "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon", "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing", "valkyrie-executioner", "shadow-dragon"];
   const actions = new Set();
   for (const [index, id] of expectedIds.entries()) {
     const details = motionDetails(index)!;
     assert.equal(details.id, id);
-    assert.equal(details.row, index < 15 ? index % 4 : index < 18 ? index - 15 : 0);
+    assert.equal(details.row, index % 5);
     assert.equal(details.frames.length, 4);
     for (const frame of details.frames) {
       assert.ok(frame.offsetLeft >= 0 && frame.offsetTop >= 0);
@@ -52,15 +56,14 @@ test("all twenty-five selected bosses have distinct character actions and four-f
   for (const invalid of [-1, 25, 1.5, NaN]) assert.equal(motionDetails(invalid), null);
 });
 
-test("the three coarse restyles leave every other motion and complete optical geometry unchanged", () => {
-  const indices = Array.from({ length: 25 }, (_, index) => index).filter(index => ![18, 20, 21].includes(index));
-  const snapshot = indices.map(index => motionDetails(index));
-  assert.equal(createHash("sha256").update(JSON.stringify(snapshot)).digest("hex"), "4f3ba28fb1ce8e92ac5e8ec275b24aed2c10bfb5b5d9b5fc3250dfaacd304589");
-  assert.equal(motionDetails(18)!.source, "/art/ro-pixel-motion-m.png");
-  assert.equal(motionDetails(20)!.source, "/art/ro-pixel-motion-n.png");
-  assert.equal(motionDetails(21)!.source, "/art/ro-pixel-motion-l.png");
-  assert.equal(motionDetails(23)!.source, "/art/ro-pixel-motion-j.png");
-  assert.equal(motionDetails(24)!.source, "/art/ro-pixel-motion-k.png");
+test("every known boss uses the single approved style through five ordered animation batches", () => {
+  for (let index = 0; index < 25; index++) {
+    const details = motionDetails(index)!;
+    const batch = "abcde"[Math.floor(index / 5)];
+    assert.equal(details.source, `/art/ro-approved-boss-motion-${batch}.png`);
+    assert.equal(details.row, index % 5);
+    assert.equal(details.cellWidth, Math.max(...details.frames.map(frame => frame.width)) + 16);
+  }
 });
 
 test("wizard and living sword retain their approved indices and action selections", () => {
@@ -68,8 +71,8 @@ test("wizard and living sword retain their approved indices and action selection
   assert.equal(wizard.id, "undead-wizard");
   assert.equal(wizard.action, "舉杖蓄能與紫焰施法");
   assert.equal(wizard.duration, 1.6);
-  assert.equal(wizard.source, "/art/ro-pixel-motion-h.png");
-  assert.equal(motionDetails(22)!.source, "/art/ro-pixel-motion-i.png");
+  assert.equal(wizard.source, "/art/ro-approved-boss-motion-d.png");
+  assert.equal(motionDetails(22)!.source, "/art/ro-approved-boss-motion-e.png");
 });
 
 test("animated portraits render four clipped poses per boss, without whole-image transforms", () => {
@@ -105,7 +108,7 @@ test("animated portraits and scenery support pause, reduced motion and hidden-do
 });
 
 test("header and long garden contain scene-specific water, petal and light animations", () => {
-  const components = loadModule("../src/components/living-scene.tsx", { "../../lib/scene-time": loadModule("../lib/scene-time.ts"), "./garden-creature": { HeaderResidents: () => null } });
+  const components = loadModule("../src/components/living-scene.tsx", { "../../lib/scene-time": loadModule("../lib/scene-time.ts"), "../../lib/background-themes": loadModule("../lib/background-themes.ts"), "./theme-residents": { ThemeResidents: () => null }, "./garden-creature": { HeaderResidents: () => null } });
   const Header = components.AnimatedHeader as React.ComponentType;
   const Garden = components.LivingGarden as React.ComponentType;
   const markup = renderToStaticMarkup(React.createElement(React.Fragment, null, React.createElement(Header), React.createElement(Garden)));
@@ -116,9 +119,9 @@ test("header and long garden contain scene-specific water, petal and light anima
   assert.doesNotMatch(markup, /pattern|foreignObject|heart|<text/);
 });
 
-test("all fourteen action atlases use transparent PNGs with matching declared dimensions", () => {
+test("all five approved action atlases use transparent PNGs with matching declared dimensions", () => {
   const atlases = motion.motionAtlases as { source: string; width: number; height: number }[];
-  assert.equal(atlases.length, 14);
+  assert.equal(atlases.length, 5);
   for (const atlas of atlases) {
     const bytes = readFileSync(new URL(`../public${atlas.source}`, import.meta.url));
     assert.equal(bytes.readUInt32BE(16), atlas.width);
@@ -130,7 +133,8 @@ test("all fourteen action atlases use transparent PNGs with matching declared di
 test("new and restyled characters use the shared four-pose pause, visibility and reduced-motion mechanism", () => {
   const components = loadModule("../src/components/animated-boss-portrait.tsx", { "../../lib/boss-motion": motion });
   const Portrait = components.AnimatedBossPortrait as React.ComponentType<{ spriteIndex: number }>;
-  for (const [spriteIndex, id, source] of [[18, "dark-chaser", "/art/ro-pixel-motion-m.png"], [19, "undead-wizard", "/art/ro-pixel-motion-h.png"], [20, "zombie-dragon", "/art/ro-pixel-motion-n.png"], [21, "dark-geneticist", "/art/ro-pixel-motion-l.png"], [22, "tirfing", "/art/ro-pixel-motion-i.png"], [23, "valkyrie-executioner", "/art/ro-pixel-motion-j.png"], [24, "shadow-dragon", "/art/ro-pixel-motion-k.png"]] as const) {
+  for (let spriteIndex = 0; spriteIndex < 25; spriteIndex++) {
+    const { id, source } = motionDetails(spriteIndex)!;
     const markup = renderToStaticMarkup(React.createElement("div", { className: "motion-paused" }, React.createElement(Portrait, { spriteIndex })));
     assert.ok(markup.includes(`data-motion-boss="${id}"`));
     assert.equal((markup.match(/data-frame=/g) || []).length, 4);

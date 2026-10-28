@@ -46,7 +46,7 @@ test("redrawn Atroce and Tanee retain the established apparent-size reference", 
     const details = motion.motionDetails(index)!;
     assert.equal(details.cellWidth, Math.max(...motion.motionFrameBounds[index].map(frame => frame[2])) + 16);
     assert.ok(details.frames.every(frame => Number.isInteger(frame.offsetLeft) && Number.isInteger(frame.offsetTop)));
-    assert.equal(details.source, "/art/ro-pixel-motion-a.png");
+    assert.equal(details.source, "/art/ro-approved-boss-motion-a.png");
     const footprint = motion.bossIdleSilhouetteAreas[index] * projectedFrame(details, 0).scale ** 2;
     assert.ok(Math.abs(footprint - motion.bossReferenceFootprint) < 1e-9);
   }
@@ -57,7 +57,7 @@ test("pixel Death Knight matches the reference footprint without stretching its 
   const tanee = motion.motionDetails(1)!;
   const projectedKnight = projectedFrame(knight, 0);
   const projectedTanee = projectedFrame(tanee, 0);
-  assert.equal(knight.source, "/art/ro-pixel-motion-c.png");
+  assert.equal(knight.source, "/art/ro-approved-boss-motion-b.png");
   assert.ok(Math.abs(motion.bossIdleSilhouetteAreas[8] * projectedKnight.scale ** 2 / (motion.bossIdleSilhouetteAreas[1] * projectedTanee.scale ** 2) - 1) < 1e-9);
   for (const [index, frame] of knight.frames.entries()) {
     const projected = projectedFrame(knight, index);

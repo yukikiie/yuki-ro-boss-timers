@@ -12,6 +12,8 @@ import * as bossNames from "../lib/boss-names.js";
 import * as portraitIcons from "../lib/boss-portrait-icons.js";
 import * as timers from "../lib/timers.js";
 import * as sceneTime from "../lib/scene-time.ts";
+import * as backgroundThemes from "../lib/background-themes.ts";
+import * as fontPreferences from "../lib/font-preferences.ts";
 
 const requireModule = createRequire(import.meta.url);
 const readSource = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
@@ -42,10 +44,12 @@ function loadModule(path: string, dependencies: Record<string, unknown>) {
 
 const scenery = loadModule("../src/components/living-scene.tsx", {
   "../../lib/scene-time": sceneTime,
+  "../../lib/background-themes": backgroundThemes,
+  "./theme-residents": { ThemeResidents: () => null },
   "./garden-creature": { HeaderResidents: () => null },
 });
 
-function renderRoster(count: number, width: number, phase: sceneTime.ScenePhase, filter = "All", view = "timers") {
+function renderRoster(count: number, width: number, phase: sceneTime.ScenePhase, filter = "All", view = "timers", themeId: backgroundThemes.BackgroundThemeId = "moon-garden") {
   const timestamp = Date.UTC(2026, 9, 19, 4);
   const defaults = timers.defaultBosses(timestamp);
   const bosses = Array.from({ length: count }, (_, index) => ({
@@ -68,7 +72,13 @@ function renderRoster(count: number, width: number, phase: sceneTime.ScenePhase,
     "../lib/boss-portrait-icons.js": portraitIcons,
     "../lib/timers.js": timers,
     "../lib/scene-time": sceneTime,
+    "../lib/background-themes": backgroundThemes,
+    "../lib/font-preferences": fontPreferences,
+    "../hooks/use-font-preferences": { useFontPreferences: () => ({ preferences: fontPreferences.DEFAULT_FONT_PREFERENCES, updatePreferences() {}, resetPreferences() {} }) },
+    "./components/font-settings": { FontSettings: () => null },
     "../hooks/use-scene-phase": { useScenePhase: () => phase },
+    "../hooks/use-background-theme": { useBackgroundTheme: () => ({ themeId, setThemeId: () => {} }) },
+    "./components/background-chooser": { BackgroundChooser: () => null, BackgroundSettings: () => null },
     "./components/living-scene": scenery,
     "./components/reference-countdown": { ReferenceCountdown: () => null },
     "./components/animated-boss-portrait": { AnimatedBossPortrait: () => React.createElement("svg") },
@@ -94,6 +104,23 @@ test("the single garden and its overlay keep their natural geometry independentl
   assert.match(readSource("../src/components/living-scene.tsx"), /viewBox="0 0 739 2129" preserveAspectRatio="xMidYMin meet"/);
   assert.equal(declarations(sceneStyles, '.app-shell.reference-timers[data-scene-phase="afternoon"] .main-shell')["background-color"], "#b3eb2c");
   assert.equal(declarations(sceneStyles, '.app-shell.reference-timers[data-scene-phase="night"] .main-shell')["background-color"], "#0a5670");
+});
+
+test("selected themes use quiet list colors and hide only the themed garden without retaining its tall canvas", () => {
+  const styles = readSource("../src/background-chooser.css");
+  const panel = declarations(styles, ".app-shell.reference-timers[data-background-theme][data-scene-phase] > .main-shell");
+  assert.equal(panel["min-height"], "0");
+  assert.equal(panel.background, "var(--background-panel-color)");
+  assert.equal(declarations(styles, ".app-shell.reference-timers[data-background-theme] > .main-shell > .living-garden").display, "none");
+  assert.doesNotMatch(styles, /(?:^|\})\s*body\s*\{|background-image:|filter:/);
+  for (const theme of backgroundThemes.BACKGROUND_THEMES) {
+    for (const count of [0, 1, 25, 30]) {
+      const markup = renderRoster(count, count % 2 ? 390 : 1366, "day", "All", "timers", theme.id);
+      assert.ok(markup.includes(`data-background-theme="${theme.id}"`));
+      assert.ok(markup.includes(`--background-panel-color:${theme.panelColor}`));
+      assert.equal((markup.match(/<article class="boss-card(?: |")/g) || []).length, count);
+    }
+  }
 });
 
 test("non-timer maps show the complete 3:2 painting without changing the 4:3 timer header", () => {
@@ -129,7 +156,15 @@ for (const phase of ["day", "afternoon", "night"] as const) {
         const garden = markup.match(/<div class="living-scene living-garden"[\s\S]*?<\/svg><\/div>/)?.[0];
         assert.ok(header);
         assert.ok(garden);
-        assert.match(header, /class="animated-header-image"[^>]+width="1672" height="1254"/);
+        const theme = backgroundThemes.resolveBackgroundTheme("moon-garden");
+        const image = header.match(/<img\b[^>]*class="animated-header-image"[^>]*>/)?.[0];
+        assert.ok(image);
+        assert.ok(image.includes(`src="${theme.mobile}"`));
+        assert.ok(image.includes(`width="${theme.mobileSize[0]}"`));
+        assert.ok(image.includes(`height="${theme.mobileSize[1]}"`));
+        assert.match(image, /width:100%;height:auto;aspect-ratio:auto/);
+        const bytes = readFileSync(new URL(`../public${theme.mobile}`, import.meta.url));
+        assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [...theme.mobileSize]);
         assert.match(garden, /viewBox="0 0 739 2129" preserveAspectRatio="xMidYMin meet"/);
         if (!expectedHeader) { expectedHeader = header; expectedGarden = garden; }
         assert.equal(header, expectedHeader);

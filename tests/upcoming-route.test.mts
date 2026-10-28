@@ -6,6 +6,8 @@ import vm from "node:vm";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
+import * as backgroundThemes from "../lib/background-themes.ts";
+import * as fontPreferences from "../lib/font-preferences.ts";
 
 const requireModule = createRequire(import.meta.url);
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
@@ -22,12 +24,18 @@ function loadPage() {
   const dependencies: Record<string, unknown> = {
     "../lib/boss-catalog.js": catalog,
     "../lib/boss-names.js": bossNames,
+    "../lib/background-themes": backgroundThemes,
+    "../lib/font-preferences": fontPreferences,
+    "../hooks/use-font-preferences": { useFontPreferences: () => ({ preferences: fontPreferences.DEFAULT_FONT_PREFERENCES, updatePreferences() {}, resetPreferences() {} }) },
+    "./components/font-settings": { FontSettings: () => null },
     "../lib/timers.js": timers,
     "../lib/scene-time": sceneTime,
     "../hooks/use-scene-phase": { useScenePhase: () => "afternoon" },
+    "../hooks/use-background-theme": { useBackgroundTheme: () => ({ themeId: "moon-garden", setThemeId: () => {} }) },
+    "./components/background-chooser": { BackgroundChooser: () => null, BackgroundSettings: () => null },
     "./components/living-scene": { AnimatedHeader: () => null, LivingGarden: () => null },
     "./components/reference-countdown": { ReferenceCountdown: ({ value }: { value: string }) => React.createElement("span", null, value) },
-    "./components/animated-boss-portrait": { AnimatedBossPortrait: () => React.createElement("svg") },
+    "./components/animated-boss-portrait": { AnimatedBossPortrait: ({ spriteIndex }: { spriteIndex: number }) => React.createElement("svg", { "data-preview-sprite-index": spriteIndex }) },
     "./api": { apiFetch: () => { throw new Error("Route SSR must not fetch live data"); }, appBasePath: "/yuki-ro-boss-timers/" },
     "./private-connection": { PrivateConnection: () => null },
     "./push-registration": {},
@@ -161,6 +169,18 @@ test("safe sample preview exercises the same confirmed route without contacting 
   assert.match(markup, /data-route-boss="atroce" data-route-position="next"/);
   assert.match(pageSource, /observedAt: boss\.remaining \? timestamp : null/);
   assert.match(pageSource, /source: boss\.remaining \? "manual" : null/);
+});
+
+test("the isolated all-boss preview includes all twenty-five animated identities without changing the default roster", () => {
+  const before = JSON.stringify(timers.defaultBosses(now));
+  const App = page.BossTimerApp as React.ComponentType<{ referencePreview: boolean; previewAllBosses: boolean }>;
+  const markup = renderToStaticMarkup(React.createElement(App, { referencePreview: true, previewAllBosses: true }));
+  const indices = [...markup.matchAll(/data-preview-sprite-index="(\d+)"/g)].map(match => Number(match[1])).sort((first, second) => first - second);
+  assert.deepEqual(indices, Array.from({ length: 25 }, (_, index) => index));
+  assert.equal((markup.match(/<article\b[^>]*class="boss-card/g) || []).length, 25);
+  for (const name of ["逐影", "亡靈巫師", "殭屍龍", "基因", "獸牙怪", "代行", "影龍"]) assert.ok(markup.includes(name), name);
+  assert.equal(catalog.bossCatalog.length, 18);
+  assert.equal(JSON.stringify(timers.defaultBosses(now)), before);
 });
 
 test("notification and form copy consistently describe ten, five and one-minute reminders", () => {

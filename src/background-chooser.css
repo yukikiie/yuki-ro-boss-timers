@@ -1,0 +1,32 @@
+.app-shell.reference-timers[data-background-theme][data-scene-phase] > .main-shell { min-height: 0; background: var(--background-panel-color); }
+.app-shell.reference-timers[data-background-theme] > .main-shell > .living-garden { display: none; }
+.background-chooser { position: absolute; z-index: 48; top: calc(var(--background-mobile-height, 75cqi) - 25px); right: 18cqi; font-family: var(--font-boss-name); font-weight: 800; }
+.background-chooser .background-trigger { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 28px; padding: 4px 7px; color: #302050; background: #fff8fff2; border: 1px solid #8f72b3; box-shadow: inset 0 0 0 1px #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.background-trigger svg { width: 16px; height: 16px; }
+.background-chooser button:focus-visible, .background-option:focus-within { outline: 3px solid #ec73aa; outline-offset: 2px; }
+.background-gallery { position: fixed; z-index: 200; top: 12px; left: 12px; box-sizing: border-box; width: min(660px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 14px; color: #302050; background: #fff8ff; border: 2px solid #79598e; box-shadow: 0 7px 25px #34204b40, inset 0 0 0 2px #e6d6ee; font-family: var(--font-boss-name); font-weight: 800; }
+.background-gallery-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.background-gallery-heading h2 { margin: 0; font: inherit; font-size: 17px; }
+.background-gallery-heading button { padding: 5px 12px; color: #43264f; background: #f6d9ea; border: 1px solid #b284a7; font: inherit; font-size: 12px; cursor: pointer; }
+.background-gallery fieldset, .background-settings fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.background-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.background-option { position: relative; display: grid; align-content: start; gap: 4px; min-width: 0; padding: 5px; background: #f5edf7; border: 2px solid #d1bfdc; cursor: pointer; }
+.background-option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.background-option picture, .background-option img { display: block; width: 100%; }
+.background-option img { height: auto; image-rendering: pixelated; }
+.background-option-label { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; padding-inline: 3px; font-size: 13px; }
+.background-option-label small { color: #a02c69; font-size: 10px; }
+.background-option-description { padding: 0 3px 3px; font-size: 11px; color: #796381; }
+.background-selected { border-color: #b34e8a; background: #ffe5f2; }
+.background-gallery > p { margin: 10px 0 0; font-size: 11px; color: #796381; }
+.app-shell .background-settings { margin: 20px 1.5cqi 16px; padding: 16px; color: #302050; background: #fff8fff2; border: 2px solid #8e729f; box-shadow: inset 0 0 0 2px #eadff0; font-family: "Bosswatch Boss Names", "Microsoft JhengHei", sans-serif; font-weight: 800; font-style: normal; scroll-margin-top: 16px; }
+.background-settings-heading { margin-bottom: 12px; }
+.background-settings-heading h2 { margin: 0; font: inherit; font-size: 17px; }
+.background-settings-heading p { margin: 3px 0 0; color: #796381; font-size: 12px; }
+@media (max-width: 480px) { .app-shell .background-settings { padding: 12px; } }
+@media (min-width: 1100px) {
+  .app-shell .background-settings { margin-inline: 0; }
+  .background-settings .background-options { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .app-shell.reference-timers .background-chooser { top: calc(var(--background-desktop-height, 33.333333cqi) + 26px); right: 54px; }
+  .app-shell.reference-timers > .main-shell > .main-content > .dashboard-clockbar { right: 118px; width: calc(50% - 128px); }
+}

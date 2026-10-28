@@ -8,6 +8,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import * as catalog from "../lib/boss-catalog.js";
 import * as bossNames from "../lib/boss-names.js";
+import * as backgroundThemes from "../lib/background-themes.ts";
+import * as fontPreferences from "../lib/font-preferences.ts";
 import * as portraitIcons from "../lib/boss-portrait-icons.js";
 import * as timers from "../lib/timers.js";
 import * as sceneTime from "../lib/scene-time.ts";
@@ -58,10 +60,16 @@ function loadPage(selected: FixtureBoss[], dialog: { type: "kill" | "countdown";
     },
     "../lib/boss-catalog.js": catalog,
     "../lib/boss-names.js": bossNames,
+    "../lib/background-themes": backgroundThemes,
+    "../lib/font-preferences": fontPreferences,
+    "../hooks/use-font-preferences": { useFontPreferences: () => ({ preferences: fontPreferences.DEFAULT_FONT_PREFERENCES, updatePreferences() {}, resetPreferences() {} }) },
+    "./components/font-settings": { FontSettings: () => null },
     "../lib/boss-portrait-icons.js": portraitIcons,
     "../lib/timers.js": timers,
     "../lib/scene-time": sceneTime,
     "../hooks/use-scene-phase": { useScenePhase: () => "afternoon" },
+    "../hooks/use-background-theme": { useBackgroundTheme: () => ({ themeId: "moon-garden", setThemeId: () => {} }) },
+    "./components/background-chooser": { BackgroundChooser: () => null, BackgroundSettings: () => null },
     "./components/living-scene": { AnimatedHeader: () => null, LivingGarden: () => null },
     "./components/reference-countdown": { ReferenceCountdown: ({ value }: { value: string }) => React.createElement("span", null, value) },
     "./components/animated-boss-portrait": { AnimatedBossPortrait: ({ spriteIndex }: { spriteIndex: number }) => React.createElement("svg", { "data-motion-index": spriteIndex }), NativeAnimatedBossPortrait: () => null },

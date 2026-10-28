@@ -220,12 +220,13 @@ function selectWalk(actor: HeaderCrowdActor, actors: HeaderCrowdActor[], phase: 
   let previous: HeaderActorState = { ...actor.plan, activity: "idle", start: { ...actor.position }, end: { ...actor.position }, startedAt: nowMs - 1, durationMs: 1 };
   for (let attempt = 0; attempt <= stops.length; attempt++) {
     const proposed = nextHeaderBehavior(actor.index, phase, previous, previous.seedNext, nowMs);
+    const targetId = proposed.targetId && headerActors.some(other => other.id === proposed.targetId) && !actors.some(other => other.id === proposed.targetId) ? "flower-meadow" : proposed.targetId;
     const end = boundedPoint(tallCreature ? stops[attempt % stops.length] : attempt ? stops[(offset + attempt - 1) % stops.length] : proposed.end, actor);
     if (mustStayLower && end.y < 950) continue;
     const route = distance(actor.position, end) >= 120 ? routeBetween(actor.position, end, actor, actors) : null;
     if (route && pathLength(route) <= 1400) return {
       ...proposed, start: { ...actor.position }, end, waypoints: route, durationMs: Math.max(proposed.durationMs, Math.ceil(pathLength(route) / 32 * 1000)),
-      targetId: tallCreature && end.y >= 950 ? "flower-foreground" : attempt || tallCreature ? "flower-meadow" : proposed.targetId,
+      targetId: tallCreature && end.y >= 950 ? "flower-foreground" : attempt || tallCreature ? "flower-meadow" : targetId,
       recentStops: [...actor.plan.recentStops, { ...end }].slice(-4),
     };
     previous = { ...previous, seedNext: proposed.seedNext, sequence: proposed.sequence };
@@ -245,7 +246,7 @@ function selectWalk(actor: HeaderCrowdActor, actors: HeaderCrowdActor[], phase: 
   return null;
 }
 
-function initialCrowd(phase: ScenePhase, seed: number, timeMs: number, layout: HeaderCrowdLayout): HeaderCrowd {
+function initialCrowd(phase: ScenePhase, seed: number, timeMs: number, layout: HeaderCrowdLayout, actorIndices?: readonly number[]): HeaderCrowd {
   const actors = headerActors.map((actor, index) => {
     const position = { ...(phase === "night" && actor.category === "flying" ? headerAngelRest : (layout === "tall" ? tallHomePositions : homePositions)[index]) };
     const initial = nextHeaderBehavior(index, phase, undefined, seed, timeMs);
@@ -255,17 +256,17 @@ function initialCrowd(phase: ScenePhase, seed: number, timeMs: number, layout: H
       plan: { ...initial, start: { ...position }, end: { ...position }, waypoints: [{ ...position }, { ...position }], recentStops: [{ ...position }] },
       blockedMs: 0, retryAtMs: 0, distanceTravelled: 0, lastMovedAtMs: timeMs, layout, completedWalks: 0,
     };
-  });
+  }).filter(actor => !actorIndices || actorIndices.includes(actor.index));
   return { actors, phase, seed, timeMs, remainderMs: 0, tick: 0, layout };
 }
 
-export function createHeaderCrowd(phase: ScenePhase, seed = 7091, layout: HeaderCrowdLayout = "standard"): HeaderCrowd {
-  return initialCrowd(phase, Number.isFinite(seed) ? Math.trunc(seed) : 7091, 0, layout);
+export function createHeaderCrowd(phase: ScenePhase, seed = 7091, layout: HeaderCrowdLayout = "standard", actorIndices?: readonly number[]): HeaderCrowd {
+  return initialCrowd(phase, Number.isFinite(seed) ? Math.trunc(seed) : 7091, 0, layout, actorIndices);
 }
 
 export function advanceHeaderCrowd(world: HeaderCrowd, deltaMs: number, phase: ScenePhase = world.phase): HeaderCrowd {
   const elapsed = Number.isFinite(deltaMs) ? clamp(deltaMs, 0, 60_000) : 0;
-  if ((phase === "night") !== (world.phase === "night")) world = initialCrowd(phase, world.seed, world.timeMs, world.layout);
+  if ((phase === "night") !== (world.phase === "night")) world = initialCrowd(phase, world.seed, world.timeMs, world.layout, world.actors.map(actor => actor.index));
   if (!elapsed && phase === world.phase) return world;
   const next: HeaderCrowd = { ...world, phase, actors: world.actors.map(actor => ({ ...actor, position: { ...actor.position }, plan: { ...actor.plan, phase } })) };
   if (phase === "night") return { ...next, timeMs: next.timeMs + elapsed };

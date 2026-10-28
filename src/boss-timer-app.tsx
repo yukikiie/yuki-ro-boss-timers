@@ -11,6 +11,12 @@ import { ReferenceCountdown } from "./components/reference-countdown";
 import { AnimatedBossPortrait, NativeAnimatedBossPortrait } from "./components/animated-boss-portrait";
 import { AnimatedHeader, LivingGarden } from "./components/living-scene";
 import { useScenePhase } from "../hooks/use-scene-phase";
+import { useBackgroundTheme } from "../hooks/use-background-theme";
+import { useFontPreferences } from "../hooks/use-font-preferences";
+import { fontPreferencePresentation } from "../lib/font-preferences";
+import { BackgroundChooser, BackgroundSettings } from "./components/background-chooser";
+import { FontSettings } from "./components/font-settings";
+import { resolveBackgroundTheme, type BackgroundThemeId } from "../lib/background-themes";
 import { SCENE_ASSETS, type SceneMode } from "../lib/scene-time";
 import { ArrowRight, ArrowUpRight, Bell, BellOff, BookOpen, Check, CheckCheck, CircleHelp, Clock3, Crosshair, Diamond, LoaderCircle, Moon, MoreHorizontal, Plus, RefreshCw, ShieldCheck, Smartphone, Sparkles, Star, Sunrise, Timer, Trash2, WifiOff, X } from "lucide-react";
 
@@ -67,7 +73,7 @@ export function UpcomingBossRoute({ bosses, now, resting = false }: { bosses: Bo
     <ol>{queue.map((boss, index) => <li key={boss.id} data-route-boss={boss.id} data-route-position={index === 0 ? "first" : "next"}>
       <span className="route-step">{index === 0 ? "先前往" : "接著準備"}</span><strong className="route-boss-name" title={bossCanonicalName(boss)}>{bossDisplayName(boss)}</strong>
       <div className="route-timing">
-        <time className="route-countdown" dateTime={new Date(boss.dueAt!).toISOString()} title={`預計 ${routeTimeText(boss.dueAt!, now)} HKT 出現`} aria-label={`${bossCanonicalName(boss)}，距離預計出現 ${durationText((boss.dueAt! - now) / 1000)}`}>{durationText((boss.dueAt! - now) / 1000)}</time>
+        <time className="route-countdown" dateTime={new Date(boss.dueAt!).toISOString()} title={`預計 ${routeTimeText(boss.dueAt!, now)} HKT 出現`} aria-label={`${bossCanonicalName(boss)}，距離預計出現 ${durationText((boss.dueAt! - now) / 1000)}`}><ReferenceCountdown value={durationText((boss.dueAt! - now) / 1000)} decorative /></time>
         <time className="route-spawn-time" dateTime={new Date(boss.dueAt!).toISOString()}>預計 {routeTimeText(boss.dueAt!, now)} HKT</time>
       </div>
     </li>)}</ol>
@@ -152,7 +158,16 @@ function BossSigil({ bossId, index }: { bossId: string; index: number }) {
 
 function previewState(extraDigits = false, allBosses = false): AppState {
   const timestamp = Date.UTC(2026, 9, 19, 4);
-  const samples: readonly { id: string; name: string; kind: "MVP" | "Mini"; remaining: number }[] = allBosses ? bossCatalog.map((boss, index) => ({ id: boss.id, name: boss.name, kind: boss.kind === "MVP" ? "MVP" : "Mini", remaining: index < 8 ? (index + 1) * 200 : 0 })) : [
+  const samples: readonly { id: string; name: string; kind: "MVP" | "Mini"; remaining: number }[] = allBosses ? [
+    ...bossCatalog,
+    { id: "custom-5qip79", name: "暗・逐影", kind: "MVP" },
+    { id: "custom-14l2kgf", name: "亡靈巫師", kind: "Mini" },
+    { id: "custom-1n83kp1", name: "殭屍龍", kind: "MVP" },
+    { id: "custom-1hb3imu", name: "暗・基因學者", kind: "MVP" },
+    { id: "custom-qinmln", name: "獸牙怪", kind: "Mini" },
+    { id: "custom-1xgl1sj", name: "代行刑者", kind: "MVP" },
+    { id: "custom-1hknmq6", name: "尼德豪克的影子", kind: "MVP" },
+  ].map((boss, index) => ({ id: boss.id, name: boss.name, kind: boss.kind === "MVP" ? "MVP" : "Mini", remaining: index < 8 ? (index + 1) * 200 : 0 })) : [
     { id: "dark-ranger", name: "暗・遊俠", kind: "Mini", remaining: extraDigits ? 369 : 200 },
     { id: "atroce", name: "阿特羅斯", kind: "MVP", remaining: extraDigits ? 1027 : 760 },
     { id: "boitata", name: "波伊塔塔", kind: "Mini", remaining: 1085 },
@@ -168,7 +183,7 @@ function previewState(extraDigits = false, allBosses = false): AppState {
   };
 }
 
-export function BossTimerApp({ referencePreview = false, previewExtraDigits = false, previewAllBosses = false, previewSceneMode = "auto", previewTallHeader = false }: { referencePreview?: boolean; previewExtraDigits?: boolean; previewAllBosses?: boolean; previewSceneMode?: SceneMode; previewTallHeader?: boolean }) {
+export function BossTimerApp({ referencePreview = false, previewExtraDigits = false, previewAllBosses = false, previewSceneMode = "auto", previewTallHeader = false, previewBackgroundTheme }: { referencePreview?: boolean; previewExtraDigits?: boolean; previewAllBosses?: boolean; previewSceneMode?: SceneMode; previewTallHeader?: boolean; previewBackgroundTheme?: BackgroundThemeId }) {
   const [data, setData] = useState<AppState | null>(() => referencePreview ? previewState(previewExtraDigits, previewAllBosses) : null);
   const [loading, setLoading] = useState(!referencePreview);
   const [networkError, setNetworkError] = useState("");
@@ -195,6 +210,9 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
   const [reducedMotion, setReducedMotion] = useState(false);
   const [browser, setBrowser] = useState({ checked: false, supported: false, ios: false, standalone: false, permission: "default" });
   const [desktopLayout, setDesktopLayout] = useState(false);
+  const { themeId, setThemeId } = useBackgroundTheme(previewBackgroundTheme);
+  const { preferences, updatePreferences, resetPreferences } = useFontPreferences();
+  const typography = fontPreferencePresentation(preferences);
 
   const applyState = useCallback((value: AppState) => {
     setData(value);
@@ -382,9 +400,10 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
   }
   const pushReady = Boolean(subscription && pushConfirmed && data?.push.configured && data.push.schedulerReady);
 
-  return <div className={`app-shell ${view === "timers" ? "reference-timers" : ""} ${!motionEnabled || reducedMotion ? "motion-paused" : ""}`} data-ui-version="boss-roster-v12" data-scene-phase={scenePhase} style={{ "--scene-garden-image": `url("${SCENE_ASSETS[scenePhase].garden}")` } as CSSProperties}>
+  return <div className={`app-shell ${view === "timers" ? "reference-timers" : ""} ${!motionEnabled || reducedMotion ? "motion-paused" : ""}`} data-ui-version="boss-roster-v12" data-scene-phase={scenePhase} data-background-theme={themeId} {...typography.attributes} style={{ "--scene-garden-image": `url("${SCENE_ASSETS[scenePhase].garden}")`, "--background-panel-color": resolveBackgroundTheme(themeId).panelColor, ...typography.style } as CSSProperties}>
+    {view === "timers" && <BackgroundChooser themeId={themeId} onSelect={setThemeId} />}
     <header className={`map-masthead ${view !== "timers" ? "masthead-compact" : ""}`}>
-      {view === "timers" ? <><AnimatedHeader phase={scenePhase} paused={!motionEnabled || reducedMotion} tall={!referencePreview || previewTallHeader} /><h1 className="visually-hidden">RO MVP / Mini 重生時間</h1><button className="motion-toggle" type="button" disabled={reducedMotion} aria-label={reducedMotion ? "系統已啟用減少動態效果" : motionEnabled ? "暫停所有動畫" : "播放所有動畫"} title={reducedMotion ? "系統已啟用減少動態效果" : motionEnabled ? "暫停所有動畫" : "播放所有動畫"} aria-pressed={!motionEnabled || reducedMotion} onClick={() => { const enabled = !motionEnabled; setMotionEnabled(enabled); try { localStorage.setItem("bosswatch.motion", enabled ? "playing" : "paused"); } catch {} }}><svg viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges" aria-hidden="true">{motionEnabled && !reducedMotion ? <path d="M3 2H7V14H3ZM10 2H14V14H10Z" /> : <path d="M3 1H5V3H8V5H11V7H14V9H11V11H8V13H5V15H3Z" />}</svg></button></> : <>
+      {view === "timers" ? <><AnimatedHeader phase={scenePhase} themeId={themeId} paused={!motionEnabled || reducedMotion} tall={!referencePreview || previewTallHeader} /><h1 className="visually-hidden">RO MVP / Mini 重生時間</h1><button className="motion-toggle" type="button" disabled={reducedMotion} aria-label={reducedMotion ? "系統已啟用減少動態效果" : motionEnabled ? "暫停所有動畫" : "播放所有動畫"} title={reducedMotion ? "系統已啟用減少動態效果" : motionEnabled ? "暫停所有動畫" : "播放所有動畫"} aria-pressed={!motionEnabled || reducedMotion} onClick={() => { const enabled = !motionEnabled; setMotionEnabled(enabled); try { localStorage.setItem("bosswatch.motion", enabled ? "playing" : "paused"); } catch {} }}><svg viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges" aria-hidden="true">{motionEnabled && !reducedMotion ? <path d="M3 2H7V14H3ZM10 2H14V14H10Z" /> : <path d="M3 1H5V3H8V5H11V7H14V9H11V11H8V13H5V15H3Z" />}</svg></button></> : <>
       <div className="map-art" aria-hidden="true" />
       <div className="masthead-meta"><span className="site-signature">YUKI · BOSSWATCH</span><span className={`connection-status ${networkError ? "offline" : ""}`}><span />{loading ? "連線中" : networkError ? "尚未同步" : "已同步"}</span></div>
       <div className="page-heading"><div className="title-panel"><PixelPoring /><h1>{view === "notifications" ? "通知中心" : "設定與說明"}</h1></div></div>
@@ -394,7 +413,7 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
     <div className="main-shell">
       {view === "timers" && <LivingGarden phase={scenePhase} />}
       <main className="main-content">
-        <div className="dashboard-clockbar"><PixelHearts /><div className="dual-clock"><div><span>香港時間</span><strong>{localClock(now, 8)}<small>HKT</small></strong></div><span className="clock-rule" /><div><span>遊戲時間</span><strong>{localClock(now, 7)}<small>GAME</small></strong></div></div></div>
+        <div className="dashboard-clockbar"><PixelHearts /><div className="dual-clock"><div><span>香港時間</span><strong><ReferenceCountdown value={localClock(now, 8)} /><small>HKT</small></strong></div><span className="clock-rule" /><div><span>遊戲時間</span><strong><ReferenceCountdown value={localClock(now, 7)} /><small>GAME</small></strong></div></div></div>
         {networkError && <div className="notice notice-error" role="alert"><WifiOff size={19} /><div><strong>連線暫時中斷</strong><p>{networkError}{data && " 畫面保留上次資料；新的提醒及變更可能無法送達。"}</p></div><button className="icon-button" aria-label="重試同步" onClick={() => void refresh()}><RefreshCw size={18} /></button></div>}
 
         {view === "timers" && <>
@@ -422,6 +441,8 @@ export function BossTimerApp({ referencePreview = false, previewExtraDigits = fa
               </article></div>;
             })}</div> : <div className="empty-list"><Crosshair size={30} strokeWidth={1} /><h3>{"這裡還沒有 Boss"}</h3><p>{favoritesOnly ? "為 Boss 點亮星號，或關閉「只看最愛」。" : "新增你想追蹤的 Boss，再輸入遊戲中的實際時間。"}</p></div>}
           </section>
+          <BackgroundSettings themeId={themeId} onSelect={setThemeId} />
+          <FontSettings preferences={preferences} onChange={updatePreferences} onReset={resetPreferences} />
           <section className="phone-panel"><div className="phone-illustration" aria-hidden="true"><Smartphone size={31} strokeWidth={1.5} /><span><Bell size={13} fill="currentColor" /></span></div><div className="phone-copy"><h3>iPhone 提醒</h3><p>將 10 分鐘、5 分鐘、1 分鐘及出現提醒，送到你的 iPhone。</p></div><button className="button button-dark" onClick={() => setView("notifications")}>設定手機通知 <ArrowUpRight size={16} /></button></section>
           <div className="manual-notice"><ShieldCheck size={15} /><p>手動計時版，不會讀取或操作遊戲。每日 05:00 HKT 清除舊倒數，請確認新輪替後重新設定。Cloudflare 每分鐘檢查提醒；無須開著電腦，手機仍需網路與通知權限。</p></div>
         </>}

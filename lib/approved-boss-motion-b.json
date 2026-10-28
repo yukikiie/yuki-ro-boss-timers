@@ -1,0 +1,245 @@
+{
+  "source": "/art/ro-approved-boss-motion-b.png",
+  "width": 1296,
+  "height": 1258,
+  "bossIds": [
+    "naght-sieger",
+    "coelacanth",
+    "dark-ranger",
+    "death-knight",
+    "fallen-bishop"
+  ],
+  "rows": [
+    [
+      [
+        44,
+        34,
+        257,
+        206
+      ],
+      [
+        360,
+        28,
+        258,
+        212
+      ],
+      [
+        662,
+        41,
+        289,
+        199
+      ],
+      [
+        996,
+        36,
+        255,
+        204
+      ]
+    ],
+    [
+      [
+        55,
+        270,
+        234,
+        179
+      ],
+      [
+        366,
+        271,
+        247,
+        178
+      ],
+      [
+        671,
+        268,
+        270,
+        181
+      ],
+      [
+        1007,
+        270,
+        233,
+        179
+      ]
+    ],
+    [
+      [
+        62,
+        477,
+        221,
+        215
+      ],
+      [
+        363,
+        481,
+        253,
+        211
+      ],
+      [
+        666,
+        494,
+        281,
+        198
+      ],
+      [
+        1022,
+        482,
+        202,
+        210
+      ]
+    ],
+    [
+      [
+        46,
+        767,
+        252,
+        216
+      ],
+      [
+        371,
+        720,
+        236,
+        263
+      ],
+      [
+        674,
+        759,
+        265,
+        224
+      ],
+      [
+        1009,
+        769,
+        228,
+        214
+      ]
+    ],
+    [
+      [
+        50,
+        1011,
+        244,
+        219
+      ],
+      [
+        364,
+        1013,
+        250,
+        217
+      ],
+      [
+        662,
+        1012,
+        289,
+        218
+      ],
+      [
+        1015,
+        1012,
+        216,
+        218
+      ]
+    ]
+  ],
+  "idleAreas": [
+    39046.32941175023,
+    27034.83921567086,
+    30758.9019607669,
+    36526.10196076335,
+    31187.352941159657
+  ],
+  "approvedIdlePixelHashes": [
+    "cd1a82909f33dbbcdb7ea8fc9ff5ca58c89fa34d187039cdb930c22f4f9bfc05",
+    "19a602620cc631674f185cff4f946c589a4b95a1d0e1fbe031037e3a563b3a77",
+    "88c41ff83fcab00ecf4447c0d1c0c5d9ee6a4a281df02d1bc9238665ccbf5fe3",
+    "b18ba2ce71cbe64b904dd897fa0c6d88fb30ce643f620c7c1d0ef304add82785",
+    "d7f6dfe3bf5e5831d70e7c212d53b21adaf4fe75c428a2a66112ca0d4eca7f3d"
+  ],
+  "approvedIdleSizes": [
+    [
+      253,
+      202
+    ],
+    [
+      230,
+      175
+    ],
+    [
+      217,
+      211
+    ],
+    [
+      248,
+      212
+    ],
+    [
+      240,
+      215
+    ]
+  ],
+  "approvedIdleSourceBounds": [
+    [
+      19,
+      346,
+      253,
+      202
+    ],
+    [
+      286,
+      370,
+      230,
+      175
+    ],
+    [
+      526,
+      347,
+      217,
+      211
+    ],
+    [
+      749,
+      337,
+      248,
+      212
+    ],
+    [
+      997,
+      341,
+      240,
+      215
+    ]
+  ],
+  "sourceMasterSha256": "0bbf3ec962fc0f79855b4b7fd4911e29c563e9f596540e91d60e937e53e8a788",
+  "generatedSourceSha256": "1f79bbac7713e4801683077e9526d416635e6057ed87ff48a6a6c634a27118a1",
+  "generatedSource": "generated-b.png",
+  "generatedScaleFactors": [
+    0.9043211706348827,
+    0.8621627629385792,
+    0.8129315572244341,
+    0.7980655982355407,
+    0.7797179762954695
+  ],
+  "generatedFrameOverrides": [
+    {
+      "row": 4,
+      "actionColumn": 1,
+      "sourceBounds": [
+        123,
+        238,
+        1096,
+        823
+      ],
+      "alphaArea": 58511.14117648946,
+      "overrideSource": "bishop-action-repaired.png",
+      "overrideSourceSha256": "d0d2cb48ab7a68d0e16279cd790bddecf0ee2f7e4b4d46cc398ca82d9200f04c",
+      "overridePreScale": 0.33292831105710813
+    }
+  ],
+  "approvedIdlePolicy": "Original master tightRGBA copied unchanged at1:1 with2px empty atlaspadding; no resizing/alpha masking/compositing.",
+  "frameOrder": [
+    "approved-idle",
+    "windup",
+    "action",
+    "recovery"
+  ]
+}

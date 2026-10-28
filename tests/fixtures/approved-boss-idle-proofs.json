@@ -1,0 +1,380 @@
+{
+  "sourceMasterSha256": "0bbf3ec962fc0f79855b4b7fd4911e29c563e9f596540e91d60e937e53e8a788",
+  "bosses": [
+    {
+      "id": "atroce",
+      "size": [
+        231,
+        236
+      ],
+      "sourceBounds": [
+        32,
+        98,
+        231,
+        236
+      ],
+      "isolatedPixelHash": "5db2f22f52be2d3707107c096cf4f8c9421d561c933ea8cb5f6e41fb6c975d8c",
+      "rawPixelHash": "f80e72e89428cfa9f63d08b288e6b8e21727c114b71378c10f4a6217f019cb9b"
+    },
+    {
+      "id": "lady-tanee",
+      "size": [
+        260,
+        222
+      ],
+      "sourceBounds": [
+        269,
+        114,
+        260,
+        222
+      ],
+      "isolatedPixelHash": "d31e49ff8cf30b4a30361dd72f5db09a09e882a3910b50141fcd121c0053752f",
+      "rawPixelHash": "7db724b671887e3626d943b49841cd6d30b425382e2ddd685a084c0cce2a9dfd"
+    },
+    {
+      "id": "boitata",
+      "size": [
+        207,
+        232
+      ],
+      "sourceBounds": [
+        533,
+        103,
+        207,
+        232
+      ],
+      "isolatedPixelHash": "777a42f1baf61d2aaa0a83b1737ff05ec58714cd60f2e66f62b6aac3401d1951",
+      "rawPixelHash": "791f18dcfbcb81da7c32d41e62da3ea31fed8d72f20ece87bc5735e2cfd68aa2"
+    },
+    {
+      "id": "wandering-samurai",
+      "size": [
+        229,
+        216
+      ],
+      "sourceBounds": [
+        750,
+        115,
+        229,
+        216
+      ],
+      "isolatedPixelHash": "81bf653af91b538941f4e1fe0726dfdda70d79ade7df6d53e675967d3b3e2e8c",
+      "rawPixelHash": "81bf653af91b538941f4e1fe0726dfdda70d79ade7df6d53e675967d3b3e2e8c"
+    },
+    {
+      "id": "dark-elementalist",
+      "size": [
+        228,
+        226
+      ],
+      "sourceBounds": [
+        992,
+        108,
+        228,
+        226
+      ],
+      "isolatedPixelHash": "18dacb4c1602ffd241a02d3517ebe5dae7c6fdbbf18b358191d1eaad8466f192",
+      "rawPixelHash": "636db7112fe3bd0d68f1c4cc7910453ee825e925c0f816dcc374d08f7157a5e2"
+    },
+    {
+      "id": "naght-sieger",
+      "size": [
+        253,
+        202
+      ],
+      "sourceBounds": [
+        19,
+        346,
+        253,
+        202
+      ],
+      "isolatedPixelHash": "cd1a82909f33dbbcdb7ea8fc9ff5ca58c89fa34d187039cdb930c22f4f9bfc05",
+      "rawPixelHash": "cd1a82909f33dbbcdb7ea8fc9ff5ca58c89fa34d187039cdb930c22f4f9bfc05"
+    },
+    {
+      "id": "coelacanth",
+      "size": [
+        230,
+        175
+      ],
+      "sourceBounds": [
+        286,
+        370,
+        230,
+        175
+      ],
+      "isolatedPixelHash": "19a602620cc631674f185cff4f946c589a4b95a1d0e1fbe031037e3a563b3a77",
+      "rawPixelHash": "19a602620cc631674f185cff4f946c589a4b95a1d0e1fbe031037e3a563b3a77"
+    },
+    {
+      "id": "dark-ranger",
+      "size": [
+        217,
+        211
+      ],
+      "sourceBounds": [
+        526,
+        347,
+        217,
+        211
+      ],
+      "isolatedPixelHash": "e58a2f0ae1b9431bfe9c2500b7dfea8feeedc7242c785f5d497c470ccb937a9e",
+      "rawPixelHash": "88c41ff83fcab00ecf4447c0d1c0c5d9ee6a4a281df02d1bc9238665ccbf5fe3"
+    },
+    {
+      "id": "death-knight",
+      "size": [
+        248,
+        212
+      ],
+      "sourceBounds": [
+        749,
+        337,
+        248,
+        212
+      ],
+      "isolatedPixelHash": "db35790f0a43e0ca535db1525e34ba96c4ef96d6fec507e58007bb4975151c72",
+      "rawPixelHash": "b18ba2ce71cbe64b904dd897fa0c6d88fb30ce643f620c7c1d0ef304add82785"
+    },
+    {
+      "id": "fallen-bishop",
+      "size": [
+        240,
+        215
+      ],
+      "sourceBounds": [
+        997,
+        341,
+        240,
+        215
+      ],
+      "isolatedPixelHash": "c1d71b551ce7e5822754a3c1b39f37a77801bc4c52efc0016dd47d2a33cd587c",
+      "rawPixelHash": "d7f6dfe3bf5e5831d70e7c212d53b21adaf4fe75c428a2a66112ca0d4eca7f3d"
+    },
+    {
+      "id": "tao-gunka",
+      "size": [
+        222,
+        220
+      ],
+      "sourceBounds": [
+        22,
+        558,
+        222,
+        220
+      ],
+      "isolatedPixelHash": "e79ab904fc455ac57cb574ca89ed8a4c90105b8aeaec44d74cc06d6e6fbcb2cc",
+      "rawPixelHash": "2d83c6d7d9ce444da9bcb83d7eda1ab9afe917bfbd987c34d18444f79149c014"
+    },
+    {
+      "id": "ice-dragon",
+      "size": [
+        245,
+        198
+      ],
+      "sourceBounds": [
+        260,
+        571,
+        245,
+        198
+      ],
+      "isolatedPixelHash": "3cd52b86c1fcded3fb3721b8b9bd0fb24735b32ecc1f5e00e39bad018ee50504",
+      "rawPixelHash": "68960d4eb87685cb017c0770ff4582dbe19db0a5183874b4d97798393bfba1d2"
+    },
+    {
+      "id": "restful",
+      "size": [
+        253,
+        212
+      ],
+      "sourceBounds": [
+        506,
+        568,
+        253,
+        212
+      ],
+      "isolatedPixelHash": "3e04ce7f0d77426776402dfbadb8f92dab5e774710e272decf50769f62ccc021",
+      "rawPixelHash": "be0dc155d54ed5615deab5b0ea385d783394f3e56e8ead9cdf05f22042a00bfd"
+    },
+    {
+      "id": "chimera",
+      "size": [
+        227,
+        219
+      ],
+      "sourceBounds": [
+        768,
+        564,
+        227,
+        219
+      ],
+      "isolatedPixelHash": "ab145f891f572308756af55b1abdc10cbda921a84b93270e72f34703b7297eec",
+      "rawPixelHash": "ab145f891f572308756af55b1abdc10cbda921a84b93270e72f34703b7297eec"
+    },
+    {
+      "id": "holy-angel-poring",
+      "size": [
+        231,
+        141
+      ],
+      "sourceBounds": [
+        1006,
+        622,
+        231,
+        141
+      ],
+      "isolatedPixelHash": "7f87a3d563d3929fd60c5b7689f1dd07bd6c92171d5c36733b022473189d5e94",
+      "rawPixelHash": "7f87a3d563d3929fd60c5b7689f1dd07bd6c92171d5c36733b022473189d5e94"
+    },
+    {
+      "id": "morocc",
+      "size": [
+        262,
+        211
+      ],
+      "sourceBounds": [
+        18,
+        788,
+        262,
+        211
+      ],
+      "isolatedPixelHash": "526203eadc9cf651cb3a0fcb3481d3196b13730dc1056676e50cd3ac8113c445",
+      "rawPixelHash": "526203eadc9cf651cb3a0fcb3481d3196b13730dc1056676e50cd3ac8113c445"
+    },
+    {
+      "id": "shadow-demon",
+      "size": [
+        211,
+        214
+      ],
+      "sourceBounds": [
+        291,
+        787,
+        211,
+        214
+      ],
+      "isolatedPixelHash": "89b863d2edc0f0c250362775d69fc781869d9a6f7e3b7bd68b222c8207f3919d",
+      "rawPixelHash": "21f378196b15c1f336b7c6b2a243d1fb7f23aed8f8b2b6e45d111a4d81c51bbd"
+    },
+    {
+      "id": "orc-hero",
+      "size": [
+        235,
+        200
+      ],
+      "sourceBounds": [
+        521,
+        796,
+        235,
+        200
+      ],
+      "isolatedPixelHash": "8d944345b996675c21f190c3f809e8afdba08551cd390aa13510b8dfb5d4a978",
+      "rawPixelHash": "28b03845e6c4b2f7df542de587ce64704de553e34c0c5a7bccae0056ddca0240"
+    },
+    {
+      "id": "dark-chaser",
+      "size": [
+        245,
+        185
+      ],
+      "sourceBounds": [
+        754,
+        810,
+        245,
+        185
+      ],
+      "isolatedPixelHash": "160fe756e99cfed04b3424d2cb9c00fb3194746622121c60029c4286b013cd12",
+      "rawPixelHash": "2aabe74d53bd96ed51e27f62978f7b0cc25531530d9661a0af0ff276adf64405"
+    },
+    {
+      "id": "undead-wizard",
+      "size": [
+        235,
+        206
+      ],
+      "sourceBounds": [
+        1005,
+        790,
+        235,
+        206
+      ],
+      "isolatedPixelHash": "148344c04a9032f42fdc78cf2cb1b1800fff542909e48575753eb5a49e208583",
+      "rawPixelHash": "8c34637636dfa2c48fb2bdad3a968d3aa896f8c524e56fe71064761919801b17"
+    },
+    {
+      "id": "zombie-dragon",
+      "size": [
+        249,
+        207
+      ],
+      "sourceBounds": [
+        14,
+        1011,
+        249,
+        207
+      ],
+      "isolatedPixelHash": "9091e1d202acf628e9461c5f6963ff0356ef17b4ed2a1c7aa63ca27b7c167271",
+      "rawPixelHash": "dc32a79c6c9d7882238d297db7f4e249945ae0ed81e752cd2d974da3d6eac81f"
+    },
+    {
+      "id": "dark-geneticist",
+      "size": [
+        228,
+        211
+      ],
+      "sourceBounds": [
+        272,
+        1008,
+        228,
+        211
+      ],
+      "isolatedPixelHash": "ceaba17cc23cf3a36b1bafc341d5dbffaff1c5e183ca9202cbc83dcbf83e094d",
+      "rawPixelHash": "ed99e73048bba3a1d807a992847a848346f7c4b0591c4087648e2b7885f0cc69"
+    },
+    {
+      "id": "tirfing",
+      "size": [
+        216,
+        208
+      ],
+      "sourceBounds": [
+        524,
+        1014,
+        216,
+        208
+      ],
+      "isolatedPixelHash": "7c8248174ef448fbe57c63b7e96202a365554df19b922a9de054e8c665c96c09",
+      "rawPixelHash": "60d25595346167d0d3a52ba7010dc39f5807b9bf37590fe78a54e0f9978905fe"
+    },
+    {
+      "id": "valkyrie-executioner",
+      "size": [
+        242,
+        201
+      ],
+      "sourceBounds": [
+        750,
+        1020,
+        242,
+        201
+      ],
+      "isolatedPixelHash": "44026d97597866722f8d01bc64d6941614c8b9e3934ebf23404db1d396d265ac",
+      "rawPixelHash": "44026d97597866722f8d01bc64d6941614c8b9e3934ebf23404db1d396d265ac"
+    },
+    {
+      "id": "shadow-dragon",
+      "size": [
+        243,
+        203
+      ],
+      "sourceBounds": [
+        1000,
+        1020,
+        243,
+        203
+      ],
+      "isolatedPixelHash": "b5cee0aa84b747367156611fb0ef90472e883b8725afce15eab60bf26711e49e",
+      "rawPixelHash": "b5cee0aa84b747367156611fb0ef90472e883b8725afce15eab60bf26711e49e"
+    }
+  ]
+}

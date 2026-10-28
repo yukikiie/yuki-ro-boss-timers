@@ -2,17 +2,21 @@
 
 import { useId } from "react";
 import { gardenCreatureDetails, gardenCreatures } from "../../lib/garden-creatures";
-import { gardenPersonDetails, gardenPeople } from "../../lib/garden-people";
+import { gardenPersonDetails } from "../../lib/garden-people";
 import { addedGardenResidentDetails, addedGardenResidents } from "../../lib/garden-added-residents";
 import type { ScenePhase } from "../../lib/scene-time";
 import { SleepMarks, SleepBubble } from "./sleep-marks";
 import { HeaderBehaviorProvider, useHeaderBehavior } from "../../hooks/use-header-behavior";
 
+export const headerMonsterActorIndices = [
+  ...gardenCreatures.map((creature, index) => index),
+  ...addedGardenResidents.flatMap((resident, index) => resident.person ? [] : [index + 8]),
+];
+
 export function HeaderResidents({ phase, active, tall = false }: { phase: ScenePhase; active: boolean; tall?: boolean }) {
-  return <HeaderBehaviorProvider phase={phase} active={active} tall={tall}>
+  return <HeaderBehaviorProvider phase={phase} active={active} tall={tall} actorIndices={headerMonsterActorIndices}>
     {gardenCreatures.map((creature, index) => <GardenCreature key={creature.id} index={index} phase={phase} />)}
-    {gardenPeople.map((person, index) => <GardenPerson key={person.id} index={index} phase={phase} />)}
-    {addedGardenResidents.map((resident, index) => <AddedGardenResident key={resident.id} index={index} phase={phase} />)}
+    {addedGardenResidents.map((resident, index) => resident.person ? null : <AddedGardenResident key={resident.id} index={index} phase={phase} />)}
   </HeaderBehaviorProvider>;
 }
 

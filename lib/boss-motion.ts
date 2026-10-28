@@ -1,34 +1,13 @@
-import pixelMotionA from "./pixel-motion-a.json";
-import pixelMotionB from "./pixel-motion-b.json";
-import pixelMotionC from "./pixel-motion-c.json";
-import pixelMotionD from "./pixel-motion-d.json";
-import pixelMotionE from "./pixel-motion-e.json";
-import pixelMotionF from "./pixel-motion-f.json";
-import pixelMotionG from "./pixel-motion-g.json";
-import pixelMotionH from "./pixel-motion-h.json";
-import pixelMotionI from "./pixel-motion-i.json";
-import pixelMotionJ from "./pixel-motion-j.json";
-import pixelMotionK from "./pixel-motion-k.json";
-import pixelMotionL from "./pixel-motion-l.json";
-import pixelMotionM from "./pixel-motion-m.json";
-import pixelMotionN from "./pixel-motion-n.json";
+import approvedMotionA from "./approved-boss-motion-a.json";
+import approvedMotionB from "./approved-boss-motion-b.json";
+import approvedMotionC from "./approved-boss-motion-c.json";
+import approvedMotionD from "./approved-boss-motion-d.json";
+import approvedMotionE from "./approved-boss-motion-e.json";
 
-const pixelAtlases = [pixelMotionA, pixelMotionB, pixelMotionC, pixelMotionD, pixelMotionE, pixelMotionF, pixelMotionG, pixelMotionH, pixelMotionI, pixelMotionJ, pixelMotionK, pixelMotionL, pixelMotionM, pixelMotionN];
+const pixelAtlases = [approvedMotionA, approvedMotionB, approvedMotionC, approvedMotionD, approvedMotionE];
 
 export const motionAtlases = pixelAtlases.map(({ source, width, height }) => ({ source, width, height }));
-export const motionSpriteLocations = [
-  ...Array.from({ length: 15 }, (_, index) => ({ atlasIndex: Math.floor(index / 4), row: index % 4 })),
-  { atlasIndex: 4, row: 0 },
-  { atlasIndex: 4, row: 1 },
-  { atlasIndex: 4, row: 2 },
-  { atlasIndex: 12, row: 0 },
-  { atlasIndex: 7, row: 0 },
-  { atlasIndex: 13, row: 0 },
-  { atlasIndex: 11, row: 0 },
-  { atlasIndex: 8, row: 0 },
-  { atlasIndex: 9, row: 0 },
-  { atlasIndex: 10, row: 0 },
-];
+export const motionSpriteLocations = Array.from({ length: 25 }, (_, index) => ({ atlasIndex: Math.floor(index / 5), row: index % 5 }));
 export const motionFrameBounds = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].rows[row]);
 
 export const bossMotion = [

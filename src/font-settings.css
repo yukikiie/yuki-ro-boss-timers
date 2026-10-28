@@ -1,0 +1,55 @@
+@font-face { font-family: "Bosswatch Boss Names"; src: url("/fonts/BosswatchBossNames-400.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; }
+
+.app-shell .font-settings { margin: 20px 1.5cqi 16px; padding: 16px; color: #30244e; background: #fff8fff2; border: 2px solid #8e729f; box-shadow: inset 0 0 0 2px #eadff0; font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; font-size: 13px; font-weight: 400; font-style: normal; line-height: 1.5; }
+.app-shell .font-settings-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.app-shell .font-settings-heading h2 { margin: 0; font: inherit; font-size: 17px; font-weight: 800; }
+.app-shell .font-settings-heading p { margin: 2px 0 0; font: inherit; font-size: 12px; color: #796781; }
+.app-shell .font-settings .font-reset { flex-shrink: 0; min-height: 34px; padding: 5px 10px; color: #60345e; border: 1px solid #b391b2; background: #f8e3f0; font: inherit; cursor: pointer; }
+.app-shell .font-settings-targets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.app-shell .font-settings fieldset { min-width: 0; margin: 0; padding: 12px; border: 1px solid #d4c1dc; background: #fffaff; }
+.app-shell .font-settings legend { padding: 0 5px; font: inherit; font-weight: 800; }
+.app-shell .font-settings label { font: inherit; }
+.app-shell .font-settings .font-style-field { display: flex; align-items: center; gap: 10px; }
+.app-shell .font-settings select { flex: 1; min-width: 0; min-height: 34px; padding: 4px; border: 1px solid #bda7ca; border-radius: 0; color: #30244e; background: #fff; font: inherit; }
+.app-shell .font-settings .font-size-field { display: grid; gap: 7px; margin-top: 12px; }
+.app-shell .font-settings .font-size-field > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.app-shell .font-settings output { font: inherit; font-variant-numeric: tabular-nums; }
+.app-shell .font-settings input[type="range"] { display: block; width: 100%; height: 24px; margin: 0; accent-color: #a65b94; cursor: pointer; }
+.app-shell .font-settings .font-toggle-fields { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 10px; }
+.app-shell .font-settings .font-toggle-fields label { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; cursor: pointer; }
+.app-shell .font-settings input[type="checkbox"] { width: 16px; height: 16px; margin: 0; accent-color: #a65b94; }
+.app-shell .font-settings :is(button, select, input):focus-visible { outline: 3px solid #d576aa; outline-offset: 3px; }
+
+.app-shell.reference-timers .boss-identity h3,
+.app-shell.reference-timers .card-featured .boss-identity h3,
+.app-shell.reference-timers .upcoming-route .route-boss-name { font-family: var(--user-name-family, var(--font-boss-name)); font-size: var(--user-name-size, 17px); font-weight: var(--user-name-weight, 800); font-style: var(--user-name-style, normal); font-synthesis: weight style; }
+.app-shell.reference-timers[data-typography-custom] .boss-card,
+.app-shell.reference-timers[data-typography-custom] .card-featured { height: auto; min-height: max(27.5cqi, 110px); grid-template-rows: auto minmax(51px, auto); }
+.app-shell.reference-timers[data-typography-custom] .boss-name-row { flex-wrap: wrap; padding-block: 4px; }
+.app-shell.reference-timers[data-typography-custom] .boss-identity h3 { display: block; flex-basis: 100%; overflow: visible; -webkit-line-clamp: unset; line-clamp: unset; overflow-wrap: anywhere; }
+.app-shell.reference-timers[data-typography-custom] .boss-metadata { flex-wrap: wrap; }
+
+.app-shell[data-ui-font-custom] :is(.attribute-chip, .button-card, .filter-tabs button, .text-control, .sort-note, .card-menu button, .route-step, .route-spawn-time, .route-gap, .route-note, .nav-item, .mobile-nav button > span, .dual-clock > div > span, .cycle-strip strong, .cycle-strip > div > span, .cycle-reset, .section-title h2, .section-title p, .empty-list h3, .empty-list p, .dialog-description, .dialog-submit, .dialog-cancel, .add-fields label, .form-tip p, .notice strong, .notice p) { font-family: var(--user-ui-family); }
+.app-shell[data-ui-weight-custom] :is(.attribute-chip, .button-card, .filter-tabs button, .text-control, .sort-note, .card-menu button, .route-step, .route-spawn-time, .route-gap, .route-note, .nav-item, .mobile-nav button > span, .dual-clock > div > span, .cycle-strip strong, .cycle-strip > div > span, .cycle-reset, .section-title h2, .section-title p, .empty-list h3, .empty-list p, .dialog-description, .dialog-submit, .dialog-cancel, .add-fields label, .form-tip p, .notice strong, .notice p) { font-weight: var(--user-ui-weight); }
+.app-shell[data-ui-italic-custom] :is(.attribute-chip, .button-card, .filter-tabs button, .text-control, .sort-note, .card-menu button, .route-step, .route-spawn-time, .route-gap, .route-note, .nav-item, .mobile-nav button > span, .dual-clock > div > span, .cycle-strip strong, .cycle-strip > div > span, .cycle-reset, .section-title h2, .section-title p, .empty-list h3, .empty-list p, .dialog-description, .dialog-submit, .dialog-cancel, .add-fields label, .form-tip p, .notice strong, .notice p) { font-style: italic; font-synthesis: weight style; }
+.app-shell.reference-timers[data-ui-size-custom] .attribute-chip { font-size: calc(3.5cqi * var(--user-ui-scale)); }
+.app-shell.reference-timers[data-ui-size-custom] .button-card { font-size: calc(max(2.7cqi, 10px) * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] .mobile-nav button > span { font-size: calc(3.1cqi * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] :is(.filter-tabs button, .text-control, .nav-item) { font-size: calc(12px * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] .card-menu button { font-size: calc(13px * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] .upcoming-route .route-step { font-size: calc(max(2.6cqi, 10px) * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] .upcoming-route .route-spawn-time { font-size: calc(max(3.4cqi, 14px) * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] .upcoming-route .route-gap { font-size: calc(max(2.3cqi, 9px) * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] .upcoming-route .route-note { font-size: calc(max(2.15cqi, 9px) * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] :is(.cycle-strip strong, .cycle-strip > div > span, .dual-clock > div > span) { font-size: calc(10px * var(--user-ui-scale)); }
+.app-shell[data-ui-size-custom] :is(.dialog-description, .dialog-submit, .dialog-cancel, .add-fields label, .empty-list p, .notice p) { font-size: calc(13px * var(--user-ui-scale)); }
+
+@media (max-width: 480px) { .app-shell .font-settings { padding: 12px; } .app-shell .font-settings-targets { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
+@media (min-width: 1100px) {
+  .app-shell .font-settings { margin-inline: 0; }
+  .app-shell.reference-timers[data-ui-size-custom] .attribute-chip { font-size: calc(clamp(11px, 3.5cqi, 14px) * var(--user-ui-scale)); }
+  .app-shell[data-ui-size-custom] .upcoming-route :is(.route-step, .route-gap, .route-note) { font-size: calc(11px * var(--user-ui-scale)); }
+  .app-shell[data-ui-size-custom] .upcoming-route .route-spawn-time { font-size: calc(16px * var(--user-ui-scale)); }
+  .app-shell[data-ui-size-custom] :is(.cycle-strip strong, .cycle-strip > div > span, .cycle-reset, .sort-note, .text-control) { font-size: calc(11px * var(--user-ui-scale)); }
+  .app-shell[data-ui-size-custom] .dual-clock > div > span { font-size: calc(12px * var(--user-ui-scale)); }
+}

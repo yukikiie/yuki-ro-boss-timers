@@ -71,6 +71,18 @@ test("wide viewports use a full-width panoramic header and three card columns", 
   assert.equal(declarations(desktop, ".app-shell .mobile-nav").display, "none");
 });
 
+test("narrow desktop clocks keep complete labels on one line without shrinking the clear digits or taller bar", () => {
+  const narrow = styles.match(/@media \(min-width: 1100px\) and \(max-width: 1250px\) \{([\s\S]*?)\n\}/)?.[1];
+  assert.ok(narrow);
+  assert.equal(declarations(narrow, ".reference-timers .dual-clock").gap, "6px");
+  assert.equal(declarations(narrow, ".reference-timers .dual-clock > div").gap, "4px");
+  const label = declarations(narrow, ".reference-timers .dual-clock > div > span");
+  assert.equal(label["white-space"], "nowrap");
+  assert.equal(label["flex-shrink"], "0");
+  assert.doesNotMatch(narrow, /font-size|height:/);
+  assert.equal(declarations(mediaBody(1100), ".reference-timers > .main-shell > .main-content > .dashboard-clockbar")["min-height"], "40px");
+});
+
 test("every desktop card owns the sizing context for portraits, badges and countdowns", () => {
   const desktop = mediaBody(1100);
   const slot = declarations(desktop, ".reference-timers .boss-card-slot");

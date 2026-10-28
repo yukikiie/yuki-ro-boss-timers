@@ -2,7 +2,9 @@
 
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { SCENE_ASSETS, type ScenePhase } from "../../lib/scene-time";
+import { resolveBackgroundTheme, type BackgroundThemeId } from "../../lib/background-themes";
 import { HeaderResidents } from "./garden-creature";
+import { ThemeResidents } from "./theme-residents";
 
 const nightStars = [
   [42, 278], [204, 292], [341, 274], [665, 290], [820, 273],
@@ -116,7 +118,19 @@ function DesktopHeaderScene({ phase, active }: { phase: ScenePhase; active: bool
   </div>;
 }
 
-export function AnimatedHeader({ phase = "day", tall = false, paused = false }: { phase?: ScenePhase; tall?: boolean; paused?: boolean }) {
+function ThemedHeaderScene({ themeId, phase, desktop, active }: { themeId: BackgroundThemeId; phase: ScenePhase; desktop: boolean; active: boolean }) {
+  const theme = resolveBackgroundTheme(themeId);
+  const layout = desktop ? "desktop" : "mobile";
+  const [width, height] = desktop ? theme.desktopSize : theme.mobileSize;
+  return <div className={desktop ? "desktop-header-scene themed-header-scene" : "mobile-header-scene themed-header-scene"} data-background-theme={theme.id} data-background-layout={layout} style={{ position: "relative", display: "block", width: "100%" }}>
+    <img className={desktop ? "desktop-header-image" : "animated-header-image"} src={theme[layout]} width={width} height={height} alt={`${theme.label}：完整像素場景與魔物居民`} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "auto", imageRendering: "pixelated" }} fetchPriority="high" />
+    <svg className="scene-motion-layer" viewBox={`0 0 1000 ${1000 * height / width}`} preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" shapeRendering="crispEdges">
+      <ThemeResidents themeId={themeId} layout={layout} phase={phase} active={active} />
+    </svg>
+  </div>;
+}
+
+export function AnimatedHeader({ phase = "day", tall = false, paused = false, themeId }: { phase?: ScenePhase; tall?: boolean; paused?: boolean; themeId?: BackgroundThemeId }) {
   const { reference, visible } = useSceneVisibility();
   const [reducedMotion, setReducedMotion] = useState(false);
   const [desktopScene, setDesktopScene] = useState(false);
@@ -141,7 +155,7 @@ export function AnimatedHeader({ phase = "day", tall = false, paused = false }: 
 
   return (
     <div ref={reference} className="living-scene animated-header" data-header-layout={tall ? "tall" : "standard"} data-scene-phase={phase} data-scene-visible={visible ? "true" : "false"}>
-      {desktopScene ? <DesktopHeaderScene phase={phase} active={visible && !paused && !reducedMotion} /> : <div className="mobile-header-scene">
+      {themeId ? <ThemedHeaderScene themeId={themeId} phase={phase} desktop={desktopScene} active={visible && !paused && !reducedMotion} /> : desktopScene ? <DesktopHeaderScene phase={phase} active={visible && !paused && !reducedMotion} /> : <div className="mobile-header-scene">
       <img
         className="animated-header-image"
         src={tall ? phase === "day" ? "/art/ro-header-tall-morning.png" : phase === "night" ? "/art/ro-header-tall-night.png" : "/art/ro-header-tall-preview.png" : SCENE_ASSETS[phase].header}
