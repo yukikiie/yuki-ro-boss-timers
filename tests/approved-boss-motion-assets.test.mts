@@ -152,12 +152,14 @@ test("all twenty-five approved bosses require five complete animation batches", 
 test("Phreeoni has four complete transparent bite-and-swat poses on its own sixth atlas", () => {
   const atlas = JSON.parse(readFileSync(new URL("../lib/approved-boss-motion-f.json", import.meta.url), "utf8")) as ApprovedAtlas & { framePixelHashes: string[][]; generatedSourceSha256: string };
   assert.deepEqual(atlas.bossIds, ["phreeoni"]);
+  assert.equal(atlas.source, "/art/ro-approved-boss-motion-f-v3.png");
   assert.deepEqual(atlas.frameOrder, ["idle", "windup", "action", "recovery"]);
   assert.equal(atlas.rows.length, 1);
   assert.equal(atlas.rows[0].length, 4);
   assert.doesNotMatch(atlas.generatedSource, /[\\/]/);
   assert.match(atlas.generatedSourceSha256, /^[a-f0-9]{64}$/);
-  assert.equal(createHash("sha256").update(readFileSync(new URL(`../public${atlas.source}`, import.meta.url))).digest("hex"), "0d243dfce4250c964bb61d3c69a2570ffc7b0c496009bc3ae8b61dc40ab8e03b");
+  assert.equal(createHash("sha256").update(readFileSync(new URL(`../public${atlas.source}`, import.meta.url))).digest("hex"), "d363862928c93be12481c5fdd78eeff2b9c42ce2f6bbebe23e32a596e9320930");
+  assert.equal(createHash("sha256").update(readFileSync(new URL("../public/art/ro-approved-boss-motion-f.png", import.meta.url))).digest("hex"), "0d243dfce4250c964bb61d3c69a2570ffc7b0c496009bc3ae8b61dc40ab8e03b", "the earlier artwork stays retained at its original URL");
   const pixels = rgbaPixels(atlas), coverage = new Uint8Array(atlas.width * atlas.height), hashes: string[] = [];
   for (const [column, [left, top, width, height]] of atlas.rows[0].entries()) {
     assert.ok(left > 0 && top > 0 && left + width < atlas.width && top + height < atlas.height);

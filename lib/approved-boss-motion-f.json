@@ -1,5 +1,5 @@
 {
-  "source": "/art/ro-approved-boss-motion-f.png",
+  "source": "/art/ro-approved-boss-motion-f-v3.png",
   "width": 1248,
   "height": 315,
   "bossIds": [
@@ -8,33 +8,33 @@
   "rows": [
     [
       [
-        48,
-        38,
-        237,
-        249
+        47,
+        43,
+        240,
+        244
       ],
       [
-        341,
+        343,
         56,
-        261,
+        257,
         231
       ],
       [
-        638,
-        28,
-        277,
-        259
+        642,
+        35,
+        270,
+        252
       ],
       [
-        964,
-        54,
-        234,
-        233
+        962,
+        53,
+        239,
+        234
       ]
     ]
   ],
   "idleAreas": [
-    32979.07843134335
+    33057.99607840442
   ],
   "frameOrder": [
     "idle",
@@ -42,41 +42,41 @@
     "action",
     "recovery"
   ],
-  "generatedSource": "phreeoni-four-poses-v1.png",
-  "generatedSourceSha256": "ca2a205d8773098f219bcbd14b08154c7e54f35f74c02d6e36a15e41385a8684",
+  "generatedSource": "phreeoni-four-poses-v3.png",
+  "generatedSourceSha256": "97969348d03199ae4e54ed21679c16b563a2799141f1dfe06b81bc934cc1b070",
   "sourceFrameBounds": [
     [
-      14,
-      89,
-      505,
-      532
+      52,
+      141,
+      439,
+      446
     ],
     [
-      552,
-      128,
-      557,
-      492
+      598,
+      164,
+      471,
+      423
     ],
     [
-      1076,
-      73,
-      592,
-      552
+      1118,
+      123,
+      496,
+      463
     ],
     [
-      1660,
-      125,
-      499,
-      497
+      1682,
+      159,
+      437,
+      427
     ]
   ],
-  "uniformScale": 0.46152183110456685,
+  "uniformScale": 0.5369601304687487,
   "framePixelHashes": [
     [
-      "cae830d91199a2ca146a190ef99ccb991f0128036b74a0fbc3afbdff24eda708",
-      "a2b3d8ca64adceca1dcc48d063d8dae76425d9392b7d21e6d9674fe88094c243",
-      "51147c8651a7d1074bc3e2b08247cb2f543cddeb2badd305e234a3524984b261",
-      "8162301b7e06899b06a29b1d5a0ee9ab734d70fdb1d0f3863240b9323f2ca163"
+      "6a7a7a8da2fe710b4c8ff2954253eaa99d6075dfd560654950870ffcec9fc1c9",
+      "e9c1256637b14c755e110f502f7bd93ca3422e826b5a64fdd4ebffceff2aa6d8",
+      "d2b9ce910a6500685d137adcdbba7a97d17faffdb3f190d1b9e0092f6d27afc4",
+      "d2ceb0eddf69fa596f271d5d494bc74747a00be83aed79dfe86ed810d466b60a"
     ]
   ]
 }

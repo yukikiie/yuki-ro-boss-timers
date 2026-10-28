@@ -60,7 +60,7 @@ test("the original five animation batches retain their slots and Phreeoni append
   for (let index = 0; index < 26; index++) {
     const details = motionDetails(index)!;
     const batch = "abcdef"[Math.floor(index / 5)];
-    assert.equal(details.source, batch === "d" ? "/art/ro-approved-boss-motion-d-eyes-v2.png" : `/art/ro-approved-boss-motion-${batch}.png`);
+    assert.equal(details.source, batch === "d" ? "/art/ro-approved-boss-motion-d-eyes-v2.png" : batch === "f" ? "/art/ro-approved-boss-motion-f-v3.png" : `/art/ro-approved-boss-motion-${batch}.png`);
     assert.equal(details.row, index % 5);
     assert.equal(details.cellWidth, Math.max(...details.frames.map(frame => frame.width)) + 16);
   }

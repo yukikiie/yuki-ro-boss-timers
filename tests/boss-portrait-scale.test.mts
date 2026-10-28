@@ -70,7 +70,7 @@ test("pixel Death Knight matches the reference footprint without stretching its 
 test("Phreeoni appends at25 with the shared apparent-size reference and one uniform animation scale", () => {
   const details = motion.motionDetails(25)!;
   assert.equal(details.id, "phreeoni");
-  assert.equal(details.source, "/art/ro-approved-boss-motion-f.png");
+  assert.equal(details.source, "/art/ro-approved-boss-motion-f-v3.png");
   assert.equal(details.action, "張口咬擊與揮臂");
   assert.equal(details.duration, 1.4);
   assert.equal(details.row, 0);
