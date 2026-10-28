@@ -90,6 +90,21 @@ test("route order ignores MVP and favorite priority and does not mutate saved ti
   assert.doesNotMatch(pageSource, /<UpcomingBossRoute bosses=\{visibleBosses\}/);
 });
 
+test("fixed card ranks never change the actual first and next countdown destinations", () => {
+  const bosses = withCountdowns([{ id: "orc-hero", seconds: 1200 }, { id: "naght-sieger", seconds: 60 }, { id: "death-knight", seconds: 300 }]);
+  const before = JSON.stringify(bosses);
+  const displayed = catalog.sortBossesForDisplay(bosses) as TestBoss[];
+  assert.equal(displayed[0].id, "atroce");
+  assert.ok(displayed.findIndex(boss => boss.id === "orc-hero") < displayed.findIndex(boss => boss.id === "death-knight"));
+  assert.ok(displayed.findIndex(boss => boss.id === "death-knight") < displayed.findIndex(boss => boss.id === "naght-sieger"));
+  assert.deepEqual(timers.upcomingBosses(displayed, now).map(boss => boss.id), ["naght-sieger", "death-knight", "orc-hero"]);
+  const markup = renderRoute(bosses);
+  assert.match(markup, /data-route-boss="naght-sieger" data-route-position="first"/);
+  assert.match(markup, /data-route-boss="death-knight" data-route-position="next"/);
+  assert.equal(renderRoute(displayed), markup);
+  assert.equal(JSON.stringify(bosses), before);
+});
+
 test("each selected destination visibly shows its exact HKT deadline including seconds", () => {
   const bosses = withCountdowns([{ id: "death-knight", seconds: 337 }, { id: "naght-sieger", seconds: 552 }]);
   const previous = JSON.stringify(bosses);
@@ -167,6 +182,10 @@ test("safe sample preview exercises the same confirmed route without contacting 
   const markup = renderToStaticMarkup(React.createElement(App, { referencePreview: true }));
   assert.match(markup, /data-route-boss="dark-ranger" data-route-position="first"/);
   assert.match(markup, /data-route-boss="atroce" data-route-position="next"/);
+  const featuredCards = (markup.match(/<article\b[^>]*>/g) || []).filter(card => card.includes("card-featured"));
+  assert.equal(featuredCards.length, 1);
+  assert.match(featuredCards[0], /遊俠（暗・遊俠），Mini，下一隻重生/);
+  assert.ok(markup.indexOf('data-preview-sprite-index="0"') < markup.indexOf('data-preview-sprite-index="7"'));
   assert.match(pageSource, /observedAt: boss\.remaining \? timestamp : null/);
   assert.match(pageSource, /source: boss\.remaining \? "manual" : null/);
 });
@@ -175,9 +194,16 @@ test("the isolated all-boss preview includes all twenty-five animated identities
   const before = JSON.stringify(timers.defaultBosses(now));
   const App = page.BossTimerApp as React.ComponentType<{ referencePreview: boolean; previewAllBosses: boolean }>;
   const markup = renderToStaticMarkup(React.createElement(App, { referencePreview: true, previewAllBosses: true }));
-  const indices = [...markup.matchAll(/data-preview-sprite-index="(\d+)"/g)].map(match => Number(match[1])).sort((first, second) => first - second);
-  assert.deepEqual(indices, Array.from({ length: 25 }, (_, index) => index));
+  const indices = [...markup.matchAll(/data-preview-sprite-index="(\d+)"/g)].map(match => Number(match[1]));
+  assert.deepEqual([...indices].sort((first, second) => first - second), Array.from({ length: 25 }, (_, index) => index));
+  assert.deepEqual(indices, [0, 1, 17, 15, 20, 10, 9, 8, 14, 24, 16, 23, 21, 18, 2, 3, 13, 22, 19, 6, 5, 12, 11, 7, 4]);
   assert.equal((markup.match(/<article\b[^>]*class="boss-card/g) || []).length, 25);
+  assert.equal((markup.match(/aria-label="取消最愛 /g) || []).length, 4);
+  assert.equal((markup.match(/<article\b[^>]*class="[^"]*card-counting/g) || []).length, 8);
+  assert.match(markup, /data-route-boss="atroce" data-route-position="first"/);
+  assert.match(markup, /data-route-boss="lady-tanee" data-route-position="next"/);
+  assert.match(markup, /各類最愛依重生倒數置頂，其餘依指定順序/);
+  assert.doesNotMatch(markup, /最近重生優先/);
   for (const name of ["逐影", "亡靈巫師", "殭屍龍", "基因", "獸牙怪", "代行", "影龍"]) assert.ok(markup.includes(name), name);
   assert.equal(catalog.bossCatalog.length, 18);
   assert.equal(JSON.stringify(timers.defaultBosses(now)), before);
