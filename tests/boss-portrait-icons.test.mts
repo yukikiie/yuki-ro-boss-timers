@@ -188,6 +188,31 @@ test("saved executioner and shadow dragon names use real pose animations without
   assert.equal(JSON.stringify(defaultBosses(now)), defaults);
 });
 
+test("the saved Phreeoni identity selects index25 pose animation through its exact canonical name and shortcut", () => {
+  const Portrait = loadPortrait();
+  const expected = { id: "phreeoni", spriteIndex: 25 };
+  const timestamp = Date.parse("2026-10-28T12:00:00Z");
+  const defaults = JSON.stringify(defaultBosses(timestamp));
+  for (const boss of [{ id: "custom-1gjisbs", name: "皮皮" }, { id: "custom-1gjisbs", name: "Unknown" }, ...["皮皮", "皮里恩", " 皮 里 恩 "].map(name => ({ id: "custom-phreeoni-fixture", name }))]) {
+    const before = JSON.stringify(boss);
+    assert.deepEqual(portraitMotion(boss), expected);
+    assert.equal(portraitIcon(boss), null);
+    assert.equal(portraitAnimation(boss), null);
+    for (const paused of [false, true]) {
+      const markup = renderToStaticMarkup(React.createElement(Portrait, { boss, paused }));
+      assert.match(markup, /data-preserved-motion="25"/);
+      assert.doesNotMatch(markup, /data-native-animation|data-generic-sigil|native-boss-icon|<img/);
+    }
+    assert.equal(JSON.stringify(boss), before);
+  }
+  for (const name of ["皮", "皮皮王", "皮里恩王", "皮利恩", "Phreeoni", "1159"]) assert.equal(portraitMotion({ name }), null, name);
+  assert.equal(portraitMotion({ id: "custom-1gjisbs-extra" }), null);
+  assert.deepEqual(portraitMotion({ id: "custom-1gjisbs", name: "逐影" }), expected);
+  assert.deepEqual(portraitMotion({ id: "custom-5qip79", name: "皮皮" }), { id: "dark-chaser", spriteIndex: 18 });
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(JSON.stringify(defaultBosses(timestamp)), defaults);
+});
+
 test("native icon styling stays inside the current portrait slot and URLs retain GitHub base paths", () => {
   const styles = source("../src/approved-art.css");
   assert.match(styles, /\.reference-timers \.portrait-native-icon \.native-boss-icon \{[^}]*height: 100%;[^}]*object-fit: contain;[^}]*border-radius: 50%/);

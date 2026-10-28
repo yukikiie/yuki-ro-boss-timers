@@ -28,6 +28,9 @@ const shortcuts = [
   ["dark-elementalist", "暗・元素使", "元素"],
   ["dark-ranger", "暗・遊俠", "遊俠"],
   ["custom-1hb3imu", "暗・基因學者", "基因"],
+  ["custom-1xgl1sj", "代行刑者", "代行"],
+  ["custom-1hknmq6", "尼德豪克的影子", "影龍"],
+  ["custom-1gjisbs", "皮里恩", "皮皮"],
 ] as const;
 
 type FixtureBoss = {
@@ -89,7 +92,7 @@ function renderApp(selected = bosses, dialog: { type: "kill" | "countdown"; boss
   return renderToStaticMarkup(React.createElement(loadPage(selected, dialog).BossTimerApp, { referencePreview: true }));
 }
 
-test("all ten cards display shortcuts while retaining official title and accessible identities", () => {
+test("all thirteen cards display shortcuts while retaining official title and accessible identities", () => {
   const before = JSON.stringify(bosses);
   const markup = renderApp();
   for (const [id, name, displayName] of shortcuts) {
@@ -117,7 +120,7 @@ test("each route uses the shortcut visually and the full game name for title and
   }
 });
 
-test("kill and countdown dialogs display all ten shortcuts with canonical title attributes", () => {
+test("kill and countdown dialogs display all thirteen shortcuts with canonical title attributes", () => {
   for (const [id, name, displayName] of shortcuts) {
     const boss = bosses.find(entry => entry.id === id)!;
     for (const type of ["kill", "countdown"] as const) {
@@ -147,6 +150,22 @@ test("the existing saved geneticist shortcut retains MVP metadata, animation, ca
   const reminders = timers.reminderCandidates([boss], timestamp);
   assert.equal(reminders[0].title, "基因 · 10 分鐘提醒");
   assert.equal(reminders[0].bossId, "custom-1hb3imu");
+  assert.equal(JSON.stringify(boss), before);
+});
+
+test("the existing saved Phreeoni shortcut shows its verified MVP information and canonical controls without renaming timer or notification data", () => {
+  const boss = fixtureBoss("custom-1gjisbs", "皮皮");
+  const before = JSON.stringify(boss);
+  assert.equal(boss.kind, "MVP");
+  const markup = renderApp([boss]);
+  assert.ok(markup.includes('<h3 title="皮里恩">皮皮</h3>'));
+  assert.ok(markup.includes('aria-label="皮皮（皮里恩），MVP'));
+  for (const label of ["體型：大型", "屬性：無", "種族：動物", "加入最愛 皮里恩", "皮里恩 更多選項", "皮里恩 計時操作", "皮里恩 剛被擊殺", "皮里恩 設定倒數"]) assert.ok(markup.includes(`aria-label="${label}"`), label);
+  assert.ok(markup.includes('data-motion-index="25"'));
+  assert.ok(markup.includes('aria-label="皮里恩，距離預計出現 00:10:00"'));
+  const reminder = timers.reminderCandidates([boss], timestamp)[0];
+  assert.equal(reminder.bossId, "custom-1gjisbs");
+  assert.equal(reminder.title, "皮皮 · 10 分鐘提醒");
   assert.equal(JSON.stringify(boss), before);
 });
 

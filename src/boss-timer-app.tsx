@@ -167,6 +167,7 @@ function previewState(extraDigits = false, allBosses = false): AppState {
     { id: "custom-qinmln", name: "獸牙怪", kind: "Mini" },
     { id: "custom-1xgl1sj", name: "代行刑者", kind: "MVP" },
     { id: "custom-1hknmq6", name: "尼德豪克的影子", kind: "MVP" },
+    { id: "custom-1gjisbs", name: "皮皮", kind: "MVP" },
   ].map((boss, index) => ({ id: boss.id, name: boss.name, kind: boss.kind === "MVP" ? "MVP" : "Mini", remaining: index < 8 ? (index + 1) * 200 : 0 })) : [
     { id: "dark-ranger", name: "暗・遊俠", kind: "Mini", remaining: extraDigits ? 369 : 200 },
     { id: "atroce", name: "阿特羅斯", kind: "MVP", remaining: extraDigits ? 1027 : 760 },

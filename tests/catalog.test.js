@@ -198,6 +198,32 @@ test("saved executioner and shadow dragon identities resolve verified metadata w
   assert.equal(JSON.stringify(defaultBosses(timestamp)), defaultsSnapshot);
 });
 
+test("the existing Phreeoni record gains verified metadata without adding defaults or changing its saved timer", () => {
+  const timestamp = Date.UTC(2026, 9, 28, 12);
+  const defaults = defaultBosses(timestamp);
+  const defaultsBefore = JSON.stringify(defaults);
+  const details = bossDetails({ id: "custom-1gjisbs" });
+  assert.deepEqual(details, { id: "custom-1gjisbs", name: "皮里恩", kind: "MVP", size: "大", element: "無", race: "動物" });
+  assert.ok(Object.isFrozen(details));
+  for (const field of ["spriteIndex", "favorite", "level", "respawnMinutes"]) assert.equal(Object.hasOwn(details, field), false);
+  assert.throws(() => { details.element = "暗"; }, TypeError);
+  for (const name of ["皮皮", "皮里恩", " 皮 里 恩 "]) assert.equal(bossDetails({ id: "custom-lookup-fixture", name }), details);
+  assert.equal(bossDetails({ id: "custom-1gjisbs", name: "影魔" }), details);
+  assert.equal(bossDetails({ id: "atroce", name: "皮皮" }), bossCatalog[0]);
+  for (const name of ["皮", "皮皮王", "皮里恩王", "皮利恩", "Phreeoni", "1159"]) assert.equal(bossDetails({ name }), null, name);
+  assert.equal(bossDetails({ id: "custom-1gjisbs-extra" }), null);
+  for (const timer of [{ status: "unknown", dueAt: null, observedAt: null, source: null }, { status: "counting", dueAt: timestamp + 456789, observedAt: timestamp, source: "manual" }]) {
+    const saved = Object.freeze({ id: "custom-1gjisbs", name: "皮皮", kind: "MVP", favorite: false, cycle: "2026-10-28", respawnMinutes: 180, ...timer });
+    const before = JSON.stringify(saved);
+    assert.equal(bossDetails(saved), details);
+    assert.equal(JSON.stringify(saved), before);
+  }
+  assert.equal(bossCatalog.length, 18);
+  assert.equal(defaults.length, 18);
+  assert.equal(defaults.some(boss => boss.id === "custom-1gjisbs"), false);
+  assert.equal(JSON.stringify(defaultBosses(timestamp)), defaultsBefore);
+});
+
 test("respawn ordering puts the earliest mixed Mini or MVP first regardless of favorites", () => {
   const bosses = [
     { id: "mvp-later", kind: "MVP", status: "counting", dueAt: 1_200, favorite: true },

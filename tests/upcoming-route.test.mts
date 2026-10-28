@@ -190,14 +190,15 @@ test("safe sample preview exercises the same confirmed route without contacting 
   assert.match(pageSource, /source: boss\.remaining \? "manual" : null/);
 });
 
-test("the isolated all-boss preview includes all twenty-five animated identities without changing the default roster", () => {
+test("the isolated all-boss preview includes all twenty-six animated identities without changing the default roster", () => {
   const before = JSON.stringify(timers.defaultBosses(now));
   const App = page.BossTimerApp as React.ComponentType<{ referencePreview: boolean; previewAllBosses: boolean }>;
   const markup = renderToStaticMarkup(React.createElement(App, { referencePreview: true, previewAllBosses: true }));
   const indices = [...markup.matchAll(/data-preview-sprite-index="(\d+)"/g)].map(match => Number(match[1]));
-  assert.deepEqual([...indices].sort((first, second) => first - second), Array.from({ length: 25 }, (_, index) => index));
-  assert.deepEqual(indices, [0, 1, 2, 3, 4, 5, 6, 7, 17, 15, 20, 10, 9, 8, 14, 24, 16, 23, 21, 18, 13, 22, 19, 12, 11]);
-  assert.equal((markup.match(/<article\b[^>]*class="boss-card/g) || []).length, 25);
+  assert.deepEqual([...indices].sort((first, second) => first - second), Array.from({ length: 26 }, (_, index) => index));
+  assert.deepEqual(indices, [0, 1, 2, 3, 4, 5, 6, 7, 17, 15, 20, 10, 9, 8, 14, 24, 16, 23, 21, 18, 25, 13, 22, 19, 12, 11]);
+  assert.deepEqual(indices.filter(index => index !== 25), [0, 1, 2, 3, 4, 5, 6, 7, 17, 15, 20, 10, 9, 8, 14, 24, 16, 23, 21, 18, 13, 22, 19, 12, 11]);
+  assert.equal((markup.match(/<article\b[^>]*class="boss-card/g) || []).length, 26);
   assert.equal((markup.match(/aria-label="取消最愛 /g) || []).length, 4);
   assert.equal((markup.match(/<article\b[^>]*class="[^"]*card-counting/g) || []).length, 8);
   assert.match(markup, /data-route-boss="atroce" data-route-position="first"/);
@@ -206,7 +207,8 @@ test("the isolated all-boss preview includes all twenty-five animated identities
   assert.match(markup, /最愛・倒數・指定順序/);
   assert.match(markup, /aria-label="依最愛、重生倒數與指定順序排列的 Boss"/);
   assert.doesNotMatch(markup, /最近重生優先/);
-  for (const name of ["逐影", "亡靈巫師", "殭屍龍", "基因", "獸牙怪", "代行", "影龍"]) assert.ok(markup.includes(name), name);
+  for (const name of ["逐影", "亡靈巫師", "殭屍龍", "基因", "獸牙怪", "代行", "影龍", "皮皮"]) assert.ok(markup.includes(name), name);
+  assert.ok(markup.includes('<h3 title="皮里恩">皮皮</h3>'));
   assert.equal(catalog.bossCatalog.length, 18);
   assert.equal(JSON.stringify(timers.defaultBosses(now)), before);
 });

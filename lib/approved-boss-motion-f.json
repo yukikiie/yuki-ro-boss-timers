@@ -1,0 +1,82 @@
+{
+  "source": "/art/ro-approved-boss-motion-f.png",
+  "width": 1248,
+  "height": 315,
+  "bossIds": [
+    "phreeoni"
+  ],
+  "rows": [
+    [
+      [
+        48,
+        38,
+        237,
+        249
+      ],
+      [
+        341,
+        56,
+        261,
+        231
+      ],
+      [
+        638,
+        28,
+        277,
+        259
+      ],
+      [
+        964,
+        54,
+        234,
+        233
+      ]
+    ]
+  ],
+  "idleAreas": [
+    32979.07843134335
+  ],
+  "frameOrder": [
+    "idle",
+    "windup",
+    "action",
+    "recovery"
+  ],
+  "generatedSource": "phreeoni-four-poses-v1.png",
+  "generatedSourceSha256": "ca2a205d8773098f219bcbd14b08154c7e54f35f74c02d6e36a15e41385a8684",
+  "sourceFrameBounds": [
+    [
+      14,
+      89,
+      505,
+      532
+    ],
+    [
+      552,
+      128,
+      557,
+      492
+    ],
+    [
+      1076,
+      73,
+      592,
+      552
+    ],
+    [
+      1660,
+      125,
+      499,
+      497
+    ]
+  ],
+  "uniformScale": 0.46152183110456685,
+  "framePixelHashes": [
+    [
+      "cae830d91199a2ca146a190ef99ccb991f0128036b74a0fbc3afbdff24eda708",
+      "a2b3d8ca64adceca1dcc48d063d8dae76425d9392b7d21e6d9674fe88094c243",
+      "51147c8651a7d1074bc3e2b08247cb2f543cddeb2badd305e234a3524984b261",
+      "8162301b7e06899b06a29b1d5a0ee9ab734d70fdb1d0f3863240b9323f2ca163"
+    ]
+  ]
+}

@@ -148,3 +148,46 @@ test("all twenty-five approved bosses require five complete animation batches", 
   assert.deepEqual(available, batchIds);
   assert.equal(proof.bosses.length, 25);
 });
+
+test("Phreeoni has four complete transparent bite-and-swat poses on its own sixth atlas", () => {
+  const atlas = JSON.parse(readFileSync(new URL("../lib/approved-boss-motion-f.json", import.meta.url), "utf8")) as ApprovedAtlas & { framePixelHashes: string[][]; generatedSourceSha256: string };
+  assert.deepEqual(atlas.bossIds, ["phreeoni"]);
+  assert.deepEqual(atlas.frameOrder, ["idle", "windup", "action", "recovery"]);
+  assert.equal(atlas.rows.length, 1);
+  assert.equal(atlas.rows[0].length, 4);
+  assert.doesNotMatch(atlas.generatedSource, /[\\/]/);
+  assert.match(atlas.generatedSourceSha256, /^[a-f0-9]{64}$/);
+  assert.equal(createHash("sha256").update(readFileSync(new URL(`../public${atlas.source}`, import.meta.url))).digest("hex"), "0d243dfce4250c964bb61d3c69a2570ffc7b0c496009bc3ae8b61dc40ab8e03b");
+  const pixels = rgbaPixels(atlas), coverage = new Uint8Array(atlas.width * atlas.height), hashes: string[] = [];
+  for (const [column, [left, top, width, height]] of atlas.rows[0].entries()) {
+    assert.ok(left > 0 && top > 0 && left + width < atlas.width && top + height < atlas.height);
+    let idleArea = 0;
+    const margins = [width, height, width, height];
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      const pixel = (top + y) * atlas.width + left + x, alpha = pixels[pixel * 4 + 3];
+      coverage[pixel]++;
+      idleArea += alpha / 255;
+      if (alpha > 8) { margins[0] = Math.min(margins[0], x); margins[1] = Math.min(margins[1], y); margins[2] = Math.min(margins[2], width - x - 1); margins[3] = Math.min(margins[3], height - y - 1); }
+    }
+    assert.ok(margins.every(value => value >= 2), `Phreeoni/${column}: antlers, arms and teeth retain complete transparent padding`);
+    const hash = createHash("sha256").update(crop(pixels, atlas.width, [left + 2, top + 2, width - 4, height - 4])).digest("hex");
+    hashes.push(hash);
+    assert.equal(hash, atlas.framePixelHashes[0][column]);
+    if (!column) assert.ok(Math.abs(idleArea - atlas.idleAreas[0]) < 1e-6);
+  }
+  assert.equal(new Set(hashes).size, 4);
+  assert.equal(new Set(atlas.rows[0].map(bounds => bounds[1] + bounds[3])).size, 1, "all four poses share the same foot baseline");
+  for (let pixel = 0; pixel < coverage.length; pixel++) if (pixels[pixel * 4 + 3] > 8) assert.equal(coverage[pixel], 1, `Phreeoni foreground ${pixel} remains complete and separate`);
+});
+
+test("appending Phreeoni preserves all100 previous pose bytes and the exact JSON geometry/proof values across checkout line endings", () => {
+  const baseline = JSON.parse(readFileSync(new URL("./fixtures/phreeoni-existing-art-proofs.json", import.meta.url), "utf8"));
+  assert.equal(baseline.existingBatches.length, 5);
+  for (const previous of baseline.existingBatches) {
+    const metadata = JSON.parse(readFileSync(new URL(`../${previous.metadata}`, import.meta.url), "utf8"));
+    assert.equal(createHash("sha256").update(JSON.stringify(metadata)).digest("hex"), previous.metadataJsonSha256);
+    assert.equal(createHash("sha256").update(readFileSync(new URL(`../public${previous.source}`, import.meta.url))).digest("hex"), previous.sourceSha256);
+  }
+  const previousProof = JSON.parse(readFileSync(new URL("./fixtures/approved-boss-idle-proofs.json", import.meta.url), "utf8"));
+  assert.equal(createHash("sha256").update(JSON.stringify(previousProof)).digest("hex"), baseline.originalIdleProofFixtureJsonSha256);
+});

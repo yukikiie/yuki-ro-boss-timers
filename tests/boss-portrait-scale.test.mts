@@ -67,6 +67,18 @@ test("pixel Death Knight matches the reference footprint without stretching its 
   }
 });
 
+test("Phreeoni appends at25 with the shared apparent-size reference and one uniform animation scale", () => {
+  const details = motion.motionDetails(25)!;
+  assert.equal(details.id, "phreeoni");
+  assert.equal(details.source, "/art/ro-approved-boss-motion-f.png");
+  assert.equal(details.action, "張口咬擊與揮臂");
+  assert.equal(details.duration, 1.4);
+  assert.equal(details.row, 0);
+  const first = projectedFrame(details, 0), footprint = motion.bossIdleSilhouetteAreas[25] * first.scale ** 2;
+  assert.ok(footprint / motion.bossReferenceFootprint >= .99 && footprint / motion.bossReferenceFootprint <= 1.01);
+  for (let frame = 0; frame < 4; frame++) assert.equal(projectedFrame(details, frame).scale, first.scale);
+});
+
 test("old eighteen retain the reference footprint and the additions use their maximum unclipped fixed scale", () => {
   const reference = [0, 1].reduce((total, index) => total + motion.bossIdleSilhouetteAreas[index] * projectedFrame(motion.motionDetails(index)!, 0).scale ** 2, 0) / 2;
   for (let index = 0; index < motion.bossMotion.length; index++) {

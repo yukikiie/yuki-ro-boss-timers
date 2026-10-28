@@ -1,0 +1,42 @@
+{
+  "purpose": "Freeze all previously approved boss art/geometry before appending Phreeoni atindex25.",
+  "existingBatches": [
+    {
+      "metadata": "lib/approved-boss-motion-a.json",
+      "metadataSha256": "ff0aad36da20ca06b7fca4da3d94b841afa1ca0d3a58c111428755452c34e416",
+      "source": "/art/ro-approved-boss-motion-a.png",
+      "sourceSha256": "352db33cf4b695ca3c7759937416fe7d9d20dca4b9af0a08961b19b623c10114",
+      "metadataJsonSha256": "a0e18b0a1055ad1222d81a893fd8cd8a22ffe31006bec4f724b29b11d2d73334"
+    },
+    {
+      "metadata": "lib/approved-boss-motion-b.json",
+      "metadataSha256": "23121304f36916c4f9c3b0b736db1868bb5fa45dfd81d871742dbc0dc8adb133",
+      "source": "/art/ro-approved-boss-motion-b.png",
+      "sourceSha256": "baa3809252c8c19b4d352891183a03e6110bf329669e48060f396aa4e054d4e0",
+      "metadataJsonSha256": "25c5dde9a6329c3d58cbed487608807006708093884780d72f06a13efcf81f88"
+    },
+    {
+      "metadata": "lib/approved-boss-motion-c.json",
+      "metadataSha256": "0500af28ea9aa14118b554cda86c2bb2e5d7b698bb0c59e5f29b941bdf8928e0",
+      "source": "/art/ro-approved-boss-motion-c.png",
+      "sourceSha256": "5c3035aa5be0af74fb03b13cff21c417893cbb4e3694a4fcb74ade3ea3f7fdb8",
+      "metadataJsonSha256": "c2c5a2bc45a5c01613f897d4ad7529819c1394f7b63575e97b67500da0e5eb86"
+    },
+    {
+      "metadata": "lib/approved-boss-motion-d.json",
+      "metadataSha256": "b44015d56e1d9f0fa1af7fc477c6d0bd3f8d5de6912ef5b165e866f6520f42e2",
+      "source": "/art/ro-approved-boss-motion-d-eyes-v2.png",
+      "sourceSha256": "a2a3e26e451b033c582adf50aeb4ef44c4946a9eee11255263bbdafa2d1e0594",
+      "metadataJsonSha256": "dde2a2edaa59bc8109eaa5f8a2707c12ba31d5c24e2d4dc0410740a27060344d"
+    },
+    {
+      "metadata": "lib/approved-boss-motion-e.json",
+      "metadataSha256": "8977245bc04d4ebce9378d246a69f47a63803b359b208d52d572f2b82b7874e9",
+      "source": "/art/ro-approved-boss-motion-e.png",
+      "sourceSha256": "6e7d7de7402f659ab05a8d3d46e1931bb693131d06e98ba64d95b534d286d183",
+      "metadataJsonSha256": "6f94b9f9892154d38b21a1b1d73f8ec60de21b2ed84f92ac0bd43d0b0e885df4"
+    }
+  ],
+  "originalIdleProofFixtureSha256": "89cfac0e2c49cb8091607d91074a1e25bb363ee9d47df558eb9029370561cf23",
+  "originalIdleProofFixtureJsonSha256": "a46ae12ad5dd1f0343a015146ee40e08e7cff0934ebff289e94887e4d2ed99e8"
+}

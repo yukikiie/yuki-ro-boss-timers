@@ -3,11 +3,15 @@ import approvedMotionB from "./approved-boss-motion-b.json";
 import approvedMotionC from "./approved-boss-motion-c.json";
 import approvedMotionD from "./approved-boss-motion-d.json";
 import approvedMotionE from "./approved-boss-motion-e.json";
+import approvedMotionF from "./approved-boss-motion-f.json";
 
-const pixelAtlases = [approvedMotionA, approvedMotionB, approvedMotionC, approvedMotionD, approvedMotionE];
+const pixelAtlases = [approvedMotionA, approvedMotionB, approvedMotionC, approvedMotionD, approvedMotionE, approvedMotionF];
 
 export const motionAtlases = pixelAtlases.map(({ source, width, height }) => ({ source, width, height }));
-export const motionSpriteLocations = Array.from({ length: 25 }, (_, index) => ({ atlasIndex: Math.floor(index / 5), row: index % 5 }));
+export const motionSpriteLocations = [
+  ...Array.from({ length: 25 }, (_, index) => ({ atlasIndex: Math.floor(index / 5), row: index % 5 })),
+  { atlasIndex: 5, row: 0 },
+];
 export const motionFrameBounds = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].rows[row]);
 
 export const bossMotion = [
@@ -36,6 +40,7 @@ export const bossMotion = [
   { id: "tirfing", action: "魔劍蓄勢、斬擊與咬刃", duration: 1.2 },
   { id: "valkyrie-executioner", action: "羽翼蓄勢與長槍斬擊", duration: 1.4 },
   { id: "shadow-dragon", action: "暗龍蓄能、吐息與振翼", duration: 1.5 },
+  { id: "phreeoni", action: "張口咬擊與揮臂", duration: 1.4 },
 ] as const;
 
 export const bossIdleSilhouetteAreas = motionSpriteLocations.map(({ atlasIndex, row }) => pixelAtlases[atlasIndex].idleAreas[row]);

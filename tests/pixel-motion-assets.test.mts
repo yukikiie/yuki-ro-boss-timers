@@ -49,7 +49,7 @@ const spriteLocations = [
 const bossIds = [
   "atroce", "lady-tanee", "boitata", "wandering-samurai", "dark-elementalist", "naght-sieger",
   "coelacanth", "dark-ranger", "death-knight", "fallen-bishop", "tao-gunka", "ice-dragon",
-  "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing", "valkyrie-executioner", "shadow-dragon",
+  "restful", "chimera", "holy-angel-poring", "morocc", "shadow-demon", "orc-hero", "dark-chaser", "undead-wizard", "zombie-dragon", "dark-geneticist", "tirfing", "valkyrie-executioner", "shadow-dragon", "phreeoni",
 ];
 
 function pngAlpha(atlas: PixelAtlas) {
@@ -216,10 +216,10 @@ for (const [sheetIndex, atlas] of atlases.entries()) {
   });
 }
 
-test("boss motion maps twenty-five bosses across five approved sheets with one hundred selected frames", () => {
-  const activeSheets = ["a", "b", "c", "d", "e"];
+test("boss motion appends Phreeoni to the five preserved sheets for twenty-six bosses and104 frames", () => {
+  const activeSheets = ["a", "b", "c", "d", "e", "f"];
   const activeAtlases = activeSheets.map(sheet => JSON.parse(readFileSync(new URL(`../lib/approved-boss-motion-${sheet}.json`, import.meta.url), "utf8")) as PixelAtlas);
-  const activeLocations = Array.from({ length: 25 }, (_, index) => ({ atlasIndex: Math.floor(index / 5), row: index % 5 }));
+  const activeLocations = [...Array.from({ length: 25 }, (_, index) => ({ atlasIndex: Math.floor(index / 5), row: index % 5 })), { atlasIndex: 5, row: 0 }];
   const moduleValue = { exports: {} as Record<string, unknown> };
   const javascript = ts.transpileModule(readFileSync(new URL("../lib/boss-motion.ts", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -239,8 +239,8 @@ test("boss motion maps twenty-five bosses across five approved sheets with one h
   assert.deepEqual(normalized.motionFrameBounds, activeLocations.map(({ atlasIndex, row }) => activeAtlases[atlasIndex].rows[row]));
   assert.deepEqual(normalized.bossIdleSilhouetteAreas, activeLocations.map(({ atlasIndex, row }) => activeAtlases[atlasIndex].idleAreas[row]));
   assert.deepEqual(normalized.bossMotion.map((boss: { id: string }) => boss.id), bossIds);
-  assert.equal(normalized.motionFrameBounds.length, 25);
-  assert.equal(normalized.motionFrameBounds.flat().length, 100);
+  assert.equal(normalized.motionFrameBounds.length, 26);
+  assert.equal(normalized.motionFrameBounds.flat().length, 104);
   const detailsFor = moduleValue.exports.motionDetails as (index: number) => {
     id: string; source: string; width: number; height: number; row: number;
     frames: { left: number; top: number; width: number; height: number }[];
@@ -258,7 +258,7 @@ test("boss motion maps twenty-five bosses across five approved sheets with one h
     assert.deepEqual(JSON.parse(JSON.stringify(details.frames.map(({ left, top, width, height }) => [left, top, width, height]))), atlas.rows[row], `${details.id}: selected frame bounds`);
   }
   assert.equal(detailsFor(-1), null);
-  assert.equal(detailsFor(25), null);
+  assert.equal(detailsFor(26), null);
 });
 
 test("original motion PNGs remain retained unchanged beside their pixel replacements", () => {
