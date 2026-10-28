@@ -376,5 +376,180 @@
       "isolatedPixelHash": "b5cee0aa84b747367156611fb0ef90472e883b8725afce15eab60bf26711e49e",
       "rawPixelHash": "b5cee0aa84b747367156611fb0ef90472e883b8725afce15eab60bf26711e49e"
     }
+  ],
+  "revisions": [
+    {
+      "id": "shadow-demon",
+      "revision": "forward-skull-eyes-20261028",
+      "requestedAt": "2026-10-28",
+      "reason": "User-requested anatomical eye correction: magenta eyes on the forward ivory skull; remove misplaced shoulder facial marks in all four poses.",
+      "originalApprovedIdlePixelHash": "21f378196b15c1f336b7c6b2a243d1fb7f23aed8f8b2b6e45d111a4d81c51bbd",
+      "repairSourceSha256": "34463f334eefb60919076344a72601f035b0c15e75efd783db3b8de7d8e74b72",
+      "idle": {
+        "size": [
+          210,
+          211
+        ],
+        "sourceBounds": [
+          56,
+          165,
+          398,
+          400
+        ],
+        "rawPixelHash": "384c8881434fd9a3f3f9ec1142dda677a7556f6d82f7113172a90b4a1e1ddb5a"
+      },
+      "framePixelHashes": [
+        "384c8881434fd9a3f3f9ec1142dda677a7556f6d82f7113172a90b4a1e1ddb5a",
+        "44f5682ab9847a344592b30c9c47e73cabe06d445c3e1bf2e2a13e2be27a945f",
+        "915d14e74e0a265b07f8eae0345765c2c0947f32d5aeb1c17cd5af2f48a2ac37",
+        "9125bb7f7a2c0a3c73dadfe79ba55062ecb960dfb464c1efff2025d7a1c1775f"
+      ],
+      "unchangedFramePixelHashes": {
+        "atroce": [
+          "a13fd04feb37e61584b27aef1f62b70e5af37bdf944ae44d582daa4bfe65deb4",
+          "72528c47a9f09d04424c99c9d131eb8eda357493d20b4d6d8c2961d3d2eeb855",
+          "6a465550e72dbba902372b433220450cd97a87921a6852956adae3b62d1f5839",
+          "bdc227263a300f4a062f8cc4370e720a688d88ac02af3fa7b0f410ba1177a56f"
+        ],
+        "lady-tanee": [
+          "c408f47ccce0f4fd65e595e24b9c67cf7ebf9614bf54113538cc63dd6593091c",
+          "049aa36267d926cd56b76a4a1d30fd0eec7bb044bb921a60fdde32b79b440a1d",
+          "e23128e963360d139833cf894f20c330f5dfbaf8325ce966d6e36e796748ae63",
+          "b36bc656611bba82a7ac310f02d190c921c4162defe868810c77bc407aa119db"
+        ],
+        "boitata": [
+          "ba4e0ed5db35128189d3834a5e253ae35cf031d6ee45e329b52e7bc5802a175e",
+          "2a783bb1c9221be8ea98ab91fe8e2185e56a837253eeba17f6e1c607b9178018",
+          "89bdddbece13cb4fb3c7719bd7ba6c461ffe410fde48f5e3430d1cc9206c82de",
+          "99d79f43b845c4ae26d5a9388f7980564a5dbdd53811e0d204f77f42d35698e7"
+        ],
+        "wandering-samurai": [
+          "4d0e16ff81b0579eb2bacd55402c98999c23a0025e7ba0834808de44291287d5",
+          "b8fe7ced4b4d86190432590dba41fe83ff7f2e2d9409e1cce4eaf3f91021fecf",
+          "dc93eb65e8d29a77889531619962424e74def93f394c4bd3f522f571e0c9ec91",
+          "a25426775d434576a8f3ede4c1b79dc8bdb07be6292b8a7dbd514e1f7d4bb574"
+        ],
+        "dark-elementalist": [
+          "c19293fb5273d5351a6474776564d67a5fef2802c07e8731e114608628f20d68",
+          "9e3a7307e6f243671a148b1a0b05489715ea7d171a7599917cdc8960429cfd02",
+          "5fce0a886a2818f7bf3065e34c4d290ee3b5fccde6f1be820bcf70cec976872d",
+          "0c84c7f706b13eddded2c5b553c953e70813c75c6e038cc0f89692f9290f1e95"
+        ],
+        "naght-sieger": [
+          "7963ce7cfdd310df19d1c87dd2fc5ef55301e2b9f75b63a73c20a0e5bae5cae1",
+          "0c99f3fdf04e9bf1de2ba44b23bb9d913cd73f883583fa28334cd775de18a4ea",
+          "c3e245b729b85b8cc58aa4b1eceb126d13a0e58237420d275463ea28a73304c6",
+          "51430ecadd836bbbfe55037cfc963a90fc2f14e808577b1e0698060410d55121"
+        ],
+        "coelacanth": [
+          "c1cd498d7800901bcfdee4fe85cafc3f37e79906af26e9c05d8c8ee26d529ee4",
+          "03595ea0e18d1e0552930283a38c6ac3e51352dc6ff7bf19282f144397de2e29",
+          "66d2849b9611fa181e82f448ad947ec95aa317b866aff53e2b7daceaca2066d7",
+          "debf462b8178e9d59447ffdd6fc96c4b5a7a1bb85d97096ca03c9cc09b003b49"
+        ],
+        "dark-ranger": [
+          "511d914c28a107dfbd6fb9c4aee4b4f8cb282d21cc08ff1b460feec83e8d8db4",
+          "981dd5a2e109b8daf601036cde4ccb1714c37234bcfef55194ab6a8f46b8dd51",
+          "600573089913c1b15362c212e25d9c9e456827ca06218e63fc39273548ef1b48",
+          "3afea03dba96cc40c320cc4be3d10f6fc3ea80dc639eddafefd9315a7e2337e5"
+        ],
+        "death-knight": [
+          "6bac539b52cd1aa1db095a3d94be7affd1640cb96cf2204e6372efa91023e07e",
+          "c36bb19a7987a6e12a7f640986a4ce741d0930fab764c8ff97632f758a7481ed",
+          "06db60af6d2664844e0814faa941ea41b0d1e77ce3755f3b20e3a006b9208286",
+          "8a875fb8eeddc07be086b99b1792ce570ec2023ed1ba7272573dc867e3531bab"
+        ],
+        "fallen-bishop": [
+          "9246d9961e8a0f8fcf96fc32a2b64b3940101b48ebdf49c35df458aadbb4b9a7",
+          "6c9e007ebc0ac12326d7dd0a94a3ee8c8551f7218658a1dfad234fb8ef496822",
+          "cd2a9b93edb0074af9a121a437f1bead3327f0556bef37da90b8f2a02bf9e06c",
+          "e9cabc0aef2c0924bbb41500285c69f0df9f40bbdd0e4ded671d6cf8804838e9"
+        ],
+        "tao-gunka": [
+          "508a9bcc5c6ec35dfdd8ec00b824158ed886c5ed7d8a34d72652a3427f46cdfb",
+          "32c79db235db95a0406e23cb225758e51a628f60df3a8a328681184d61e32e88",
+          "a978f3699f110049ac9ecab23c54c4fb7d7607ba8a0e79daf31f27328e6e49d3",
+          "f0f0e9b06f03805805cf3d8c3a58e5f7128a74b7b3a29bbe2646321979d03782"
+        ],
+        "ice-dragon": [
+          "1c26eaa7914b37bb8ac2a85edbbff3ab6f930d8a864455563f206f948397013f",
+          "e23eb3e76de467db531458cc1380df7072ebdef718d9deb5c1c5162792d42fdc",
+          "8827146b2905b5dda0f809734c2bac4d15075d784fe029b215eef237c684451b",
+          "bb9af8450aa95b6708a534280652ba19e6726b800cbf7313a5a10db25e8a8c87"
+        ],
+        "restful": [
+          "0c37888f52a41e5f2718412f05437c430e7b8fc6735be206dd5d4d4779185242",
+          "4d45b46d5d956fd51bbb3269fed40b0fac59a1435bdad5461f474e9dc9bcbe9e",
+          "7d75edeaf87a296a5e43ff561e47176b3c2706d8fec3601953f946733eb04262",
+          "e8b02e4adb5684a48eaa87aa16f5d0bf3aae58f45ac64c89696ba8fe57542ebd"
+        ],
+        "chimera": [
+          "8fb380229ccd758e911cd384792ec7d9d626d2074c655fc25f9c100a0cb1b062",
+          "af474ab8dbbca12143a7643f8d5516ea26e5df95604c68d7465bd20755b999ee",
+          "d63bcfa74991ad7f25c7a93ab4656fd6b3d65aae50389dbb5bbc81b2d6f984b6",
+          "362d0ea582e089f951e198277636d413f480987d8ddfa2c481dc426efcdbf87f"
+        ],
+        "holy-angel-poring": [
+          "de8bc28da8895b7fbb483ce503ad521fcbf0e6b1adfd848748afa3e80246b28c",
+          "f87ea2ee9eb1c2feb75bd9e2fecaa780b3e77f6bcb22ae1169c9ec1a242f95b0",
+          "5a30b0c28b84bb3a6c77d69248bac3b5d5b2faff81a019ba06be6951f396a698",
+          "26ceb61462f65b9c389843e958e49ffc93683ca54284ae79b56cfd3cb16c6ded"
+        ],
+        "morocc": [
+          "3e173a2a4c8ebcd355c45776f53174499d124710337e019059aec2195d4bfc19",
+          "a596b803a316a2127c86dd1c16149be2c765e2a2a5f57e70a90da5e6e820f065",
+          "a6bad0b7f41eb33d663f49dc9a478a952e005b21626ed07528ceaa0567d5a028",
+          "b41435df5696cc9a06d49a4bde7004441e908df9ac4a6a0762c96b4da71f3a68"
+        ],
+        "orc-hero": [
+          "b6d3ea799815c1522f9a41385f4a99ebc9cd766ca9552ba93f72f8a0593a13f0",
+          "4d1ec0719edc99c4f9b0ef09440831ae14d225513064e352ebdcbc91e25df3a3",
+          "16a7896b1a348ab6e906bdb6dfcbdbbbf0821d7ef379a66805a5088130526b5b",
+          "a10c6c74e1ebdda5bc9be8f473f0d709c680eeda2fba42353ac85928b94b368c"
+        ],
+        "dark-chaser": [
+          "889fc1fd0a088afd1c49ac8d5c628d64183f4f1063102b00bcaa43f5b5b3c3c6",
+          "ccb59d9e13b56ce67496446e115b9ef61b75252c2be27363036e69ceaadcccb3",
+          "d473ad1043a9bc20e096990056914240916437add7d99e4e51715f27645e631d",
+          "a59d8b52f5c34962c02872673906bab84299f60b133513b5543b5115141448d4"
+        ],
+        "undead-wizard": [
+          "92cc3bc0dd932e0665a89dee0c288ab0859d3bad89f275c97690db65804676e3",
+          "dc2965d220831428d48da072f248af47ebffcd1f0e5c38dcf6e221692a561cd1",
+          "59b334902abe360c1ec16790b45abef738b20ce3375a339da640358b38f7504d",
+          "100aa02a16d0d79c29d547f0f0694f736a32da9af211658705fe1b1377607a64"
+        ],
+        "zombie-dragon": [
+          "1266d88d7f8374e168bb010974097f57e1057a54c723728f1a4d1f503327c9ef",
+          "8af1569d84bf02aeff1cdb23403217dee778fba5859664bf8b7769c961d79e38",
+          "b1ba1ef2e10865ecea7279fdb6a74d6cbdb9fee1bdcad136fbe7b47e7ecdb9ba",
+          "08c90178cd9c5994ec092fcd3997bfc329a71c564a57a80b2d6ae90cd98d2b55"
+        ],
+        "dark-geneticist": [
+          "c019baab0a56af0904c65689e695caff5df82dd377148a87ecd388c2eff272fc",
+          "a36ec208e99ffb8854592a16ce7b6f1acd9a12ffa765eeebccbc609b54c1d598",
+          "bf0f303701bd1a216015416c3ad018b378f8eeb977093d9d092566343c697937",
+          "6380ed28cfef0a5db64fcf950e6fef1f484bce9945af358f9f8b55742c8ac5da"
+        ],
+        "tirfing": [
+          "b546e06db9e9293d3165803dff9d16fd5ac01587b045d92fcbde0ba370663907",
+          "a9aa5d77737c5dba636434eed526120f2534e57b339dfd9ba7d4d7d1495b1045",
+          "953186239158d9784d01979409e4ab351ef083cc5afca23f182a624d8e792dfe",
+          "48892a58fbcaaa576fdf1ca1cb12233d4576885e2d4866c69211cc5deccbf0ab"
+        ],
+        "valkyrie-executioner": [
+          "c4e040d1e178541c5ae782fcd94a2e0dd19eeda2ce5bfab9bd29fde8fc06aca0",
+          "e799aa681b73313be578dd099a5ba023dde473b1761c0b0c3c009bf0d989472f",
+          "f88b7a3ebd3b1b9b4cd3c32600423e7bd41c0922209b2b509719c96860e03470",
+          "6882faf406a8b0a3d8ec626e1b5891cdb91f6e761ed8aaeb21ca3219697628c9"
+        ],
+        "shadow-dragon": [
+          "dcb82ba8a38fcdbbdf56c8a2e6044dd484d8b9b15d008e6635a5ac2236918bdd",
+          "a751198e1d7643a8b84dac644dfe406dcef1070da5cce7fa17f63915d06c8a04",
+          "2306e2b900838d8cae255f7a59a4b532f621cc2227661fc22a0d6fe13ad722ae",
+          "e7358d43a5b1b50386a4b5a7bde78738d9208c4f75dc29ac9346edbb3b7c2a9c"
+        ]
+      }
+    }
   ]
 }

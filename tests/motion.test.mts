@@ -60,7 +60,7 @@ test("every known boss uses the single approved style through five ordered anima
   for (let index = 0; index < 25; index++) {
     const details = motionDetails(index)!;
     const batch = "abcde"[Math.floor(index / 5)];
-    assert.equal(details.source, `/art/ro-approved-boss-motion-${batch}.png`);
+    assert.equal(details.source, batch === "d" ? "/art/ro-approved-boss-motion-d-eyes-v2.png" : `/art/ro-approved-boss-motion-${batch}.png`);
     assert.equal(details.row, index % 5);
     assert.equal(details.cellWidth, Math.max(...details.frames.map(frame => frame.width)) + 16);
   }
@@ -71,7 +71,7 @@ test("wizard and living sword retain their approved indices and action selection
   assert.equal(wizard.id, "undead-wizard");
   assert.equal(wizard.action, "舉杖蓄能與紫焰施法");
   assert.equal(wizard.duration, 1.6);
-  assert.equal(wizard.source, "/art/ro-approved-boss-motion-d.png");
+  assert.equal(wizard.source, "/art/ro-approved-boss-motion-d-eyes-v2.png");
   assert.equal(motionDetails(22)!.source, "/art/ro-approved-boss-motion-e.png");
 });
 

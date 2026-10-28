@@ -9,6 +9,7 @@ type ApprovedAtlas = {
   source: string; width: number; height: number; bossIds: string[]; rows: Bounds[][]; idleAreas: number[];
   approvedIdlePixelHashes: string[]; approvedIdleSizes: number[][]; approvedIdleSourceBounds: Bounds[];
   sourceMasterSha256: string; generatedSource: string; frameOrder: string[];
+  userRequestedRevisions?: { bossId: string; revision: string; repairSourceSha256: string; originalApprovedIdlePixelHash: string; framePixelHashes: string[] }[];
 };
 const proof = JSON.parse(readFileSync(new URL("./fixtures/approved-boss-idle-proofs.json", import.meta.url), "utf8"));
 const batchIds = ["a", "b", "c", "d", "e"];
@@ -93,17 +94,54 @@ for (const batch of available) test(`approved batch ${batch} preserves exact idl
       const hash = createHash("sha256").update(crop(pixels, atlas.width, tightBounds)).digest("hex");
       hashes.push(hash);
       if (!column) {
-        assert.deepEqual([width - 4, height - 4], expected[row].size);
-        assert.deepEqual(atlas.approvedIdleSizes[row], expected[row].size);
-        assert.deepEqual(atlas.approvedIdleSourceBounds[row], expected[row].sourceBounds);
-        assert.equal(atlas.approvedIdlePixelHashes[row], expected[row].rawPixelHash);
-        assert.equal(hash, expected[row].rawPixelHash, `${expected[row].id}: every approved idle RGBA byte remains exact`);
+        // The user specifically corrected shadow-demon's eyes on2026-10-28; all other master proofs stay exact.
+        const revision = expected[row].id === "shadow-demon" ? proof.revisions?.find((entry: any) => entry.id === "shadow-demon") : undefined;
+        const activeProof = revision?.idle ?? expected[row];
+        assert.deepEqual([width - 4, height - 4], activeProof.size);
+        assert.deepEqual(atlas.approvedIdleSizes[row], activeProof.size);
+        assert.deepEqual(atlas.approvedIdleSourceBounds[row], activeProof.sourceBounds);
+        assert.equal(atlas.approvedIdlePixelHashes[row], activeProof.rawPixelHash);
+        assert.equal(hash, activeProof.rawPixelHash, `${expected[row].id}: every approved active idle RGBA byte remains exact`);
         assert.ok(Math.abs(area - atlas.idleAreas[row]) < 1e-6);
       }
     }
     assert.equal(new Set(hashes).size, 4, `${expected[row].id}: four distinct drawings`);
   }
   for (let pixel = 0; pixel < covered.length; pixel++) if (pixels[pixel * 4 + 3] > 8) assert.equal(covered[pixel], 1, `${batch}: foreground ${pixel} omitted or shared`);
+});
+
+test("the explicit shadow-demon eye correction retains its original proof and leaves all other96 poses byte-identical", () => {
+  assert.deepEqual(proof.revisions.map((revision: any) => revision.id), ["shadow-demon"]);
+  const revision = proof.revisions[0];
+  assert.equal(revision.revision, "forward-skull-eyes-20261028");
+  assert.equal(revision.requestedAt, "2026-10-28");
+  assert.match(revision.reason, /User-requested anatomical eye correction/);
+  const original = proof.bosses.find((boss: any) => boss.id === "shadow-demon");
+  assert.equal(original.rawPixelHash, "21f378196b15c1f336b7c6b2a243d1fb7f23aed8f8b2b6e45d111a4d81c51bbd");
+  assert.equal(revision.originalApprovedIdlePixelHash, original.rawPixelHash);
+  assert.deepEqual(Object.keys(revision.unchangedFramePixelHashes).sort(), proof.bosses.filter((boss: any) => boss.id !== "shadow-demon").map((boss: any) => boss.id).sort());
+  let unchanged = 0;
+  for (const batch of batchIds) {
+    const atlas = JSON.parse(readFileSync(new URL(`../lib/approved-boss-motion-${batch}.json`, import.meta.url), "utf8")) as ApprovedAtlas;
+    const pixels = rgbaPixels(atlas);
+    for (const [row, bossId] of atlas.bossIds.entries()) for (const [column, bounds] of atlas.rows[row].entries()) {
+      if (bossId === "shadow-demon") {
+        const [left, top, width, height] = bounds;
+        const tight = crop(pixels, atlas.width, [left + 2, top + 2, width - 4, height - 4]);
+        assert.equal(createHash("sha256").update(tight).digest("hex"), revision.framePixelHashes[column]);
+        const recorded = atlas.userRequestedRevisions?.find(entry => entry.bossId === bossId);
+        assert.ok(recorded);
+        assert.equal(recorded.revision, revision.revision);
+        assert.equal(recorded.repairSourceSha256, revision.repairSourceSha256);
+        assert.equal(recorded.originalApprovedIdlePixelHash, original.rawPixelHash);
+        assert.deepEqual(recorded.framePixelHashes, revision.framePixelHashes);
+      } else {
+        assert.equal(createHash("sha256").update(crop(pixels, atlas.width, bounds)).digest("hex"), revision.unchangedFramePixelHashes[bossId][column], `${bossId}/${column}: unrelated pose stays exact`);
+        unchanged++;
+      }
+    }
+  }
+  assert.equal(unchanged, 96);
 });
 
 test("all twenty-five approved bosses require five complete animation batches", () => {

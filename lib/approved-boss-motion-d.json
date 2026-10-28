@@ -1,5 +1,5 @@
 {
-  "source": "/art/ro-approved-boss-motion-d.png",
+  "source": "/art/ro-approved-boss-motion-d-eyes-v2.png",
   "width": 1208,
   "height": 1241,
   "bossIds": [
@@ -38,28 +38,28 @@
     ],
     [
       [
-        54,
-        280,
-        215,
-        218
-      ],
-      [
-        341,
+        55,
         283,
-        230,
+        214,
         215
       ],
       [
-        625,
-        271,
-        253,
-        227
+        341,
+        286,
+        231,
+        212
+      ],
+      [
+        626,
+        274,
+        251,
+        224
       ],
       [
         942,
-        292,
+        293,
         208,
-        206
+        205
       ]
     ],
     [
@@ -143,14 +143,14 @@
   ],
   "idleAreas": [
     41512.23529410763,
-    31870.87058821755,
+    31795.411764681663,
     33008.149019586555,
     29617.00784311877,
     34282.45882350599
   ],
   "approvedIdlePixelHashes": [
     "526203eadc9cf651cb3a0fcb3481d3196b13730dc1056676e50cd3ac8113c445",
-    "21f378196b15c1f336b7c6b2a243d1fb7f23aed8f8b2b6e45d111a4d81c51bbd",
+    "384c8881434fd9a3f3f9ec1142dda677a7556f6d82f7113172a90b4a1e1ddb5a",
     "28b03845e6c4b2f7df542de587ce64704de553e34c0c5a7bccae0056ddca0240",
     "2aabe74d53bd96ed51e27f62978f7b0cc25531530d9661a0af0ff276adf64405",
     "8c34637636dfa2c48fb2bdad3a968d3aa896f8c524e56fe71064761919801b17"
@@ -161,8 +161,8 @@
       211
     ],
     [
-      211,
-      214
+      210,
+      211
     ],
     [
       235,
@@ -185,10 +185,10 @@
       211
     ],
     [
-      291,
-      787,
-      211,
-      214
+      56,
+      165,
+      398,
+      400
     ],
     [
       521,
@@ -225,5 +225,58 @@
     "windup",
     "action",
     "recovery"
+  ],
+  "userRequestedRevisions": [
+    {
+      "bossId": "shadow-demon",
+      "revision": "forward-skull-eyes-20261028",
+      "requestedAt": "2026-10-28",
+      "reason": "User-requested anatomical eye correction: magenta eyes on the forward ivory skull; remove misplaced shoulder facial marks in all four poses.",
+      "repairSource": "shadow-demon-repaired-four-poses.png",
+      "repairSourceSha256": "34463f334eefb60919076344a72601f035b0c15e75efd783db3b8de7d8e74b72",
+      "originalSource": "/art/ro-approved-boss-motion-d.png",
+      "originalSourceSha256": "2dc741ac6887dbdf44953bac3daabbc645642a5fcdde3e9d219dc579a843edec",
+      "originalApprovedIdlePixelHash": "21f378196b15c1f336b7c6b2a243d1fb7f23aed8f8b2b6e45d111a4d81c51bbd",
+      "originalApprovedIdleSourceBounds": [
+        291,
+        787,
+        211,
+        214
+      ],
+      "uniformScale": 0.5282110730808578,
+      "baseline": 496,
+      "sourceFrameBounds": [
+        [
+          56,
+          165,
+          398,
+          400
+        ],
+        [
+          594,
+          168,
+          430,
+          394
+        ],
+        [
+          1123,
+          147,
+          468,
+          417
+        ],
+        [
+          1716,
+          183,
+          387,
+          381
+        ]
+      ],
+      "framePixelHashes": [
+        "384c8881434fd9a3f3f9ec1142dda677a7556f6d82f7113172a90b4a1e1ddb5a",
+        "44f5682ab9847a344592b30c9c47e73cabe06d445c3e1bf2e2a13e2be27a945f",
+        "915d14e74e0a265b07f8eae0345765c2c0947f32d5aeb1c17cd5af2f48a2ac37",
+        "9125bb7f7a2c0a3c73dadfe79ba55062ecb960dfb464c1efff2025d7a1c1775f"
+      ]
+    }
   ]
 }
